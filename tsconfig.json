@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "declaration": true, // Generate .d.ts files
+        "declarationMap": true, // Generate .d.ts.map files for debugging
+        "emitDeclarationOnly": true, // Only emit type declarations
+        "outDir": "./dist", // Output folder for compiled files
+        "module": "ESNext", // Use ES module syntax
+        "target": "ESNext", // Target modern JavaScript
+        "moduleResolution": "Node", // Resolve modules like Node.js
+        "baseUrl": ".", // Base URL for module resolution
+        "esModuleInterop": true, // Enable ES module interop
+        "skipLibCheck": true // Skip checking library .d.ts files
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+}
