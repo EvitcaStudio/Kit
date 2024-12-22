@@ -1,11 +1,10 @@
 declare global {
-    type BuildOptions = { 
+    type ProcessOptions = { 
         inDirectory: string, 
-        outDirectory: string, 
-        resourcePath?: string, 
+        outDirectory: string,
         verbose?: boolean, 
         ignoreSound?: boolean 
     }
 }
 
-export { BuildOptions };
+export { ProcessOptions };

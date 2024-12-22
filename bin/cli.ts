@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { KitCLI } from './kit';
-import { BuildOptions } from './types/shared-types';
+import { ProcessOptions } from './types/shared-types';
 import packageJSON from '../package.json';
 
 const program = new Command();
@@ -12,7 +12,6 @@ program
 program
   .option('-i, --in <path>', 'Input directory')
   .option('-o, --out <path>', 'Output directory')
-  .option('-r, --resource-path <path>', 'Path to the resources')
   .option('-is, --ignore-sound', 'Ignore sound files', false)
   .option('-v, --verbose', 'Enable verbose mode', false);
 
@@ -30,13 +29,12 @@ build                    Build resources from the specified directory
 Options:
 -i, --in <path>          Input directory (required)
 -o, --out <path>         Output directory (required)
--r, --resource-path <path>   Path to the resources
 -is, --ignore-sound           Ignore sound files (optional)
 -v, --verbose                Enable verbose mode for debugging
 
 Examples:
 kit build --in ./src --out ./dist --verbose
-kit build --in ./resources --out ./dist/resources --ignore-sound
+kit build --in ./resources --out ./dist --ignore-sound
 `;
 };
 
@@ -57,15 +55,14 @@ program
           process.exit(1);
       }
 
-      const buildOptions: BuildOptions = {
+      const ProcessOptions: ProcessOptions = {
           inDirectory: flags.in,
           outDirectory: flags.out,
-          resourcePath: flags.resourcePath || '.',
           ignoreSound: flags.ignoreSound || false,
           verbose: flags.verbose || false,
       };
 
-      KitCLI.buildResources(buildOptions);
+      KitCLI.processResources(ProcessOptions);
   });
 
 program.parse(process.argv);
