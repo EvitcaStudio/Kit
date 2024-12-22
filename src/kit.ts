@@ -49,7 +49,7 @@ export class Kit {
         });
     }
 
-    static postRegister(pPlugin: /*KitPlugin*/any): void {
+    private static postRegister(pPlugin: /*KitPlugin*/any): void {
         Object.freeze(pPlugin);
         const listener: Listener = (pEvent: EmitterEvent) => {
             Kit.emit(pEvent);
