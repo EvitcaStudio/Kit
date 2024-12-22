@@ -1,5 +1,5 @@
 import { EventEmitter } from './event-system';
-import { EventData } from './types/shared-types';
+import { EmitterEvent, Listener } from './types/shared-types';
 
 export class Kit {
     /**
@@ -7,9 +7,13 @@ export class Kit {
      */
     private static plugins: Record<string, /*KitPlugin*/any> = {};
     /**
-     * The event system for the Kit class.
+     * A set of all plugin emitters.
      */
-    private static emitter = EventEmitter;
+    private static emitters = new Map<string, EventEmitter>();
+    /**
+     * A record of all event listeners.
+     */
+    private static events: Record<string, Array<(pData: any) => void>> = {};
 
     /**
      * Initialize the Kit class with plugins.
@@ -17,8 +21,45 @@ export class Kit {
      */
     static async init(pPlugins: /* KitPlugin[]*/any[]): Promise<void> {
         const plugins = pPlugins.map(pPlugin => new pPlugin());
-        const registeredPlugins = await Promise.all(plugins.map(pPlugin => pPlugin.register(Kit)));
-        registeredPlugins.forEach(pPlugin => Kit.plugins[pPlugin.name] = pPlugin);
+        
+        await Promise.all(plugins.map(pPlugin => {
+            if (Kit.plugins[pPlugin.name]) {
+                throw new Error(`Plugin with name '${pPlugin.name}' is already registered.`);
+            }
+            
+            pPlugin.register().then(() => {
+                Kit.postRegister(pPlugin);
+            });
+        }));
+    }
+
+    /**
+     * Register a plugin with the Kit class.
+     * @param pPlugin - The plugin to register.
+     */
+    static async registerPlugin(pPlugin: /* KitPlugin[]*/any): Promise<void> {
+        const plugin = new pPlugin();
+
+        if (Kit.plugins[plugin.name]) {
+            throw new Error(`Plugin with name '${plugin.name}' is already registered.`);
+        }
+
+        plugin.register().then(() => {
+            Kit.postRegister(plugin);           
+        });
+    }
+
+    static postRegister(pPlugin: /*KitPlugin*/any): void {
+        Object.freeze(pPlugin);
+        const listener: Listener = (pEvent: EmitterEvent) => {
+            Kit.emit(pEvent);
+        }
+        
+        const emitter = new EventEmitter(listener, pPlugin);
+        Kit.emitters.set(pPlugin.name, emitter);
+
+        pPlugin.onRegistered(emitter);
+        Kit.plugins[pPlugin.name] = pPlugin;
     }
 
     /**
@@ -35,33 +76,46 @@ export class Kit {
     static getPlugins(): string[] {
         return Object.keys(Kit.plugins);
     }
-    
+
     /**
      * Emit an event to all listeners.
      * @param pEvent - The event to emit.
-     * @param pData - The data to pass to the event listeners.
      */
-    static emit(pEvent: EventData): void {
-        Kit.emitter.emit(pEvent);
+    private static emit(pEvent: EmitterEvent): void {
+        const { plugin, name } = pEvent;
+        const eventScope = `${plugin}-${name}`;
+
+        if (!Kit.events[eventScope]) {
+            return;
+        }
+
+        Kit.events[eventScope].forEach(pListener => pListener(pEvent));
     }
     
-    /**
+     /**
      * Listen for an event.
-     * @param pPluginName - The plugin namespace. "Kit" is used if no plugin is provided.
+     * @param pPluginName - The plugin namespace.
      * @param pEventName - The event name.
      * @param pListener - The listener to call when the event is emitted.
      */
-    static on(pPluginName: string, pEventName: string, pListener: (pData: EventData) => void): void {
-        Kit.emitter.on(pPluginName, pEventName, pListener);
+    static on(pPluginName: string, pEventName: string, pListener: Listener): void {
+        const eventScope = `${pPluginName}-${pEventName}`;
+        if (!Kit.events[eventScope]) {
+            Kit.events[eventScope] = [];
+        }
+        Kit.events[eventScope].push(pListener);
     }
 
     /**
      * Removes an event listener.
-     * @param pPluginName - The plugin namespace. "Kit" is used if no plugin is provided.
+     * @param pPluginName - The plugin namespace.
      * @param pEventName - The event name.
      * @param pListener - The listener to remove.
      */
-    static off(pPluginName: string, pEventName: string, pListener: (pData: EventData) => void): void {
-        Kit.emitter.off(pPluginName, pEventName, pListener);
+    static off(pPluginName: string, pEventName: string, pListener: (pData: EmitterEvent) => void): void {
+        const eventScope = `${pPluginName}-${pEventName}`;
+        if (Kit.events[eventScope].includes(pListener)) {
+            Kit.events[eventScope].splice(Kit.events[eventScope].indexOf(pListener), 1);
+        }
     }
 }

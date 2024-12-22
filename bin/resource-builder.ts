@@ -1,277 +1,196 @@
 import { promises as fs } from 'fs';
-import path from 'path';
+import { join, extname, basename } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
-import { BuildOptions } from './types/shared-types';
+import { ProcessOptions } from './types/shared-types';
 
-// Helpers to easily log things
+// Logging helpers
 const log = console.log;
 const info = chalk.hex('#ffa552');
 const error = chalk.hex('#c42847');
 const alert = chalk.hex('#EFF2C0');
 
-type ResourceType = ['interface', 'icon', 'map', 'sound', 'macros'];
-// An array of all directories created via this builder
-const resourceTypeDirectories: ResourceType = ['interface', 'icon', 'map', 'sound', 'macros'];
+// Resource types and valid file extensions
+const RESOURCE_TYPES = ['interface', 'icon', 'map', 'sound', 'macros'] as const;
+const VALID_EXTENSIONS = ['vyint', 'vyi', 'vym', 'vymac', 'mp3', 'aac', 'wav', 'm4a', 'ogg', 'flac'] as const;
 
+type ResourceJSON = Record<typeof RESOURCE_TYPES[number], { resourceIdentifier: string; fileName: string }[]>;
 
-let resourceJSONPath: string = 'resource.json';
+// State variables
+let resourceJSON: ResourceJSON = initializeResourceJSON();
 let isVerbose: boolean | undefined = false;
 let ignoringSound: boolean | undefined = false;
+let resourceInDirectory = '';
+let resourceOutDirectory = '';
+const resourcesToProcess: { filePath: string; type: typeof RESOURCE_TYPES[number] }[] = [];
 
-let resourceInDirectory: string = '';
-let resourceOutDirectory: string = '';
-
-let resourcesProcessed: number = 0;
-let maxResourcesToProcess: number = 0;
-
-type ResourceJSON = {
-    interface: { resourceIdentifier: string, fileName: string }[],
-    sound: { resourceIdentifier: string, fileName: string }[],
-    macro: { resourceIdentifier: string, fileName: string }[],
-    map: { resourceIdentifier: string, fileName: string }[],
-    icon: { resourceIdentifier: string, fileName: string }[]
+/**
+ * Initializes the resource JSON structure.
+ */
+function initializeResourceJSON(): ResourceJSON {
+    return RESOURCE_TYPES.reduce((acc, type) => {
+        acc[type] = [];
+        return acc;
+    }, {} as ResourceJSON);
 }
 
 /**
- * The resource JSON that is built.
+ * Processes a single file and updates the resource JSON.
  */
-const resourceJSON: ResourceJSON = {
-    'interface': [],
-    'sound': [],
-    'macro': [],
-    'map': [],
-    'icon': []
-};
+function prepareFileForProcessing(filePath: string): void {
+    const extension = extname(filePath).slice(1);
+    const fileName = filePath.replace(/^.*[\\\/]/, '');
+    const resourceIdentifier = `${uuidv4()}.${extension}`;
 
-type ValidExtensions = ['vyint', 'vyi', 'vym', 'vymac', 'mp3', 'aac', 'wav', 'm4a', 'ogg', 'flac'];
-const validExtensions: ValidExtensions = ['vyint', 'vyi', 'vym', 'vymac', 'mp3', 'aac', 'wav', 'm4a', 'ogg', 'flac'];
+    const type = getResourceType(extension);
+    if (!type) return;
+
+    if (type === 'sound' && ignoringSound) {
+        logVerbose(`[Ignored File] ${filePath} (ignoreSound flag enabled)`);
+        return;
+    }
+
+    resourcesToProcess.push({ filePath, type });
+    resourceJSON[type].push({ resourceIdentifier, fileName });
+}
 
 /**
- * Processes a file and categorizes it into the resource JSON.
- * @param pFile - The file to be processed.
+ * Determines the resource type based on the file extension.
  */
-async function processFile(pFile: string): Promise<void> {
-    let preventCountingResource = false;
-    // Extract the extension so we know where to put the file in our resource json
-    const extension = path.extname(pFile).slice(1);
-    // Extract the filename without pathname using regex
-    const fileNameWithoutPath = pFile.replace(/^.*[\\\/]/, '');
-    // Create a randomized name that will serve as the identifier for this resource
-    const resourceIdentifier = `${uuidv4()}.${extension}`;
-    // Temp reference to resourceJSON array to use
-    let resourceArray: { resourceIdentifier: string, fileName: string }[] | undefined;
-    // The directory is the resource folder to generate the file in
-    let resourceTypeDirectory: string | undefined;
-
-    switch (extension) {
-        // Interface
-        case 'vyint':
-            resourceArray = resourceJSON.interface;
-            resourceTypeDirectory = 'interface';
-            break;
-        // Icon
-        case 'vyi':
-            resourceArray = resourceJSON.icon;
-            resourceTypeDirectory = 'icon';
-            break;
-        // Map
-        case 'vym':
-            resourceArray = resourceJSON.map;
-            resourceTypeDirectory = 'map';
-            break;
-        // Macro
-        case 'vymac':
-            resourceArray = resourceJSON.macro;
-            resourceTypeDirectory = 'macro';
-            break;
-        // Sound
+function getResourceType(pExtension: string): typeof RESOURCE_TYPES[number] | null {
+    switch (pExtension) {
+        case 'vyint': return 'interface';
+        case 'vyi': return 'icon';
+        case 'vym': return 'map';
+        case 'vymac': return 'macros';
         case 'mp3':
+        case 'aac':
         case 'wav':
         case 'm4a':
         case 'ogg':
-        case 'aac':
-        case 'flac':
-            if (ignoringSound) {
-                // In the event sounds aren't to be processed then we subtract from the amount of needed resources to process.
-                --maxResourcesToProcess;
-                // We prevent counting this resource from being counted.
-                preventCountingResource = true;
-                if (isVerbose) {
-                    log(`${error('[Ignored File]')} ${pFile} ${alert(`because`)} the ${alert('[ignoreSound]')} flag is enabled`);
-                }
-                // Combine styled and normal strings
-            } else {
-                resourceArray = resourceJSON.sound;
-                resourceTypeDirectory = 'sound';
-            }
-            break;       
-    }
-    // We check if resourceArray has been set, as in some cases it may not be set due to a flag being enabled.
-    if (resourceArray) {
-        resourceArray.push({ resourceIdentifier: resourceIdentifier, fileName: fileNameWithoutPath });
-        await copyFileToDirectory(pFile, `${resourceOutDirectory}/resources/${resourceTypeDirectory}`, `${resourceIdentifier}`);
-    }
-
-    // This resource has been built into the resource json, we can increment the resource counter to indicate this resource has been tracked.
-    if (!preventCountingResource) {
-        resourcesProcessed++;
-        const fileNameWithoutExtension = pFile.match(/(.+?)(?=\.[^.]+$|$)/)?.[0] ?? 'incorrectly-parsed-file';
-        if (isVerbose) {
-            log(`${info('[Processed File]')} ${fileNameWithoutExtension}${info(`.${extension}`)}`);
-        }
-    }
-    // Check if the resources has reached the max, and its at the last resource folder (sounds)
-    // Checks also if there is a directory named sound, if not, then we skip and just create the resource json
-    if (resourcesProcessed >= maxResourcesToProcess) {
-        deleteResourceJSON(); // Delete a file from a certain directory if it exists
+        case 'flac': return 'sound';
+        default: return null;
     }
 }
 
 /**
- * Recursively processes the resource directory categorizing its contents into directories and files.
- * @param pDirectoryPath - The path of the directory to be processed.
+ * Processes a directory and its contents recursively.
  */
-async function processDirectory(pDirectoryPath: string): Promise<string[]> {
-    return new Promise(async (pResolve, pReject) => {
-        const resourcesToProcess: string[] = [];
-        try {
-            const contents = await fs.readdir(pDirectoryPath);
+async function processDirectory(pDirectoryPath: string): Promise<void> {
+    try {
+        const contents = await fs.readdir(pDirectoryPath);
 
-            for (const item of contents) {
-                const itemPath = path.join(pDirectoryPath, item);
-                const stats = await fs.stat(itemPath);
-                const extension = path.extname(itemPath).slice(1);
+        for (const item of contents) {
+            const itemPath = join(pDirectoryPath, item);
+            const stats = await fs.stat(itemPath);
 
-                if (stats.isDirectory()) {
-                    // Process subdirectories recursively
-                    const resources = await processDirectory(itemPath);
-                    resourcesToProcess.push(...resources);
-                } else {
-                    // Iterate over valid extensions to check if this file matches that pattern
-                    validExtensions.every((pExtension) => {
-                        if (extension.includes(pExtension)) {
-                            maxResourcesToProcess++;
-                            resourcesToProcess.push(itemPath);
-                            return false;
-                        }
-                        return true;
-                    });
-                }
-                pResolve(resourcesToProcess);
+            if (stats.isDirectory()) {
+                await processDirectory(itemPath);
+            } else if (isValidExtension(extname(itemPath).slice(1))) {
+                prepareFileForProcessing(itemPath);
             }
-        } catch (pError) {
-            log(`${error('[Error]')} processing directory: ${pError}`);
-            pReject(pError);
         }
-    });
+    } catch (err) {
+        logError(`[Error] Processing directory: ${err}`);
+    }
 }
 
-// Entry point
-export const buildResources = async ({ inDirectory, outDirectory, resourcePath, verbose, ignoreSound }: BuildOptions) => {
+/**
+ * Checks if a file extension is valid.
+ */
+function isValidExtension(pExtension: string): boolean {
+    return VALID_EXTENSIONS.includes(pExtension as typeof VALID_EXTENSIONS[number]);
+}
+
+/**
+ * Executes all file copy operations in parallel after preparation.
+ */
+async function processAllFiles(): Promise<void> {
+    try {
+        // Create copy operations for all files
+        const copyOperations = resourcesToProcess.map(({ filePath, type }) => {
+            const fileName = basename(filePath); // Use path.basename for cleaner code
+            const resource = resourceJSON[type].find(res => res.fileName === fileName);
+
+            if (!resource) {
+                throw new Error(`Resource not found for file: ${fileName}`);
+            }
+
+            const destination = join(resourceOutDirectory, 'resources', type);
+            return copyFile(filePath, destination, resource.resourceIdentifier);
+        });
+
+        // Execute all copy operations concurrently
+        await Promise.all(copyOperations);
+
+        logVerbose(`[Kit CLI] All resources have been processed.`);
+        await saveResourceJSON();
+    } catch (err) {
+        logError(`[Error] Processing files in batch: ${err.message}`);
+    }
+}
+
+
+/**
+ * Copies a file to the specified directory.
+ */
+async function copyFile(pSource: string, pDestinationDir: string, pNewName: string): Promise<void> {
+    try {
+        await fs.mkdir(pDestinationDir, { recursive: true });
+        await fs.copyFile(pSource, join(pDestinationDir, pNewName));
+    } catch (err) {
+        logError(`[Error] Copying file ${pSource}: ${err}`);
+    }
+}
+
+/**
+ * Saves the resource JSON to a file.
+ */
+async function saveResourceJSON(): Promise<void> {
+    const filePath = join(resourceOutDirectory, 'resource.json');
+    try {
+        await fs.writeFile(filePath, JSON.stringify(resourceJSON, null, 2));
+    } catch (err) {
+        logError(`[Error] Saving resource JSON: ${err}`);
+    }
+}
+
+/**
+ * Main entry point for building resources.
+ */
+export async function processResources({ inDirectory, outDirectory, verbose, ignoreSound }: ProcessOptions): Promise<void> {
+    // Initialize state
     resourceInDirectory = inDirectory;
     resourceOutDirectory = outDirectory;
-
-    resourceJSONPath = `${resourcePath}/resource.json`;
     isVerbose = verbose;
     ignoringSound = ignoreSound;
+    resourceJSON = initializeResourceJSON();
 
-    if (!resourceInDirectory) {
-        log(`${error('[Empty]')} no in directory found! You can specify a input directory via the --in flag`);
+    // Validate inputs
+    if (!resourceInDirectory || !resourceOutDirectory) {
+        logError('[Error] Input and output directories must be specified');
         return;
     }
-    
-    if (!resourceOutDirectory) {
-        log(`${error('[Empty]')} no out directory found! You can specify a input directory via the --out flag`);
-        return;
-    }
-    await clearResourceTypeDirectories(`${resourceOutDirectory}/resources`, resourceTypeDirectories);
-    const resources = await processDirectory(resourceInDirectory);
-    // If there were resources found, then process them
-    if (resources.length) {
-        resources.forEach((pResourcePath) => {
-            processFile(pResourcePath);
-        });
+
+    // Process resources
+    await processDirectory(resourceInDirectory);
+
+    if (resourcesToProcess.length > 0) {
+        await processAllFiles();
     } else {
-        log(`${error('[Empty]')} no resources found!`);
-        await createResourceJSON(JSON.stringify(resourceJSON));
+        logAlert('No resources found!');
+        await saveResourceJSON();
     }
 }
 
-/**
- * Copies a file to a destination directory.
- * @param pSourceFilePath - The path to the source file.
- * @param pDestinationDirectory - The path to the destination directory.
- * @param pNewName - The new name of the copied file.
- */
-async function copyFileToDirectory(pSourceFilePath: string, pDestinationDirectory: string, pNewName: string): Promise<void> {
-    try {
-        // Check if the destination directory exists, if not, create it
-        await fs.mkdir(pDestinationDirectory, { recursive: true });
-
-        // Construct the destination file path
-        const destinationFilePath = path.join(pDestinationDirectory, pNewName);
-
-        // Copy the file
-        await fs.copyFile(pSourceFilePath, destinationFilePath);
-    } catch (pError) {
-        log(`${error(`[Error]`)} copying ${pSourceFilePath}: ${pError}`);
-    }
+function logVerbose(pMessage: string): void {
+    if (isVerbose) log(info(pMessage));
 }
 
-/**
- * Clears specified directories within a base directory.
- * @param pBaseDirectory - The path to the base directory.
- * @param pDirectoriesToRemove - An array of directory names to be removed.
- */
-async function clearResourceTypeDirectories(pBaseDirectory: string, pDirectoriesToRemove: string[]): Promise<void> {
-    try {
-        // Iterate over each directory to remove
-        for (const directory of pDirectoriesToRemove) {
-            const directoryPath = path.join(pBaseDirectory, directory);
-            // Check if the directory exists
-            const directoryExists = await fs.stat(directoryPath).then(stat => stat.isDirectory()).catch(() => false);
-            // If the directory exists, remove it
-            if (directoryExists) {
-                await fs.rm(directoryPath, { recursive: true });
-            }
-        }
-    } catch (pError) {
-        log(`${error(`[Error]`)} clearing directories: ${pError}`);
-    }
+function logError(pMessage: string): void {
+    log(error(pMessage));
 }
 
-/**
- * Creates a new resource JSON file with the provided data.
- * @param pFileData - The data to be written to the new JSON file.
- * @returns A Promise that resolves when the file creation is complete.
- */
-async function createResourceJSON(pFileData: string): Promise<void> {
-    const filePath = path.join(__dirname, `${resourceJSONPath}`);
-    try {
-        await fs.writeFile(filePath, pFileData);
-        log(`${alert(`resource.json`)} created in ${alert(`${resourceJSONPath}`)}`);
-    } catch (pError) {
-        log(`${error(`[Error]`)} creating resource.json ${pError}`);
-    }
-}
-/**
- * Deletes the resource JSON file if it exists, then creates a new resource JSON with the provided data.
- */
-async function deleteResourceJSON(): Promise<void> {
-    const filePath = path.join(__dirname, `${resourceJSONPath}`);
-
-    try {
-        await fs.access(filePath);
-        // File exists, so delete it
-        await fs.unlink(filePath);
-    } catch (pError) {
-        // If any other error other than FILE MISSING
-        if (pError.code !== 'ENOENT') {
-            log(`${error(`[Error]`)} Error deleting file ${filePath}: ${pError}`);
-        }
-    }
-
-    // Create a file in a specific directory
-    await createResourceJSON(JSON.stringify(resourceJSON));
+function logAlert(pMessage: string): void {
+    log(alert(pMessage));
 }
