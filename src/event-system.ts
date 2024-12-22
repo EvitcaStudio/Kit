@@ -1,23 +1,28 @@
 import { EventData } from './types/shared-types';
 
 export class EventEmitter {
-    private static events: Record<string, Set<(pData: any) => void>> = {};
+    private static events: Record<string, Array<(pData: any) => void>> = {};
     
     /**
      * Emit an event to all listeners.
      * @param pEvent - The event to emit.
      */
     static emit(pEvent: EventData): void {
-        const { name, plugin, data } = pEvent;
-        const eventScope = `${plugin}-${name}`;
+        const { name, plugin } = pEvent;
+        let pluginName = plugin;
 
-        data.timestamp = Date.now();
+        if (!pluginName) {
+            pluginName = 'Kit';
+            pEvent.plugin = 'Kit';
+        }
+
+        const eventScope = `${pluginName}-${name}`;
 
         if (!EventEmitter.events[eventScope]) {
             return;
         }
 
-        EventEmitter.events[eventScope].forEach(pListener => pListener(data));
+        EventEmitter.events[eventScope].forEach(pListener => pListener(pEvent));
     }
 
     /**
@@ -26,12 +31,16 @@ export class EventEmitter {
      * @param pEventName - The event name.
      * @param pListener - The listener to call when the event is emitted.
      */
-    static on(pPluginName: string, pEventName: string, pListener: (pData: EventData['data']) => void): void {
-        const eventScope = `${pPluginName}-${pEventName}`;
-        if (!EventEmitter.events[eventScope]) {
-            EventEmitter.events[eventScope] = new Set();
+    static on(pPluginName: string, pEventName: string, pListener: (pData: EventData) => void): void {
+        let pluginName = pPluginName;
+        if (!pluginName) {
+            pluginName = 'Kit';
         }
-        EventEmitter.events[eventScope].add(pListener);
+        const eventScope = `${pluginName}-${pEventName}`;
+        if (!EventEmitter.events[eventScope]) {
+            EventEmitter.events[eventScope] = [];
+        }
+        EventEmitter.events[eventScope].push(pListener);
     }
 
     /**
@@ -40,8 +49,14 @@ export class EventEmitter {
      * @param pEventName - The event name.
      * @param pListener - The listener to remove.
      */
-    static off(pPluginName: string, pEventName: string, pListener: (pData: EventData['data']) => void): void {
-        const eventScope = `${pPluginName}-${pEventName}`;
-        EventEmitter.events[eventScope].delete(pListener);
+    static off(pPluginName: string, pEventName: string, pListener: (pData: EventData) => void): void {
+        let pluginName = pPluginName;
+        if (!pluginName) {
+            pluginName = 'Kit';
+        }
+        const eventScope = `${pluginName}-${pEventName}`;
+        if (EventEmitter.events[eventScope].includes(pListener)) {
+            EventEmitter.events[eventScope].splice(EventEmitter.events[eventScope].indexOf(pListener), 1);
+        }
     }
 }
