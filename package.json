@@ -1,19 +1,42 @@
 {
-  "name": "kit",
+  "name": "@evitcastudio/kit",
   "version": "1.0.0",
-  "author": "https://github.com/doubleactii",
-  "main": "index.mjs",
-  "description": "A singleplayer/multiplayer framework for the Vylocity Game Engine.",
+  "author": "doubleactii 56242467+doubleactii@users.noreply.github.com (https://evitcastudio.com)",
+  "main": "src/index.ts",
+  "description": "A single-player/multiplayer framework for the Vylocity Game Engine.",
+  "cli-description": "CLI for handling building resources and running | testing | publishing games.",
   "keywords": [
     "framework",
     "multiplayer",
-    "singleplayer",
+    "single-player",
     "toolkit",
     "kit"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EvitcaStudio/Kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EvitcaStudio/Kit/issues"
+  },
+  "homepage": "https://github.com/EvitcaStudio/Kit",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "test": "bun test ./tests"
+  },
+  "bin": {
+    "kit": "./bin/cli.ts"
+  },
   "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "@types/node": "^22.10.2",
+    "bun": "^1.1.42",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@evitcastudio/kit": ".",
+    "chalk": "^5.4.0",
+    "commander": "^12.1.0",
+    "uuid": "^11.0.3"
   }
 }

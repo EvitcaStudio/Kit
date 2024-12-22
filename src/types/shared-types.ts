@@ -12,14 +12,9 @@ declare global {
          */
         plugin: string;
         /**
-         * The data associated with the event. data.timestamp is automatically added and a reserved key.
+         * The data associated with the event.
          */
-        data: {
-            /**
-             * The timestamp of when the event was emitted.
-             */
-            timestamp?: number;
-        } & Record<string, any>;
+        data: Record<string, any>;
     };
 }
 

@@ -9,7 +9,7 @@ export class Kit {
     /**
      * The event system for the Kit class.
      */
-    private static events = EventEmitter;
+    private static emitter = EventEmitter;
 
     /**
      * Initialize the Kit class with plugins.
@@ -32,7 +32,7 @@ export class Kit {
     /**
      * Lists all registered plugins.
      */
-    static listPlugins(): string[] {
+    static getPlugins(): string[] {
         return Object.keys(Kit.plugins);
     }
     
@@ -42,7 +42,7 @@ export class Kit {
      * @param pData - The data to pass to the event listeners.
      */
     static emit(pEvent: EventData): void {
-        Kit.events.emit(pEvent);
+        Kit.emitter.emit(pEvent);
     }
     
     /**
@@ -51,17 +51,17 @@ export class Kit {
      * @param pEventName - The event name.
      * @param pListener - The listener to call when the event is emitted.
      */
-    static on(pPluginName: string = 'Kit', pEventName: string, pListener: (pData: EventData['data']) => void): void {
-        Kit.events.on(pPluginName, pEventName, pListener);
+    static on(pPluginName: string, pEventName: string, pListener: (pData: EventData) => void): void {
+        Kit.emitter.on(pPluginName, pEventName, pListener);
     }
 
     /**
      * Removes an event listener.
-     * @param pPluginName - The plugin namespace.
+     * @param pPluginName - The plugin namespace. "Kit" is used if no plugin is provided.
      * @param pEventName - The event name.
      * @param pListener - The listener to remove.
      */
-    static off(pPluginName: string = 'Kit', pEventName: string, pListener: (pData: EventData['data']) => void): void {
-        Kit.events.off(pPluginName, pEventName, pListener);
+    static off(pPluginName: string, pEventName: string, pListener: (pData: EventData) => void): void {
+        Kit.emitter.off(pPluginName, pEventName, pListener);
     }
 }
