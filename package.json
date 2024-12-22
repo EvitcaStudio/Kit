@@ -22,7 +22,10 @@
   "homepage": "https://github.com/EvitcaStudio/Kit",
   "license": "MIT",
   "scripts": {
-    "test": "bun test ./tests"
+    "test": "bun test ./tests",
+    "build-types": "bun tsc",
+    "build-dist": "bun bun-build.ts",
+    "build-all": "bun run build-types && bun run build-dist"
   },
   "bin": {
     "kit": "./bin/cli.ts"
@@ -34,7 +37,6 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@evitcastudio/kit": ".",
     "chalk": "^5.4.0",
     "commander": "^12.1.0",
     "uuid": "^11.0.3"
