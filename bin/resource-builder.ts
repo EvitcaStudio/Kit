@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import { join, extname, basename } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
-import { ProcessOptions } from './types/shared-types';
+import type { ProcessOptions } from './types/shared-types';
 
 // Logging helpers
 const log = console.log;
@@ -90,8 +90,8 @@ async function processDirectory(pDirectoryPath: string): Promise<void> {
                 prepareFileForProcessing(itemPath);
             }
         }
-    } catch (err) {
-        logError(`[Error] Processing directory: ${err}`);
+    } catch (pError) {
+        logError(`[Error] Processing directory: ${pError}`);
     }
 }
 
@@ -125,8 +125,8 @@ async function processAllFiles(): Promise<void> {
 
         logVerbose(`[Kit CLI] All resources have been processed.`);
         await saveResourceJSON();
-    } catch (err) {
-        logError(`[Error] Processing files in batch: ${err.message}`);
+    } catch (pError: any) {
+        logError(`[Error] Processing files in batch: ${pError.message}`);
     }
 }
 
@@ -138,8 +138,8 @@ async function copyFile(pSource: string, pDestinationDir: string, pNewName: stri
     try {
         await fs.mkdir(pDestinationDir, { recursive: true });
         await fs.copyFile(pSource, join(pDestinationDir, pNewName));
-    } catch (err) {
-        logError(`[Error] Copying file ${pSource}: ${err}`);
+    } catch (pError) {
+        logError(`[Error] Copying file ${pSource}: ${pError}`);
     }
 }
 
@@ -150,8 +150,8 @@ async function saveResourceJSON(): Promise<void> {
     const filePath = join(resourceOutDirectory, 'resource.json');
     try {
         await fs.writeFile(filePath, JSON.stringify(resourceJSON, null, 2));
-    } catch (err) {
-        logError(`[Error] Saving resource JSON: ${err}`);
+    } catch (pError) {
+        logError(`[Error] Saving resource JSON: ${pError}`);
     }
 }
 

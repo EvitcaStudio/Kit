@@ -1,4 +1,4 @@
-import { EmitterEvent, Listener } from './types/shared-types';
+import type { EmitterEvent, Listener } from './types/shared-types';
 export class EventEmitter {
     private listener: Listener;
     private plugin: /*KitPlugin*/any;

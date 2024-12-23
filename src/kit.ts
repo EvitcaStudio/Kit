@@ -1,5 +1,5 @@
 import { EventEmitter } from './event-system';
-import { EmitterEvent, Listener } from './types/shared-types';
+import type { EmitterEvent, Listener } from './types/shared-types';
 
 export class Kit {
     /**

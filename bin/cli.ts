@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { KitCLI } from './kit';
-import { ProcessOptions } from './types/shared-types';
+import type { ProcessOptions } from './types/shared-types';
 import packageJSON from '../package.json';
 
 const program = new Command();

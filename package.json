@@ -31,7 +31,7 @@
     "kit": "./bin/cli.ts"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.14",
+    "@types/bun": "latest",
     "@types/node": "^22.10.2",
     "bun": "^1.1.42",
     "typescript": "^5.7.2"

@@ -1,18 +1,36 @@
 {
     "compilerOptions": {
-        "strict": true,
         "forceConsistentCasingInFileNames": true,
         "declaration": true, // Generate .d.ts files
         "declarationMap": true, // Generate .d.ts.map files for debugging
         "emitDeclarationOnly": true, // Only emit type declarations
         "outDir": "./dist", // Output folder for compiled files
-        "module": "ESNext", // Use ES module syntax
-        "target": "ESNext", // Target modern JavaScript
-        "moduleResolution": "Node", // Resolve modules like Node.js
         "baseUrl": ".", // Base URL for module resolution
         "esModuleInterop": true, // Enable ES module interop
-        "skipLibCheck": true // Skip checking library .d.ts files
+        // Enable latest features
+        "lib": ["ESNext", "DOM"],
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleDetection": "force",
+        "jsx": "react-jsx",
+        "allowJs": true,
+    
+        // Bundler mode
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "verbatimModuleSyntax": true,
+        "noEmit": true,
+    
+        // Best practices
+        "strict": true,
+        "skipLibCheck": true,
+        "noFallthroughCasesInSwitch": true,
+    
+        // Some stricter flags (disabled by default)
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noPropertyAccessFromIndexSignature": false
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "bin/**/*"],
     "exclude": ["node_modules"]
 }
