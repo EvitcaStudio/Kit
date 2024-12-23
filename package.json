@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "author": "doubleactii 56242467+doubleactii@users.noreply.github.com (https://evitcastudio.com)",
   "main": "src/index.ts",
+  "module": "src/index.ts",
   "description": "A single-player/multiplayer framework for the Vylocity Game Engine.",
   "cli-description": "CLI for handling building resources and running | testing | publishing games.",
   "keywords": [
