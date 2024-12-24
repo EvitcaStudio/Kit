@@ -50,7 +50,6 @@ export class Kit {
     }
 
     private static postRegister(pPlugin: /*KitPlugin*/any): void {
-        Object.freeze(pPlugin);
         const listener: Listener = (pEvent: EmitterEvent) => {
             Kit.emit(pEvent);
         }
