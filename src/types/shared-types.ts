@@ -16,4 +16,4 @@ declare global {
     type Listener = (pData: EmitterEvent) => void;
 }
 
-export { EmitterEvent, Listener };
+export type { EmitterEvent, Listener };
