@@ -13,13 +13,13 @@ export class EventEmitter {
      * @param pEvent - The event to emit.
      */
     emit(pEvent: EmitterEvent): void {
-        if (pEvent?.plugin !== this.plugin.name) {
+        if (pEvent.plugin && pEvent.plugin !== this.plugin.name) {
             throw new Error(`Event mismatch: ${this.plugin.name} tried to emit an event from the ${pEvent.plugin} namespace.`);
         }
 
         const event: EmitterEvent = {
             plugin: this.plugin.name,
-            name: pEvent.name,
+            event: pEvent.event,
             data: pEvent?.data,
             timestamp: Date.now()
         }

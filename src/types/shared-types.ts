@@ -6,7 +6,7 @@ declare global {
         /**
          * The event name, e.g., "draw-frame".
          */
-        name: string;
+        event: string;
         /**
          * The data associated with the event.
          */

@@ -19,46 +19,32 @@ export class Kit {
      * Initialize the Kit class with plugins.
      * @param pPlugins - An array of plugins to initialize.
      */
-    static async init(pPlugins: /* KitPlugin[]*/any[]): Promise<void> {
-        const plugins = pPlugins.map(pPlugin => new pPlugin());
-        
-        await Promise.all(plugins.map(pPlugin => {
-            if (Kit.plugins[pPlugin.name]) {
-                throw new Error(`Plugin with name '${pPlugin.name}' is already registered.`);
-            }
-            
-            pPlugin.register().then(() => {
-                Kit.postRegister(pPlugin);
-            });
-        }));
+    static init(pPlugins: /* KitPlugin[]*/any[]): void {
+        pPlugins.forEach(pPlugin => {
+            this.registerPlugin(pPlugin);
+        });
     }
 
     /**
      * Register a plugin with the Kit class.
      * @param pPlugin - The plugin to register.
      */
-    static async registerPlugin(pPlugin: /* KitPlugin[]*/any): Promise<void> {
+    static registerPlugin(pPlugin: /* KitPlugin[]*/any): void {
         const plugin = new pPlugin();
 
         if (Kit.plugins[plugin.name]) {
-            throw new Error(`Plugin with name '${plugin.name}' is already registered.`);
+            throw new Error(`[Kit] plugin with name '${plugin.name}' is already registered.`);
         }
 
-        plugin.register().then(() => {
-            Kit.postRegister(plugin);           
-        });
-    }
-
-    private static postRegister(pPlugin: /*KitPlugin*/any): void {
         const listener: Listener = (pEvent: EmitterEvent) => {
             Kit.emit(pEvent);
         }
         
-        const emitter = new EventEmitter(listener, pPlugin);
-        Kit.emitters.set(pPlugin.name, emitter);
+        const emitter = new EventEmitter(listener, plugin);
+        Kit.emitters.set(plugin.name, emitter);
 
-        pPlugin.onRegistered(emitter);
-        Kit.plugins[pPlugin.name] = pPlugin;
+        Kit.plugins[plugin.name] = plugin;
+        plugin._register(emitter);
     }
 
     /**
@@ -81,8 +67,8 @@ export class Kit {
      * @param pEvent - The event to emit.
      */
     private static emit(pEvent: EmitterEvent): void {
-        const { plugin, name } = pEvent;
-        const eventScope = `${plugin}-${name}`;
+        const { plugin, event } = pEvent;
+        const eventScope = `${plugin}-${event}`;
 
         if (!Kit.events[eventScope]) {
             return;
