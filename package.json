@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/EvitcaStudio/Kit.git"
+    "url": "git+https://github.com/EvitcaStudio/Kit.git"
   },
   "bugs": {
     "url": "https://github.com/EvitcaStudio/Kit/issues"
@@ -29,7 +29,7 @@
     "build-all": "bun run build-types && bun run build-dist"
   },
   "bin": {
-    "kit": "./bin/cli.ts"
+    "kit": "bin/cli.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -41,5 +41,8 @@
     "chalk": "^5.4.0",
     "commander": "^12.1.0",
     "uuid": "^11.0.3"
+  },
+  "directories": {
+    "test": "tests"
   }
 }
