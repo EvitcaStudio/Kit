@@ -9,8 +9,10 @@
 
 # Install
 ```bash
-npm i @evitcastudio/kit
+npm i @evitcastudio/kit -g
 ```
+
+*global flag is so the path is set properly for the CLI tool*
 
 # Using Kit with plugins
 
