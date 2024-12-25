@@ -29,7 +29,6 @@ await Promise.all([
         entrypoints: ['./src/index.ts'],
         outdir: './dist/bundle',
         naming: 'kit.js',
-        minify: false,
         banner: banner,
         target: 'browser'
     }),
@@ -41,6 +40,14 @@ await Promise.all([
         minify: true,
         banner: banner,
         target: 'browser'
+    }),
+    // CLI version
+    Bun.build({
+        entrypoints: ['./bin/cli.ts'],
+        outdir: './lib/bundle/cli',
+        naming: 'cli.js',
+        banner: banner,
+        target: 'node'
     })
 ]);
 

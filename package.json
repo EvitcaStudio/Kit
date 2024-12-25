@@ -2,8 +2,10 @@
   "name": "@evitcastudio/kit",
   "version": "1.0.0",
   "author": "doubleactii 56242467+doubleactii@users.noreply.github.com (https://evitcastudio.com)",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
+  "main": "./lib/src/index.js",
+  "types": "./lib/src/index.d.ts",
+  "module": "lib/src/index.js",
+  "type": "module",
   "description": "A single-player/multiplayer framework for the Vylocity Game Engine.",
   "cli-description": "CLI for handling building resources and running | testing | publishing games.",
   "keywords": [
@@ -23,18 +25,21 @@
   "homepage": "https://github.com/EvitcaStudio/Kit",
   "license": "MIT",
   "scripts": {
+    "prepublishOnly": "bun run build-all",
     "test": "bun test ./tests",
     "build-types": "bun tsc",
     "build-dist": "bun bun-build.ts",
-    "build-all": "bun run build-types && bun run build-dist"
+    "build-docs": "bun typedoc ./src/index.ts ./src/types/shared-types.ts",
+    "build-all": "bun run build-types && bun run build-dist && bun run build-docs"
   },
   "bin": {
-    "kit": "bin/cli.ts"
+    "kit": "./lib/bundle/cli/cli.js"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^22.10.2",
     "bun": "^1.1.42",
+    "typedoc": "^0.27.5",
     "typescript": "^5.7.2"
   },
   "dependencies": {
