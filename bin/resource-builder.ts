@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import { join, extname, basename } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
-import type { ProcessOptions } from './types/shared-types';
+import './types/shared-types';
 
 // Logging helpers
 const log = console.log;
@@ -11,7 +11,7 @@ const error = chalk.hex('#c42847');
 const alert = chalk.hex('#EFF2C0');
 
 // Resource types and valid file extensions
-const RESOURCE_TYPES = ['interface', 'icon', 'map', 'sound', 'macros'] as const;
+const RESOURCE_TYPES = ['interface', 'icon', 'map', 'sound', 'macros'];
 const VALID_EXTENSIONS = ['vyint', 'vyi', 'vym', 'vymac', 'mp3', 'aac', 'wav', 'm4a', 'ogg', 'flac'] as const;
 
 type ResourceJSON = Record<typeof RESOURCE_TYPES[number], { resourceIdentifier: string; fileName: string }[]>;
@@ -107,6 +107,7 @@ function isValidExtension(pExtension: string): boolean {
  */
 async function processAllFiles(): Promise<void> {
     try {
+        await clearResourceTypeDirectories(`${resourceOutDirectory}/resources`, RESOURCE_TYPES);
         // Create copy operations for all files
         const copyOperations = resourcesToProcess.map(({ filePath, type }) => {
             const fileName = basename(filePath); // Use path.basename for cleaner code
@@ -127,6 +128,28 @@ async function processAllFiles(): Promise<void> {
         await saveResourceJSON();
     } catch (pError: any) {
         logError(`[Error] Processing files in batch: ${pError.message}`);
+    }
+}
+
+/**
+ * Clears specified directories within a base directory.
+ * @param pBaseDirectory - The path to the base directory.
+ * @param pDirectoriesToRemove - An array of directory names to be removed.
+ */
+async function clearResourceTypeDirectories(pBaseDirectory: string, pDirectoriesToRemove: string[]): Promise<void> {
+    try {
+        // Iterate over each directory to remove
+        for (const directory of pDirectoriesToRemove) {
+            const directoryPath = join(pBaseDirectory, directory);
+            // Check if the directory exists
+            const directoryExists = await fs.stat(directoryPath).then(stat => stat.isDirectory()).catch(() => false);
+            // If the directory exists, remove it
+            if (directoryExists) {
+                await fs.rm(directoryPath, { recursive: true });
+            }
+        }
+    } catch (pError) {
+        log(`${error(`[Error]`)} clearing directories: ${pError}`);
     }
 }
 

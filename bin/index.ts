@@ -1,5 +1,5 @@
 import { processResources } from './resource-builder';
-import type { ProcessOptions } from './types/shared-types';
+import './types/shared-types';
 
 export class KitCLI {
     /**

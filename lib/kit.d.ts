@@ -1,4 +1,4 @@
-import type { EmitterEvent, Listener } from './types/shared-types';
+import './types/shared-types';
 export declare class Kit {
     /**
      * A record of all plugins registered with the Kit class.
@@ -12,6 +12,7 @@ export declare class Kit {
      * A record of all event listeners.
      */
     private static events;
+    private constructor();
     /**
      * Initialize the Kit class with plugins.
      * @param pPlugins - An array of plugins to initialize.
@@ -50,5 +51,14 @@ export declare class Kit {
      * @param pListener - The listener to remove.
      */
     static off(pPluginName: string, pEventName: string, pListener: (pData: EmitterEvent) => void): void;
+    /**
+     * Sets the resource locator for the engine to reference the files we have in the resources folder. interface | map | icon | macro | sound are checked for.
+     * @param pData - An array of each file that was found in the resources folder
+     */
+    private static setResource;
+    /**
+     * Sets the resources found in resources and preloads all interfaces found.
+     */
+    static setResources(): Promise<void>;
 }
 //# sourceMappingURL=kit.d.ts.map

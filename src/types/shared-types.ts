@@ -13,7 +13,14 @@ declare global {
         data?: Record<string, any>;
     } & Record<string, any>;
 
+    type ResourceData = {
+        resourceIdentifier: string,
+        fileName: string
+    };
+
     type Listener = (pData: EmitterEvent) => void;
+
+    var VYLO: VyloType;
 }
 
-export type { EmitterEvent, Listener };
+export type {};
