@@ -29,7 +29,7 @@ Kit.registerPlugin(Plugin);
 # Listening for plugin events
 
 ```js
-const listener = (pEvent) => {
+const listener = (pEvent: EventEmitter) => {
     const { data, timestamp } = pEvent;
     // Here you can use the data that the event sent down.
 }
