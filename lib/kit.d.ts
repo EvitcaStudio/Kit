@@ -1,3 +1,4 @@
+import type { KitPlugin } from '@evitcastudio/kit-plugin';
 import './types/shared-types';
 export declare class Kit {
     /**
@@ -17,17 +18,17 @@ export declare class Kit {
      * Initialize the Kit class with plugins.
      * @param pPlugins - An array of plugins to initialize.
      */
-    static init(pPlugins: any[]): void;
+    static init<T extends KitPlugin>(pPlugins: KitPluginConstructor<T>[]): void;
     /**
      * Register a plugin with the Kit class.
      * @param pPlugin - The plugin to register.
      */
-    static registerPlugin(pPlugin: any): void;
+    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>): void;
     /**
      * Gets a plugin by name.
      * @param pName - String name of the plugin to retrieve.
      */
-    static getPlugin<T>(pName: string): T | undefined;
+    static getPlugin<T extends KitPlugin>(pName: string): T | undefined;
     /**
      * Lists all registered plugins.
      */
