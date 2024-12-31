@@ -1,4 +1,5 @@
 import { EventEmitter } from './event-system';
+import type { KitPlugin } from '@evitcastudio/kit-plugin';
 import './types/shared-types';
 
 const VYLO: VyloType = globalThis.VYLO;
@@ -20,7 +21,7 @@ export class Kit {
     /**
      * A record of all plugins registered with the Kit class.
      */
-    private static plugins: Record<string, /*KitPlugin*/any> = {};
+    private static plugins: Record<string, KitPlugin> = {};
     /**
      * A set of all plugin emitters.
      */
@@ -38,7 +39,7 @@ export class Kit {
      * Initialize the Kit class with plugins.
      * @param pPlugins - An array of plugins to initialize.
      */
-    static init(pPlugins: /* KitPlugin[]*/any[]): void {
+    static init<T extends KitPlugin>(pPlugins: KitPluginConstructor<T>[]): void {
         pPlugins.forEach(pPlugin => {
             this.registerPlugin(pPlugin);
         });
@@ -48,7 +49,7 @@ export class Kit {
      * Register a plugin with the Kit class.
      * @param pPlugin - The plugin to register.
      */
-    static registerPlugin(pPlugin: /* KitPlugin[]*/any): void {
+    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>): void {
         const plugin = new pPlugin();
 
         if (Kit.plugins[plugin.name]) {
@@ -70,7 +71,7 @@ export class Kit {
      * Gets a plugin by name.
      * @param pName - String name of the plugin to retrieve.
      */
-    static getPlugin<T /* extends KitPlugin */>(pName: string): T | undefined {
+    static getPlugin<T extends KitPlugin>(pName: string): T | undefined {
         return Kit.plugins[pName] as T;
     }
 

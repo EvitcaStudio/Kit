@@ -1,9 +1,10 @@
 import './types/shared-types';
+import type { KitPlugin } from '@evitcastudio/kit-plugin';
 export class EventEmitter {
     private listener: Listener;
-    private plugin: /*KitPlugin*/any;
+    private plugin: KitPlugin;
 
-    constructor(pListener: Listener, pPlugin: /*KitPlugin*/any) {
+    constructor(pListener: Listener, pPlugin: KitPlugin) {
         this.listener = pListener;
         this.plugin = pPlugin;
     }

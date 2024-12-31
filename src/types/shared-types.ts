@@ -1,3 +1,4 @@
+import type { KitPlugin } from '@evitcastudio/kit-plugin';
 declare global {
     /**
      * The EmitterEvent type is used to define the shape of the data that is passed to the event listeners.
@@ -19,6 +20,8 @@ declare global {
     };
 
     type Listener = (pData: EmitterEvent) => void;
+
+    type KitPluginConstructor<T extends KitPlugin> = new () => T;
 
     var VYLO: VyloType;
 }

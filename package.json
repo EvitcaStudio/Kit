@@ -36,6 +36,7 @@
     "kit": "./lib/bundle/cli/cli.js"
   },
   "devDependencies": {
+    "@evitcastudio/kit-plugin": "^1.0.5",
     "@types/bun": "latest",
     "@types/node": "^22.10.2",
     "bun": "^1.1.42",
