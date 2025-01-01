@@ -1,7 +1,7 @@
 #!/usr/bin/env node
+import type { ProcessOptions } from './types/shared-types';
 import { Command } from 'commander';
 import { KitCLI } from '.';
-import './types/shared-types';
 import packageJSON from '../package.json';
 
 const program = new Command();

@@ -1,8 +1,8 @@
+import type { ProcessOptions } from './types/shared-types';
 import { promises as fs } from 'fs';
 import { join, extname, basename } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
-import './types/shared-types';
 
 // Logging helpers
 const log = console.log;

@@ -1,6 +1,6 @@
 import { EventEmitter } from './event-system';
 import type { KitPlugin } from '@evitcastudio/kit-plugin';
-import './types/shared-types';
+import type { EmitterEvent, ResourceData, Listener, KitPluginConstructor } from './types/shared-types';
 
 const extensionToPath: Record<string, string> = {
     '.vyint': 'interface',

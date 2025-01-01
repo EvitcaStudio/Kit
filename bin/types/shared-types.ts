@@ -1,10 +1,11 @@
-declare global {
-    type ProcessOptions = { 
-        inDirectory: string, 
-        outDirectory: string,
-        verbose?: boolean, 
-        ignoreSound?: boolean 
-    }
+/**
+ * ProcessOptions for resource builder.
+ */
+type ProcessOptions = { 
+    inDirectory: string, 
+    outDirectory: string,
+    verbose?: boolean, 
+    ignoreSound?: boolean 
 }
 
-export type {};
+export type { ProcessOptions };
