@@ -25,16 +25,17 @@
   "homepage": "https://github.com/EvitcaStudio/Kit",
   "license": "MIT",
   "scripts": {
-    "prepublishOnly": "bun run build-all",
+    "prepublishOnly": "bun run build",
     "test": "bun test ./tests",
     "lint": "bun eslint ./src",
+    "pack": "bun pm pack --dry-run",
     "build-types": "bun tsc",
-    "build-dist": "bun bun-build.ts",
+    "build": "bun bun-build.ts",
     "build-docs": "bun typedoc ./src/index.ts ./src/types/shared-types.ts",
-    "build-all": "bun run build-types && bun run build-dist && bun run build-docs"
+    "build-all": "bun run build-types && bun run build && bun run build-docs"
   },
   "bin": {
-    "kit": "./lib/bundle/cli/cli.js"
+    "kit": "lib/bundle/cli/cli.js"
   },
   "devDependencies": {
     "@eslint/create-config": "1.4.0",
