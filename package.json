@@ -25,7 +25,7 @@
   "homepage": "https://github.com/EvitcaStudio/Kit",
   "license": "MIT",
   "scripts": {
-    "prepublishOnly": "bun run build",
+    "prepublishOnly": "bun run build-types && bun run build",
     "test": "bun test ./tests",
     "lint": "bun eslint ./src",
     "pack": "bun pm pack --dry-run",
