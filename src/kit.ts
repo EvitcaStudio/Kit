@@ -2,8 +2,6 @@ import { EventEmitter } from './event-system';
 import type { KitPlugin } from '@evitcastudio/kit-plugin';
 import './types/shared-types';
 
-const VYLO: VyloType = globalThis.VYLO;
-
 const extensionToPath: Record<string, string> = {
     '.vyint': 'interface',
     '.vym': 'map',
@@ -29,7 +27,7 @@ export class Kit {
     /**
      * A record of all event listeners.
      */
-    private static events: Record<string, Array<(pData: any) => void>> = {};
+    private static events: Record<string, Array<Listener>> = {};
 
     private constructor() {
         throw new Error('[Kit] is not to be instantiated.');

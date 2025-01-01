@@ -110,7 +110,7 @@ async function processAllFiles(): Promise<void> {
         await clearResourceTypeDirectories(`${resourceOutDirectory}/resources`, RESOURCE_TYPES);
         // Create copy operations for all files
         const copyOperations = resourcesToProcess.map(({ filePath, type }) => {
-            const fileName = basename(filePath); // Use path.basename for cleaner code
+            const fileName = basename(filePath);
             const resource = resourceJSON[type].find(res => res.fileName === fileName);
 
             if (!resource) {

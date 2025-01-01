@@ -1,7 +1,7 @@
 import { describe, beforeEach, afterEach, test, expect } from 'bun:test';
 import { writeFile, rm, readdir, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { KitCLI } from '../bin/kit';
+import { KitCLI } from '../bin/index.ts';
 
 const tempDir = join(process.cwd(), 'tests/temp');
 const outDir = join(process.cwd(), 'tests/temp/dist');

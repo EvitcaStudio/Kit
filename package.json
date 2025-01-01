@@ -27,6 +27,7 @@
   "scripts": {
     "prepublishOnly": "bun run build-all",
     "test": "bun test ./tests",
+    "lint": "bun eslint ./src",
     "build-types": "bun tsc",
     "build-dist": "bun bun-build.ts",
     "build-docs": "bun typedoc ./src/index.ts ./src/types/shared-types.ts",
@@ -36,12 +37,17 @@
     "kit": "./lib/bundle/cli/cli.js"
   },
   "devDependencies": {
-    "@evitcastudio/kit-plugin": "^1.0.5",
+    "@eslint/create-config": "1.4.0",
+    "@eslint/js": "^9.17.0",
+    "@evitcastudio/kit-plugin": "^1.0.7",
     "@types/bun": "latest",
     "@types/node": "^22.10.2",
     "bun": "^1.1.42",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
     "typedoc": "^0.27.5",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0"
   },
   "dependencies": {
     "chalk": "^5.4.0",

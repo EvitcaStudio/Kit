@@ -11,8 +11,8 @@ declare global {
         /**
          * The data associated with the event.
          */
-        data?: Record<string, any>;
-    } & Record<string, any>;
+        data?: Record<string, unknown>;
+    } & Record<string, unknown>;
     type ResourceData = {
         resourceIdentifier: string;
         fileName: string;
