@@ -107,7 +107,7 @@ function isValidExtension(pExtension: string): boolean {
  */
 async function processAllFiles(): Promise<void> {
     try {
-        await clearResourceTypeDirectories(`${resourceOutDirectory}/resources`, RESOURCE_TYPES);
+        await clearResourceTypeDirectories(`${resourceOutDirectory}/resources`);
         // Create copy operations for all files
         const copyOperations = resourcesToProcess.map(({ filePath, type }) => {
             const fileName = basename(filePath);
@@ -117,7 +117,7 @@ async function processAllFiles(): Promise<void> {
                 throw new Error(`Resource not found for file: ${fileName}`);
             }
 
-            const destination = join(resourceOutDirectory, 'resources', type);
+            const destination = join(resourceOutDirectory, 'resources');
             return copyFile(filePath, destination, resource.resourceIdentifier);
         });
 
@@ -134,22 +134,12 @@ async function processAllFiles(): Promise<void> {
 /**
  * Clears specified directories within a base directory.
  * @param pBaseDirectory - The path to the base directory.
- * @param pDirectoriesToRemove - An array of directory names to be removed.
  */
-async function clearResourceTypeDirectories(pBaseDirectory: string, pDirectoriesToRemove: string[]): Promise<void> {
+async function clearResourceTypeDirectories(pBaseDirectory: string): Promise<void> {
     try {
-        // Iterate over each directory to remove
-        for (const directory of pDirectoriesToRemove) {
-            const directoryPath = join(pBaseDirectory, directory);
-            // Check if the directory exists
-            const directoryExists = await fs.stat(directoryPath).then(stat => stat.isDirectory()).catch(() => false);
-            // If the directory exists, remove it
-            if (directoryExists) {
-                await fs.rm(directoryPath, { recursive: true });
-            }
-        }
+        await fs.rm(pBaseDirectory, { recursive: true });
     } catch (pError) {
-        log(`${error(`[Error]`)} clearing directories: ${pError}`);
+        log(`${error(`[Error]`)} clearing resource directory: ${pError}`);
     }
 }
 
@@ -170,7 +160,7 @@ async function copyFile(pSource: string, pDestinationDir: string, pNewName: stri
  * Saves the resource JSON to a file.
  */
 async function saveResourceJSON(): Promise<void> {
-    const filePath = join(resourceOutDirectory, 'resource.json');
+    const filePath = join(resourceOutDirectory, 'resources', 'resource.json');
     try {
         await fs.writeFile(filePath, JSON.stringify(resourceJSON, null, 2));
     } catch (pError) {
