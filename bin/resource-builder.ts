@@ -1,6 +1,6 @@
 import type { ProcessOptions } from './types/shared-types';
 import { promises as fs } from 'fs';
-import { join, extname, basename } from 'path';
+import { join, extname, basename, parse } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -39,8 +39,8 @@ function initializeResourceJSON(): ResourceJSON {
  */
 function prepareFileForProcessing(filePath: string): void {
     const extension = extname(filePath).slice(1);
-    const fileName = filePath.replace(/^.*[\\\/]/, '');
-    const resourceIdentifier = `${uuidv4()}.${extension}`;
+    const fileName = basename(filePath);
+    const resourceIdentifier = `${uuidv4()}.vyr`;
 
     const type = getResourceType(extension);
     if (!type) return;
@@ -118,7 +118,8 @@ async function processAllFiles(): Promise<void> {
             }
 
             const destination = join(resourceOutDirectory, 'resources');
-            return copyFile(filePath, destination, resource.resourceIdentifier);
+            const resourceName = resource.resourceIdentifier;
+            return copyFile(filePath, destination, resourceName);
         });
 
         // Execute all copy operations concurrently
@@ -165,7 +166,7 @@ async function copyFile(pSource: string, pDestinationDir: string, pNewName: stri
 async function saveResourceJSON(): Promise<void> {
     const filePath = join(resourceOutDirectory, 'resources', 'resource.json');
     try {
-        await fs.writeFile(filePath, JSON.stringify(resourceJSON, null, 2));
+        await fs.writeFile(filePath, JSON.stringify(resourceJSON, null, 4));
     } catch (pError) {
         logError(`[Error] Saving resource JSON: ${pError}`);
     }
