@@ -14,6 +14,31 @@ npm i @evitcastudio/kit -g
 
 *global flag is so the path is set properly for the CLI tool*
 
+# Resources
+
+This script will locate all Vylocity engine-related files within the specified directory and anonymize them before placing them in the designated resources folder.
+
+```bash
+# From the CLI you will build all your resources to the out dir
+kit build -i ./<in-dir> -o ./<out-dir>
+```
+
+During the execution of this command, a `resource.json` file will be automatically generated within your source directory.
+It is recommended to exclude this file from your version control system, as it is considered a build artifact.
+
+
+> [!IMPORTANT]
+> This API should be ran BEFORE VYLO.load() is called.
+
+> [!WARNING]
+> Depending on your environment the following [import syntax](https://github.com/EvitcaStudio/Kit/wiki/FAQ#importing-json-resources) for json may not work.
+
+
+```js
+import resourceJSON from 'resource.json';
+await Kit.setResources(resourceJSON);
+```
+
 # Using Kit with plugins
 
 ```ts
