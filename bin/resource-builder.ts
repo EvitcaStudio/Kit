@@ -137,7 +137,10 @@ async function processAllFiles(): Promise<void> {
  */
 async function clearResourceTypeDirectories(pBaseDirectory: string): Promise<void> {
     try {
-        await fs.rm(pBaseDirectory, { recursive: true });
+        const directoryExists = await fs.stat(pBaseDirectory).then(stat => stat.isDirectory()).catch(() => false);
+        if (directoryExists) {
+            await fs.rm(pBaseDirectory, { recursive: true });
+        }
     } catch (pError) {
         log(`${error(`[Error]`)} clearing resource directory: ${pError}`);
     }
