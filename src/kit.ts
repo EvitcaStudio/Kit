@@ -146,44 +146,13 @@ export class Kit {
     /**
      * Sets the resources found in resources and preloads all interfaces found.
      */
-    static async setResources(): Promise<void> {
+    static async setResources(pResourceJson: Record<string, ResourceData[]>): Promise<void> {
         if (!globalThis.VYLO) {
             throw new Error('[Kit] VYLO is not defined. Please ensure the VYLO variable is available in the global namespace.');         
         }
-        
-        let resourcePath = './resources/resource.json';
-        let resourceJson;
-        
-        // Server environment (we do not use fetch as the file:// protocol is not supported atm)
-        if (!globalThis.window) {
-            const [fsPromises, path ] = await Promise.all([
-                import('fs/promises'),
-                import('path')
-            ]);
 
-            const { readFile } = fsPromises;
-            resourcePath = path.resolve('resources', 'resource.json');
-
-            const data = await readFile(resourcePath, 'utf-8');
-            resourceJson = JSON.parse(data);
-        // Client environment
-        } else {
-            // Load the resource json and set the resources found
-            try {
-                const response = await fetch(resourcePath);
-                
-                if (!response.ok) {
-                    throw new Error(`[Kit] HTTP error! Status: ${response.status}`);
-                }
-
-                resourceJson = await response.json();
-            } catch (pError) {
-                console.error(`[Kit] error reading ${resourcePath}`, pError);
-            }
-        }
-
-        if (resourceJson) {
-            const resources: ResourceData[] = Object.values(resourceJson);
+        if (pResourceJson) {
+            const resources: ResourceData[][] = Object.values(pResourceJson);
             // Group all data from separate arrays in object to one unified array of all resource data
             const consolidatedData = resources.flat();
             // Set all the resources

@@ -164,7 +164,7 @@ async function copyFile(pSource: string, pDestinationDir: string, pNewName: stri
  * Saves the resource JSON to a file.
  */
 async function saveResourceJSON(): Promise<void> {
-    const filePath = join(resourceOutDirectory, 'resources', 'resource.json');
+    const filePath = 'resource.json';
     try {
         await fs.writeFile(filePath, JSON.stringify(resourceJSON, null, 4));
     } catch (pError) {
