@@ -124,7 +124,7 @@ export class Kit {
 
     /**
      * Sets the resource locator for the engine to reference the files we have in the resources folder. interface | map | icon | macro | sound are checked for.
-     * @param pData - An array of each file that was found in the resources folder
+     * @param pData - An array of each file that was found in the resources folder.
      */
     private static setResource(pData: ResourceData[]): void {
         pData.forEach((pResource: ResourceData): void => {
@@ -137,7 +137,7 @@ export class Kit {
                 const resourceType = extensionToPath[extension];
 
                 if (resourceType) {
-                    globalThis.VYLO.Resource.setResource(resourceType, fileNameWithoutExtension, `resources/${resourceType}/${pResource.resourceIdentifier}`, true);
+                    globalThis.VYLO.Resource.setResource(resourceType, fileNameWithoutExtension, `${pResource.resourceIdentifier}`);
                 }
             }
         });
@@ -150,26 +150,44 @@ export class Kit {
         if (!globalThis.VYLO) {
             throw new Error('[Kit] VYLO is not defined. Please ensure the VYLO variable is available in the global namespace.');         
         }
-        const resourcePath = './resource.json';
-        // Load the resource json and set the resources found
-        try {
-            const response = await fetch(resourcePath);
-            
-            if (!response.ok) {
-                throw new Error(`[Kit] HTTP error! Status: ${response.status}`);
-            }
+        
+        let resourcePath = './resources/resource.json';
+        let resourceJson;
+        
+        // Server environment (we do not use fetch as the file:// protocol is not supported atm)
+        if (!globalThis.window) {
+            const [fsPromises, path ] = await Promise.all([
+                import('fs/promises'),
+                import('path')
+            ]);
 
-            const resourceJSON = await response.json();
+            const { readFile } = fsPromises;
+            resourcePath = path.resolve('resources', 'resource.json');
 
-            if (resourceJSON) {
-                const resources: ResourceData[] = Object.values(resourceJSON);
-                // Group all data from separate arrays in object to one unified array of all resource data
-                const consolidatedData = resources.flat();
-                // Set all the resources
-                this.setResource(consolidatedData);
+            const data = await readFile(resourcePath, 'utf-8');
+            resourceJson = JSON.parse(data);
+        // Client environment
+        } else {
+            // Load the resource json and set the resources found
+            try {
+                const response = await fetch(resourcePath);
+                
+                if (!response.ok) {
+                    throw new Error(`[Kit] HTTP error! Status: ${response.status}`);
+                }
+
+                resourceJson = await response.json();
+            } catch (pError) {
+                console.error(`[Kit] error reading ${resourcePath}`, pError);
             }
-        } catch (pError) {
-            console.error(`[Kit] error reading ${resourcePath}`, pError);
+        }
+
+        if (resourceJson) {
+            const resources: ResourceData[] = Object.values(resourceJson);
+            // Group all data from separate arrays in object to one unified array of all resource data
+            const consolidatedData = resources.flat();
+            // Set all the resources
+            this.setResource(consolidatedData);
         }
     }
 }
