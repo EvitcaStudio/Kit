@@ -1,5 +1,7 @@
-declare global {
+
                 
+	
+	/**The world object.*/
 	type World = {
                     
 		/**
@@ -15,7 +17,7 @@ declare global {
 		 * object that will become the contents of 'settings.json' file for your game server
 		 * @env Client | Server
 		 */
-		serverSettings: {[key: string]: any, 'port'?: number,'name'?: string,'accessCode'?: 'string','secure'?: {'key': string, 'cert': string}}
+		serverSettings: {[key: string]: unknown, 'port'?: number,'name'?: string,'accessCode'?: 'string','secure'?: {'key': string, 'cert': string}}
 
         /**
 		 * alphanumeric string between 1 and 48 characters needed to list a server and use the api for the game
@@ -89,28 +91,28 @@ declare global {
 		 * @env Server
 		 * @param {number} pPort - the port to listen for sockets on
 		 * @param {Function} pFunc - the function to call once the host socket has started
-		 * @returns {any[]} returns an array of all the socket client objects
+		 * @returns {unknown[]} returns an array of all the socket client objects
 		 */
-		hostWebSocket(pPort: number, pFunc: Function): any[]
+		hostWebSocket(pPort: number, pFunc: Function): unknown[]
 
         /**
 		 * checks if Vylocity account pName is a subscriber of the game then calls pFunc; server-side only
 		 * @env Server
-		 * @param {string} pName - name of the Vyocity account to check sub of
+		 * @param {string | number} pName - name of the Vyocity account to check sub of
 		 * @param {Function} pFunc - function to call after the sub check; function is called with up to two parameters where the first is true or false depending on if the account is a sub or not and the second is a string containing an error message if there was one
 		 */
-		checkSub(pName: string, pFunc: Function): void
+		checkSub(pName: string | number, pFunc: Function): void
 
         /**
 		 * plays a sound to all objects in pArr; returns the Sound object
 		 * @env Client | Server
 		 * @param {string | {'soundName': string, 'volume': number}} pSound - either a string with the name of a sound file, or a string containing the path of a Sound object, or an actual Sound object, or a basic object with the proper information; ex ( {'soundName': 'name', 'volume': 50} )
-		 * @param {any} [pArr] - optional list of objects to play sound to
-		 * @param {any} [pStart] - optional; time to start playing the sound at
-		 * @param {any} [pDuration] - optional; how long to play the sound for
+		 * @param {unknown} [pArr] - optional list of objects to play sound to
+		 * @param {unknown} [pStart] - optional; time to start playing the sound at
+		 * @param {unknown} [pDuration] - optional; how long to play the sound for
 		 * @returns {void} returns the Sound object
 		 */
-		playSound(pSound: string | {'soundName': string, 'volume': number}, pArr?: any, pStart?: any, pDuration?: any): void
+		playSound(pSound: string | {'soundName': string, 'volume': number}, pArr?: unknown, pStart?: unknown, pDuration?: unknown): void
 
         /**
 		 * sends a request of method pMethod to the url pLink and passes the response into pFunc
@@ -118,10 +120,10 @@ declare global {
 		 * @param {string} pLink - string containing the link to send a request to; for example 'https://vylocity.com/'
 		 * @param {string} [pMethod] - optional; string containing method type of request, ex 'POST', 'GET'
 		 * @param {object} [pHeaders] - optional; object containing custom headers
-		 * @param {any} [pData] - optional; data to send with method 'POST'
+		 * @param {unknown} [pData] - optional; data to send with method 'POST'
 		 * @param {Function} [pFunc] - optional; function to call after the request has been sent and a response received, the arguments of the function will be (pData, pError) where pData is the data returned and pError the error (if there is one)
 		 */
-		sendRequest(pLink: string, pMethod?: string, pHeaders?: object, pData?: any, pFunc?: Function): void
+		sendRequest(pLink: string, pMethod?: string, pHeaders?: object, pData?: unknown, pFunc?: Function): void
 
         /**
 		 * SERVER-ONLY; a string containing addresses allowed to use scripts to access and download resources from this game server (currently set for .vyr|.json|.txt files); default '*' which allows all addresses
@@ -163,12 +165,12 @@ declare global {
         /**
 		 * returns an array of objects that are in pArr depending on the provided arguments; if pType is not set, all objects in the game will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
 		 * @env Client | Server
-		 * @param {any[]} pArr - array to check for objects in
+		 * @param {unknown[]} pArr - array to check for objects in
 		 * @param {string} [pType] - optional; string containing type path to return
 		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {any[]} returns an array of objects that are in pArr depending on the provided arguments; if pType is not set, all objects in the game will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
+		 * @returns {unknown[]} returns an array of objects that are in pArr depending on the provided arguments; if pType is not set, all objects in the game will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
 		 */
-		getObjectsFromArray(pArr: any[], pType?: string, pChild?: boolean): any[]
+		getObjectsFromArray(pArr: unknown[], pType?: string, pChild?: boolean): unknown[]
 
         /**
 		 * returns a string containing the address of the server or client; for example '1.2.3.4:1234' for server and 'localhost' always for client
@@ -182,9 +184,9 @@ declare global {
 		 * @env Client
 		 * @param {string} pLink - string containing the link to read; for example 'http://vylocity.com/'
 		 * @param {Function} pFunc - function to call after the content has been retrieved
-		 * @param {any} [pMime] - CLIENT-ONLY; optional; set the mime type; ex text/html or application/octet-stream
+		 * @param {unknown} [pMime] - CLIENT-ONLY; optional; set the mime type; ex text/html or application/octet-stream
 		 */
-		getWebContent(pLink: string, pFunc: Function, pMime?: any): void
+		getWebContent(pLink: string, pFunc: Function, pMime?: unknown): void
 
         /**
 		 * SERVER-ONLY; reference to the node process (https://nodejs.org/api/process.html); warning: for advanced users
@@ -240,9 +242,9 @@ declare global {
 		 * called when a map finishes loading
 		 * @env Client | Server
 		 * @event
-		 * @param {string} pName - name of map that has loaded
+		 * @param {string | number} pName - name of map that has loaded
 		 */
-		onMapLoaded(pName: string): void
+		onMapLoaded(pName: string | number): void
 
         /**
 		 * string containing the path of the mob for the player to control
@@ -310,11 +312,11 @@ declare global {
         /**
 		 * sends a notification with the message pMessage to the Vylocity account pName and then calls pFunc; server-side only
 		 * @env Server
-		 * @param {string} pName - name of the Vyocity account to send notification to
-		 * @param {any} pMessage - message to send; 256 characters max
+		 * @param {string | number} pName - name of the Vyocity account to send notification to
+		 * @param {unknown} pMessage - message to send; 256 characters max
 		 * @param {Function} pFunc - function to call after the notification has been sent or attempted; function is called with up to two parameters where the first is true or false depending on the success of the send and the second is a string containing an error message if there was one
 		 */
-		sendNotification(pName: string, pMessage: any, pFunc: Function): void
+		sendNotification(pName: string | number, pMessage: unknown, pFunc: Function): void
 
         /**
 		 * only manually set this if you are using the offline IDE and are setting the source to match the game id for vylocity.com
@@ -366,13 +368,15 @@ declare global {
 		 * sends the data for the pD diob to all clients in the world, if pVar is set it will send only those variables, if it is not set it will only send built-in engine variables
 		 * @env Server
 		 * @param {Diob} pD - reference to the diob to send
-		 * @param {any[]} [pVar] - optional; variable name or array of variable names
+		 * @param {unknown[]} [pVar] - optional; variable name or array of variable names
 		 */
-		sendDiob(pD: Diob, pVar?: any[]): void
+		sendDiob(pD: Diob, pVar?: unknown[]): void
                 
 	}
             
                 
+	
+	/**The base object that Diob extends from.*/
 	type Object = {
                     
 		/**
@@ -384,22 +388,24 @@ declare global {
         /**
 		 * sets the pVal value of the pVar static variable belonging to the type pType; static variables are variables that belong to all Objects of this type collectively and are different than normal variables, usually static variables can only be set once, but VyScript static variables may be changed if that is what the developer wants
 		 * @env Client | Server
-		 * @param {any} pVar - name of the static variable to set
+		 * @param {unknown} pVar - name of the static variable to set
 		 * @param {boolean} pVal - value to give to the static variable
 		 */
-		setStaticVariable(pVar: any, pVal: boolean): void
+		setStaticVariable(pVar: unknown, pVal: boolean): void
 
         /**
 		 * returns the static variable value belonging to the type pType
 		 * @env Client | Server
-		 * @param {any} pVar - name of the static variable to get
-		 * @returns {any} returns the static variable value belonging to the type pType
+		 * @param {unknown} pVar - name of the static variable to get
+		 * @returns {unknown} returns the static variable value belonging to the type pType
 		 */
-		getStaticVariable(pVar: any): any
+		getStaticVariable(pVar: unknown): unknown
                 
 	}
             
                 
+	
+	/**The diob object.*/
 	type Diob = {
                     
 		/**
@@ -412,9 +418,9 @@ declare global {
         /**
 		 * removes the specified filter
 		 * @env Client | Server
-		 * @param {string} pName - name of filter to remove
+		 * @param {string | number} pName - name of filter to remove
 		 */
-		removeFilter(pName: string): void
+		removeFilter(pName: string | number): void
 
         /**
 		 * sets the diob's overlays to the array pOver
@@ -429,17 +435,17 @@ declare global {
 		 * @env Client | Server
 		 * @event
 		 * @param {string} pVar - a string containing the name of the variable involved in the transition
-		 * @param {any} pChange - the amount changed
+		 * @param {unknown} pChange - the amount changed
 		 * @param {object} pStart - if this is set then this is the event called when a transition starts; this will be a reference to the transition object used
 		 */
-		onTransition(pVar: string, pChange: any, pStart: object): void
+		onTransition(pVar: string, pChange: unknown, pStart: object): void
 
         /**
 		 * returns an array of diobs currently in this diob's viewer array
 		 * @env Client | Server
-		 * @returns {any[]} returns an array of diobs currently in this diob's viewer array
+		 * @returns {unknown[]} returns an array of diobs currently in this diob's viewer array
 		 */
-		getInvisibilityViewers(): any[]
+		getInvisibilityViewers(): unknown[]
 
         /**
 		 * if set, diob will be invisible to all other diobs with visibility less than this value
@@ -459,9 +465,9 @@ declare global {
 		 * modifies scale, angle, or alpha of the over screen
 		 * @env Client | Server
 		 * @param {object} pMod - object containing mods; scale, angle, alpha; ex ( {'angle': 0.8} )
-		 * @param {any} [pAdd] - optional; if set, the values in pMod will be added to the current mod object
+		 * @param {unknown} [pAdd] - optional; if set, the values in pMod will be added to the current mod object
 		 */
-		setOverScreenMod(pMod: object, pAdd?: any): void
+		setOverScreenMod(pMod: object, pAdd?: unknown): void
 
         /**
 		 * moves this to specified location; if pVal1 and pVal2 are numbers, this is moved to the coordinate pVal1, pVal2; if pVal1 is an object but not a tile, this is moved to the location of object; if pVal1 is a tile, this is moved to that tile
@@ -494,9 +500,9 @@ declare global {
 		 * @env Client | Server
 		 * @event
 		 * @param {Diob} pD - diob that is crossed with this diob
-		 * @param {any} pInit - if set, pD was relocated and initiated the event
+		 * @param {unknown} pInit - if set, pD was relocated and initiated the event
 		 */
-		onCrossedRelocated(pD: Diob, pInit: any): void
+		onCrossedRelocated(pD: Diob, pInit: unknown): void
 
         /**
 		 * turns this diob's sprite into a repeating pattern; call with no arguments to return to a normal sprite
@@ -512,7 +518,7 @@ declare global {
 		 * determines if the object is dense or not; true or false for dense or not, or a number for value, over 1 for different densities; for example, density 3 diobs can move over density 2 and lower diobs but not anything density 3 or higher
 		 * @env Client | Server
 		 */
-		density: any
+		density: unknown
 
         /**
 		 * name of icon inside object's icon atlas
@@ -523,11 +529,11 @@ declare global {
         /**
 		 * adds the specified filter
 		 * @env Client | Server
-		 * @param {string} pName - name of the filter; only one name may be used at a time, using the name will remove the old filter with that name
+		 * @param {string | number} pName - name of the filter; only one name may be used at a time, using the name will remove the old filter with that name
 		 * @param {string} pType - the type of filter to add; below is the types and their specific possible pArgs values
-		 * @param {any} pArgs - color-based filter
+		 * @param {unknown} pArgs - color-based filter
 		 */
-		addFilter(pName: string, pType: string, pArgs: any): void
+		addFilter(pName: string | number, pType: string, pArgs: unknown): void
 
         /**
 		 * position of object on the grid x-axis
@@ -548,10 +554,10 @@ declare global {
 		 * @env Client | Server
 		 * @event
 		 * @param {Client} pClient - client that sent the packet
-		 * @param {string} pName - name of packet
-		 * @param {any} pData - any data containing information for packet; ex {'a': 1, 'b': 2} or 'test'
+		 * @param {string | number} pName - name of packet
+		 * @param {unknown} pData - any data containing information for packet; ex {'a': 1, 'b': 2} or 'test'
 		 */
-		onPacket(pClient: Client, pName: string, pData: any): void
+		onPacket(pClient: Client, pName: string | number, pData: unknown): void
 
         /**
 		 * called when the mouse clicks this object
@@ -560,15 +566,15 @@ declare global {
 		 * @param {Client} pClient - client of the mouse
 		 * @param {number} pX - the x position of the mouse over the diob
 		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {any} pButton - the button used; 1 for left, 2 for middle, 3 for right
+		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle, 3 for right
 		 */
-		onMouseClick(pClient: Client, pX: number, pY: number, pButton: any): void
+		onMouseClick(pClient: Client, pX: number, pY: number, pButton: unknown): void
 
         /**
 		 * the region that the diob is in
 		 * @env Client | Server
 		 */
-		region: any
+		region: unknown
 
         /**
 		 * name of atlas the object's icon is in
@@ -604,7 +610,7 @@ declare global {
 		 * if set, the client will not interpolation position changes
 		 * @env Client | Server
 		 */
-		preventInterpolation: any
+		preventInterpolation: unknown
 
         /**
 		 * default 0; number of pixels to offset the text by on the y-axis
@@ -622,7 +628,7 @@ declare global {
 		 * unique ID of the diob
 		 * @env Client | Server
 		 */
-		id: any
+		id: unknown
 
         /**
 		 * the diob's transformation matrix or transformation object; example [scaleX, skewY, 0, skewX, scaleY, 0, moveX, moveY, 1] where scaleX scales the diob's appearance on the x-axis, skewY skews on the y-axis, moveX moves on the x-axis, skewX skews on the x-axis, scaleY scales on the y-axis, moveY moves on the y-axis, and the last three are static for matrix; example {'scaleX': 2, 'skewY': 0.1} would scale by 2 on the x-axis and skew by 0.1 on the y-axis for object
@@ -654,7 +660,7 @@ declare global {
 		 * the tile that the diob is on
 		 * @env Client | Server
 		 */
-		loc: any
+		loc: unknown
 
         /**
 		 * when this diob leaves the client's screen view
@@ -667,10 +673,10 @@ declare global {
         /**
 		 * returns the transformation matrix of this diob
 		 * @env Client | Server
-		 * @param {any} [pAsObj] - optional; if set, the diob's transformation matrix will be returned as an object, for example {'scaleX': scaleX, 'skewY': skewY}
+		 * @param {unknown} [pAsObj] - optional; if set, the diob's transformation matrix will be returned as an object, for example {'scaleX': scaleX, 'skewY': skewY}
 		 * @returns {void} returns the transformation matrix of this diob
 		 */
-		getTransform(pAsObj?: any): void
+		getTransform(pAsObj?: unknown): void
 
         /**
 		 * returns the over screen mod
@@ -706,19 +712,19 @@ declare global {
 		 * @param {number} pY - y offset of display
 		 * @param {number} pWidth - width of display
 		 * @param {number} pHeight - height of display
-		 * @param {any} [pData] - optional; data to add to the screen
+		 * @param {unknown} [pData] - optional; data to add to the screen
 		 * @param {object} [pSet] - optional; settings object; ex ( {'scaleNearest': true} );
 		 */
-		setOverScreen(pX: number, pY: number, pWidth: number, pHeight: number, pData?: any, pSet?: object): void
+		setOverScreen(pX: number, pY: number, pWidth: number, pHeight: number, pData?: unknown, pSet?: object): void
 
         /**
 		 * when this diob changes maps; this event will be called twice if the map has not already been loaded, once before loading and once after the loading has completed (the first event will have pBefore set)
 		 * @env Client | Server
 		 * @event
 		 * @param {string} pMap - name of the old map or name of the new map if pBefore is set
-		 * @param {any} pBefore - if set then the map is currently loading and this is the pre-load event
+		 * @param {unknown} pBefore - if set then the map is currently loading and this is the pre-load event
 		 */
-		onMapChange(pMap: string, pBefore: any): void
+		onMapChange(pMap: string, pBefore: unknown): void
 
         /**
 		 * returns an object {'width': width, 'height': height} containing the diob's width and height
@@ -746,9 +752,9 @@ declare global {
 		 * @param {Client} pClient - client of the mouse
 		 * @param {number} pX - the x position of the mouse over the diob
 		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {any} pButton - the button used; 1 for left, 2 for middle
+		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle
 		 */
-		onMouseDblClick(pClient: Client, pX: number, pY: number, pButton: any): void
+		onMouseDblClick(pClient: Client, pX: number, pY: number, pButton: unknown): void
 
         /**
 		 * when an object exits the contents of another object
@@ -823,19 +829,19 @@ declare global {
 		 * if this diob is an Overlay type or is being used as an overlay, this will be set; if the overlay has a parent diob, this will be a reference to that diob
 		 * @env Client | Server
 		 */
-		isOverlay: any
+		isOverlay: unknown
 
         /**
 		 * height to use when calculating y position relayering
 		 * @env Client | Server
 		 */
-		relayerHeight: any
+		relayerHeight: unknown
 
         /**
 		 * SERVER-ONLY; if set, the server will not update clients when changes are made; can be 'true' to prevent all clients from getting updated or can be an object containing variables and/or specific clients to ignore; possible variables 'pos', 'dir', 'icon'; ex ( {'type': ['pos', 'dir'], 'client': [someClient]} )
 		 * @env Server
 		 */
-		preventClientUpdates: any
+		preventClientUpdates: unknown
 
         /**
 		 * called when a mouse wheel button is scrolled upward while over this object
@@ -851,16 +857,16 @@ declare global {
 		 * data shared automatically from the server-side to clients that have a sync for this diob; changing the variable will update any clients that have this diob's sync in realtime
 		 * @env Client | Server
 		 */
-		clientSyncData: any
+		clientSyncData: unknown
 
         /**
 		 * sends a packet to a client or server specifically for this diob, depending on where the code is executed; client code executing this will send the packet to the server; server code executing this will send the packet to the client; this will invoke Diob/onPacket on client-side if the sendPacket is server-side and on the server-side if it is on the client-side
 		 * @env Client | Server
-		 * @param {string} pName - name of packet to send
-		 * @param {any} pData - data to be sent; ex {'a': 1, 'b': 2} or 'test'
+		 * @param {string | number} pName - name of packet to send
+		 * @param {unknown} pData - data to be sent; ex {'a': 1, 'b': 2} or 'test'
 		 * @param {Client} [pClient] - SERVER ONLY; optional; specific client or array of clients to send this packet to; if no client is specified the packet will be sent to all clients currently synced with this diob
 		 */
-		sendPacket(pName: string, pData: any, pClient?: Client): void
+		sendPacket(pName: string | number, pData: unknown, pClient?: Client): void
 
         /**
 		 * returns an object {'x': x, 'y': y} containing the x and y coord offsets of the object
@@ -873,9 +879,9 @@ declare global {
 		 * removes all overlays with the pOver type or the exact overlay matching pOver
 		 * @env Client | Server
 		 * @param {string | Diob | Object} pOver - string of the type of object or overlay to remove or actual overlay to remove
-		 * @param {any} [pSave] - optional; if set, the overlay will not be deleted, otherwise this call will delete pOver after removing it from the overlays
+		 * @param {unknown} [pSave] - optional; if set, the overlay will not be deleted, otherwise this call will delete pOver after removing it from the overlays
 		 */
-		removeOverlay(pOver: string | Diob | Object, pSave?: any): void
+		removeOverlay(pOver: string | Diob | Object, pSave?: unknown): void
 
         /**
 		 * called when the mouse exits this object
@@ -958,9 +964,9 @@ declare global {
 		 * @param {Client} pClient - client of the mouse
 		 * @param {number} pX - the x position of the mouse over the diob
 		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {any} pButton - the button used; 1 for left, 2 for middle, 3 for right
+		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle, 3 for right
 		 */
-		onMouseDown(pClient: Client, pX: number, pY: number, pButton: any): void
+		onMouseDown(pClient: Client, pX: number, pY: number, pButton: unknown): void
 
         /**
 		 * called when the mouse moves after entering this object
@@ -989,9 +995,9 @@ declare global {
 		 * calls on the client-side when clientSyncData is changed by the server
 		 * @env Client | Server
 		 * @event
-		 * @param {any} pOld - old data in clientSyncData
+		 * @param {unknown} pOld - old data in clientSyncData
 		 */
-		onClientSyncData(pOld: any): void
+		onClientSyncData(pOld: unknown): void
 
         /**
 		 * returns an array of locations the diob is on; if diob is a tile, it returns an array containing only itself
@@ -1018,7 +1024,7 @@ declare global {
 		 * name of object
 		 * @env Client | Server
 		 */
-		name: any
+		name: unknown
 
         /**
 		 * sets the icon state of the diob's icon
@@ -1043,9 +1049,9 @@ declare global {
 		 * @param {Client} pClient - client of the mouse
 		 * @param {number} pX - the x position of the mouse over the diob
 		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {any} pButton - the button used; 1 for left, 2 for middle, 3 for right
+		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle, 3 for right
 		 */
-		onMouseUp(pClient: Client, pX: number, pY: number, pButton: any): void
+		onMouseUp(pClient: Client, pX: number, pY: number, pButton: unknown): void
 
         /**
 		 * position on the x-axis of the origin from the left edge of the diob
@@ -1057,10 +1063,10 @@ declare global {
 		 * when pMovable attempts to cross this diob resulting in overlapping bounding boxes; this function must return 'true' in order for pMovable to cross; this event is called for both diobs if they are both movable; tiles do not have this event
 		 * @env Client | Server
 		 * @event
-		 * @param {any} pMovable - movable that is attempting to cross with this diob
-		 * @param {any} pInit - if set, pMovable initiated the event
+		 * @param {unknown} pMovable - movable that is attempting to cross with this diob
+		 * @param {unknown} pInit - if set, pMovable initiated the event
 		 */
-		onCross(pMovable: any, pInit: any): void
+		onCross(pMovable: unknown, pInit: unknown): void
 
         /**
 		 * position on the y-axis from top to bottom of the map
@@ -1104,7 +1110,7 @@ declare global {
 		 * state of the icon
 		 * @env Client | Server
 		 */
-		iconState: any
+		iconState: unknown
 
         /**
 		 * return data related to the internal sprite of the diob which 
@@ -1118,17 +1124,17 @@ declare global {
 		 * @env Client | Server
 		 * @event
 		 * @param {Diob} pD - diob that crossed with this diob
-		 * @param {any} pInit - if set, pD was relocated and initiated the event
+		 * @param {unknown} pInit - if set, pD was relocated and initiated the event
 		 */
-		onCrossed(pD: Diob, pInit: any): void
+		onCrossed(pD: Diob, pInit: unknown): void
 
         /**
 		 * set the diob's sprite to pData
 		 * @env Client | Server
-		 * @param {any} pData - the data used as the sprite
+		 * @param {unknown} pData - the data used as the sprite
 		 * @param {string} [pType] - optional; default 'url'; the type of data to get 'url' for data url
 		 */
-		setSpriteData(pData: any, pType?: string): void
+		setSpriteData(pData: unknown, pType?: string): void
 
         /**
 		 * removed pDiob from this diob's viewer array
@@ -1147,7 +1153,7 @@ declare global {
 		 * determines if the cursor executes mouse events on this object or not; 0 to ignore mouse events, 1 for icon size to determine mouse events, 2 for physical size to determine mouse events
 		 * @env Client | Server
 		 */
-		mouseOpacity: any
+		mouseOpacity: unknown
 
         /**
 		 * sets the movable's map position to pX, pY
@@ -1163,9 +1169,9 @@ declare global {
 		 * @env Client | Server
 		 * @param {string} [pType] - optional; string containing type path to return
 		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {any[]} returns an array of diobs in the diob's contents using the provided arguments; if pType is not set, all diobs in the diob's contents will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
+		 * @returns {unknown[]} returns an array of diobs in the diob's contents using the provided arguments; if pType is not set, all diobs in the diob's contents will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
 		 */
-		getContents(pType?: string, pChild?: boolean): any[]
+		getContents(pType?: string, pChild?: boolean): unknown[]
 
         /**
 		 * called when the mouse enters this object
@@ -1181,7 +1187,7 @@ declare global {
 		 * order of display of the diob; diobs with the same plane appear together with layers determining the order; a diob with a plane of 1 and layer 1000 will appear below a diob with plane 2 (default planes: Diob 0, Movable 1, Particle 2)
 		 * @env Client | Server
 		 */
-		plane: any
+		plane: unknown
 
         /**
 		 * x-axis offset of the icon
@@ -1200,7 +1206,7 @@ declare global {
 		 * name of the map
 		 * @env Client | Server
 		 */
-		mapName: any
+		mapName: unknown
 
         /**
 		 * sets the x and y icon offsets
@@ -1214,9 +1220,9 @@ declare global {
 		 * when a movable bumps into this diob
 		 * @env Client | Server
 		 * @event
-		 * @param {any} pMovable - movable that did the bumping
+		 * @param {unknown} pMovable - movable that did the bumping
 		 */
-		onBumped(pMovable: any): void
+		onBumped(pMovable: unknown): void
 
         /**
 		 * called when a mouse wheel button is scrolled downward while over this object
@@ -1238,7 +1244,7 @@ declare global {
 		 * name of the highest level parent type
 		 * @env Client | Server
 		 */
-		parentType: any
+		parentType: unknown
 
         /**
 		 * width of the collision box of the object
@@ -1250,7 +1256,7 @@ declare global {
 		 * 0 for no scale or an object {'x': 2, 'y': 2} containing the information for the scale
 		 * @env Client | Server
 		 */
-		scale: any
+		scale: unknown
 
         /**
 		 * how many pixels object is offset on the grid y-axis from its yCoord
@@ -1268,7 +1274,7 @@ declare global {
 		 * order of display of the diob; higher layer objects appear above lower layer objects
 		 * @env Client | Server
 		 */
-		layer: any
+		layer: unknown
 
         /**
 		 * returns an array of diobs that are overlays of this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
@@ -1284,10 +1290,13 @@ declare global {
 		 * @env Client | Server
 		 */
 		anchor: {'x': number, 'y': number}
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The movable object.*/
 	type Movable = {
                     
 		/**
@@ -1309,34 +1318,34 @@ declare global {
 		 * true if moving using the built-in movement
 		 * @env Client | Server
 		 */
-		isMoving: any
+		isMoving: unknown
 
         /**
 		 * steps the movable by pX x pixels and pY y pixels; takes obstacles into consideration; returns true or false depending on if the step was successful
 		 * @env Client | Server
 		 * @param {number} pX - x value to step by
 		 * @param {number} pY - y value to step by
-		 * @param {any} pGlide - if set, movement will not stop unless move directions are blocked
-		 * @param {any} pSlide - if set, the step will occur without changing the movable's direction
+		 * @param {unknown} pGlide - if set, movement will not stop unless move directions are blocked
+		 * @param {unknown} pSlide - if set, the step will occur without changing the movable's direction
 		 * @returns {void} returns true or false depending on if the step was successful
 		 */
-		stepPos(pX: number, pY: number, pGlide: any, pSlide: any): void
+		stepPos(pX: number, pY: number, pGlide: unknown, pSlide: unknown): void
 
         /**
 		 * optional; time between each step, default is 60 steps a second for smoothest possible movement (default of 16.6667)
 		 * @env Client | Server
 		 */
-		moveSettings: any
+		moveSettings: unknown
 
         /**
 		 * moves movable pSize pixels in the direction of pDir; if pSize is not set, the size is the movable's stepSize; takes obstacles into consideration; returns true or false depending on if the step was successful
 		 * @env Client | Server
 		 * @param {string} pDir - direction to move movable in
-		 * @param {any} pSize - size of step to take
-		 * @param {any} pSlide - if set, the step will occur without changing the movable's direction
+		 * @param {unknown} pSize - size of step to take
+		 * @param {unknown} pSlide - if set, the step will occur without changing the movable's direction
 		 * @returns {void} returns true or false depending on if the step was successful
 		 */
-		stepDir(pDir: string, pSize: any, pSlide: any): void
+		stepDir(pDir: string, pSize: unknown, pSlide: unknown): void
 
         /**
 		 * calls either movable.stepPos or movable.stepDir depending on the specified arguments; if pArg1 is a number, movable.stepPos will be called, otherwise movable.stepDir will be called; returns true or false depending on if the step was successful
@@ -1355,11 +1364,14 @@ declare global {
 		 * string containing the direction of the movable; 'north', 'south', 'east', 'west', 'northwest', 'northeast', 'southwest', 'southeast'
 		 * @env Client | Server
 		 */
-		dir: any
+		dir: unknown
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The particle object.*/
 	type Particle = {
                     
 		/**
@@ -1367,10 +1379,13 @@ declare global {
 		 * @env Client
 		 */
 		preventScreenRelayer: boolean
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The tile object.*/
 	type Tile = {
                     
 		/**
@@ -1406,10 +1421,13 @@ declare global {
 		 * @param {string} pDir - direction of movement diob is attempting to make to exit the tile
 		 */
 		onExit(pDiob: Diob, pDir: string): void
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The region object.*/
 	type Region = {
                     
 		/**
@@ -1427,10 +1445,13 @@ declare global {
 		 * @param {Diob} pDiob - object that entered
 		 */
 		onEntered(pDiob: Diob): void
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The mob object.*/
 	type Mob = {
                     
 		/**
@@ -1452,21 +1473,27 @@ declare global {
 		 * @event
 		 */
 		onLogin(): void
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The overlay object.*/
 	type Overlay = {
                     
 		/**
 		 * if true, this overlay will appear directly above the parent and use the same appearance properties as the parent, such as angle and alpha; the overlay will basically be an extension of the parent's icon; instead of true this can be an object containing information on the appearMask, 'shareIcon' to have the overlay share the same iconName as the parent, 'isUnder' to make the overlay appear under the parent instead of above, and 'ownMod' to let the overlay use its own alpha, angle, scale, transform, and composite variables, 'ownState' to have this overlay not sync up with the parent's iconState; ex {'shareIcon': true, 'isUnder': true}
 		 * @env Client | Server
 		 */
-		appearMask: any
+		appearMask: unknown
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The sound object.*/
 	type Sound = {
                     
 		/**
@@ -1564,9 +1591,9 @@ declare global {
         /**
 		 * turns looping on or off; if pLoop is not set, loop will be toggled
 		 * @env Client | Server
-		 * @param {any} [pLoop] - optional; true to loop, false to stop loop
+		 * @param {unknown} [pLoop] - optional; true to loop, false to stop loop
 		 */
-		setLoop(pLoop?: any): void
+		setLoop(pLoop?: unknown): void
 
         /**
 		 * number between 0 and 100; volume of this sound object; default 100
@@ -1597,6 +1624,8 @@ declare global {
 	}
             
                 
+	
+	/**The interface object.*/
 	type Interface = {
                     
 		/**
@@ -1701,19 +1730,22 @@ declare global {
 		 * @env Client | Server
 		 */
 		xPos: number
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The client object.*/
 	type Client = {
                     
 		/**
 		 * stores pData as a string locally on the client's computer and can be referenced using pKey; leaving pKey and pData blank will clear all local storage; 3000 characters are allowed to be saved per game (keys and values combined)
 		 * @env Client | Server
-		 * @param {any} pKey - key used to reference the stored data
-		 * @param {any} pData - data as a string to store locally for the client
+		 * @param {unknown} pKey - key used to reference the stored data
+		 * @param {unknown} pData - data as a string to store locally for the client
 		 */
-		setLocalStorage(pKey: any, pData: any): void
+		setLocalStorage(pKey: unknown, pData: unknown): void
 
         /**
 		 * returns an object {'x': x, 'y': y} containing the x and y position on the map that currently matches the pX and pY position on the screen
@@ -1737,9 +1769,9 @@ declare global {
         /**
 		 * removes the specified filter
 		 * @env Client | Server
-		 * @param {string} pName - name of filter to remove
+		 * @param {string | number} pName - name of filter to remove
 		 */
-		removeFilter(pName: string): void
+		removeFilter(pName: string | number): void
 
         /**
 		 * sets the client's overlays to the array pOver
@@ -1767,9 +1799,9 @@ declare global {
 		 * performs the specified draw function using the specified pArgs object; ex ( {'type': 'image', 'image': this, 'x': 1, 'y': 1} )
 		 * @env Client | Server
 		 * @param {object | object[]} pArgs - an object or array of objects which determines the settings of the draw
-		 * @param {string} pName - type of draw
+		 * @param {string | number} pName - type of draw
 		 */
-		topScreenDraw(pArgs: object | object[], pName: string): void
+		topScreenDraw(pArgs: object | object[], pName: string | number): void
 
         /**
 		 * returns an object {'x': x, 'y': y} containing the x and y offsets of client's view eye
@@ -1781,11 +1813,11 @@ declare global {
         /**
 		 * creates a new top screen named pName with the layer pLayer
 		 * @env Client | Server
-		 * @param {string} pName - name of the top screen to create
-		 * @param {any} [pLayer] - optional; layer to give the screen
+		 * @param {string | number} pName - name of the top screen to create
+		 * @param {unknown} [pLayer] - optional; layer to give the screen
 		 * @param {object} [pSet] - optional; settings object; ex ( {'scaleType': 'nearest'} );
 		 */
-		createTopScreen(pName: string, pLayer?: any, pSet?: object): void
+		createTopScreen(pName: string | number, pLayer?: unknown, pSet?: object): void
 
         /**
 		 * returns an object containing the x and y of the game scale; ex: {'x': 2, 'y': 2}
@@ -1812,11 +1844,11 @@ declare global {
         /**
 		 * adds the specified filter
 		 * @env Client | Server
-		 * @param {string} pName - name of the filter; only one name may be used at a time, using the name will remove the old filter with that name
+		 * @param {string | number} pName - name of the filter; only one name may be used at a time, using the name will remove the old filter with that name
 		 * @param {string} pType - the type of filter to add; below is the types and their specific possible pArgs values
-		 * @param {any} pArgs - color-based filter
+		 * @param {unknown} pArgs - color-based filter
 		 */
-		addFilter(pName: string, pType: string, pArgs: any): void
+		addFilter(pName: string | number, pType: string, pArgs: unknown): void
 
         /**
 		 * removes the client command from the client's commands
@@ -1835,9 +1867,9 @@ declare global {
         /**
 		 * sets the client's max FPS to pFPS
 		 * @env Client | Server
-		 * @param {any} pFPS - cap the amount the FPS the client will try to reach when drawing the screen; default 60
+		 * @param {unknown} pFPS - cap the amount the FPS the client will try to reach when drawing the screen; default 60
 		 */
-		setMaxFPS(pFPS: any): void
+		setMaxFPS(pFPS: unknown): void
 
         /**
 		 * returns a reference to the web tag with the id pID
@@ -1851,10 +1883,10 @@ declare global {
 		 * sets the style of pStyle to the value of pValue of the web tag with the id pID
 		 * @env Client | Server
 		 * @param {string} pID - id of the web tag to set the style of
-		 * @param {any} pStyle - type of style to set
+		 * @param {unknown} pStyle - type of style to set
 		 * @param {string} pValue - value as a string to set the style to
 		 */
-		setWebTagStyle(pID: string, pStyle: any, pValue: string): void
+		setWebTagStyle(pID: string, pStyle: unknown, pValue: string): void
 
         /**
 		 * sets the HTML of the web box behind the game screen
@@ -1896,26 +1928,26 @@ declare global {
 		 * plays a sound to this client; returns the Sound object
 		 * @env Client | Server
 		 * @param {string | {'soundName': string, 'volume': number}} pSound - either a string with the name of a sound file, or a string containing the path of a Sound object, or an actual Sound object, or a basic object with the proper information; ex ( {'soundName': 'name', 'volume': 50} )
-		 * @param {any} [pStart] - optional; time to start playing the sound at
-		 * @param {any} [pDuration] - optional; how long to play the sound for
+		 * @param {unknown} [pStart] - optional; time to start playing the sound at
+		 * @param {unknown} [pDuration] - optional; how long to play the sound for
 		 * @returns {void} returns the Sound object
 		 */
-		playSound(pSound: string | {'soundName': string, 'volume': number}, pStart?: any, pDuration?: any): void
+		playSound(pSound: string | {'soundName': string, 'volume': number}, pStart?: unknown, pDuration?: unknown): void
 
         /**
 		 * gets the data as a string that is stored with the key pKey on the client's computer
 		 * @env Client | Server
-		 * @param {any} pKey - key used to get data stored locally on the client's computer
+		 * @param {unknown} pKey - key used to get data stored locally on the client's computer
 		 */
-		getLocalStorage(pKey: any): Storage
+		getLocalStorage(pKey: unknown): Storage
 
         /**
 		 * executes the event pEvent of the web tag with the id pID
 		 * @env Client | Server
 		 * @param {string} pID - id of the web tag to call the event of
-		 * @param {any} pEvent - name of the event to call; onMouseDown, onMouseUp, onMouseClick, onMouseDblClick, onMouseMove
+		 * @param {unknown} pEvent - name of the event to call; onMouseDown, onMouseUp, onMouseClick, onMouseDblClick, onMouseMove
 		 */
-		callWebTagEvent(pID: string, pEvent: any): void
+		callWebTagEvent(pID: string, pEvent: unknown): void
 
         /**
 		 * returns an array of names of all created interfaces
@@ -1927,19 +1959,19 @@ declare global {
         /**
 		 * removes the script with the pName name from the game
 		 * @env Client | Server
-		 * @param {string} pName - name of script to remove
+		 * @param {string | number} pName - name of script to remove
 		 */
-		removeWebScript(pName: string): void
+		removeWebScript(pName: string | number): void
 
         /**
 		 * loads a JavaScript file into the project
 		 * @env Client | Server
-		 * @param {string} pName - name to give the script
-		 * @param {any} pLink - link to the JavaScript file to load
-		 * @param {any} [pModule] - optional; load script as a module
+		 * @param {string | number} pName - name to give the script
+		 * @param {unknown} pLink - link to the JavaScript file to load
+		 * @param {unknown} [pModule] - optional; load script as a module
 		 * @param {Function} [pFunc] - optional; function to call after the JavaScript file has loaded
 		 */
-		addWebScript(pName: string, pLink: any, pModule?: any, pFunc?: Function): void
+		addWebScript(pName: string | number, pLink: unknown, pModule?: unknown, pFunc?: Function): void
 
         /**
 		 * a string containing the HTML to display behind the game screen; #web_background to set the style of the entire background
@@ -1972,10 +2004,10 @@ declare global {
 		 * calls the client command of pCommand with the arguments of pArgs
 		 * @env Client
 		 * @param {string} pCommand - name of the client command to call
-		 * @param {any[]} pArgs - array of arguments to pass to the command
-		 * @param {any} [pSend] - CLIENT-ONLY; optional; if set the command will also be sent to the server
+		 * @param {unknown[]} pArgs - array of arguments to pass to the command
+		 * @param {unknown} [pSend] - CLIENT-ONLY; optional; if set the command will also be sent to the server
 		 */
-		callCommand(pCommand: string, pArgs: any[], pSend?: any): void
+		callCommand(pCommand: string, pArgs: unknown[], pSend?: unknown): void
 
         /**
 		 * name of the interface element to send default messages to (ex: 'interface1.output1' )
@@ -2065,12 +2097,12 @@ declare global {
         /**
 		 * creates a new custom macro named pName with the keyDown command of pDown and the keyUp command of pUp; custom macros override macro atlas macros
 		 * @env Client | Server
-		 * @param {string} pName - name of the custom macro
+		 * @param {string | number} pName - name of the custom macro
 		 * @param {string} pKey - string of key that will execute the macro
 		 * @param {string} [pDown] - optional; string containing the command to be executed when the key is pushed down; example 'test(1)' would execute the 'test' client command with one parameter equal to '1'
 		 * @param {string} [pUp] - optional; string containing the command to be executed when the key is let go of; example 'test(1)' would execute the 'test' client command with one parameter equal to '1'
 		 */
-		addCustomMacro(pName: string, pKey: string, pDown?: string, pUp?: string): void
+		addCustomMacro(pName: string | number, pKey: string, pDown?: string, pUp?: string): void
 
         /**
 		 * returns an object containing information about the client's browser and operating system; example {'platform': 'Netscape', 'version': 'Chrome/38.0.2125.104', 'vendor': 'Google', 'language': 'en-US', 'system': 'Windows 95'}
@@ -2083,7 +2115,7 @@ declare global {
 		 * true or false; true acts the same as 'scaleNearest' when scaling, but it also removes smoothing caused by other things
 		 * @env Client | Server
 		 */
-		screenView: any
+		screenView: unknown
 
         /**
 		 * displays the interface of pInterface, if not already displayed, along with all elements of the interface with that are not hidden by default; if pElement is specified, it makes that element no longer hidden
@@ -2116,30 +2148,30 @@ declare global {
         /**
 		 * returns the canvas element that this element is drawn on to
 		 * @env Client | Server
-		 * @param {any} pInt - name of the interface that element is on
-		 * @param {any} pEl - name of the element
+		 * @param {unknown} pInt - name of the interface that element is on
+		 * @param {unknown} pEl - name of the element
 		 * @returns {HTMLCanvasElement} returns the canvas element that this element is drawn on to
 		 */
-		getInterfaceCanvas(pInt: any, pEl: any): HTMLCanvasElement
+		getInterfaceCanvas(pInt: unknown, pEl: unknown): HTMLCanvasElement
 
         /**
 		 * adds a custom font
 		 * @env Client | Server
-		 * @param {string} pName - name of the font
+		 * @param {string | number} pName - name of the font
 		 * @param {string} pPath - url or path to the font file
-		 * @param {any} [pRemote] - optional; set this if the path is outside of the project
+		 * @param {unknown} [pRemote] - optional; set this if the path is outside of the project
 		 * @param {object} [pStyle] - optional; custom style object to apply to the font; ex {'font-weight': bold}
 		 */
-		addCustomFont(pName: string, pPath: string, pRemote?: any, pStyle?: object): void
+		addCustomFont(pName: string | number, pPath: string, pRemote?: unknown, pStyle?: object): void
 
         /**
 		 * sends a packet to a client or server, depending on where the code is executed; client code executing this will send the packet to the server; server code executing this will send the packet to the client; this will invoke Client/onPacket on client-side if the sendPacket is server-side and on the server-side if it is on the client-side
 		 * @env Client | Server
-		 * @param {string} pName - name of packet to send
-		 * @param {any} pData - an object containing data to be sent; ex {'a': 1, 'b': 2}
+		 * @param {string | number} pName - name of packet to send
+		 * @param {unknown} pData - an object containing data to be sent; ex {'a': 1, 'b': 2}
 		 * @param {boolean} [pForce] - optional; send the packet immediately instead of buffering it with the packet delay
 		 */
-		sendPacket(pName: string, pData: any, pForce?: boolean): void
+		sendPacket(pName: string | number, pData: unknown, pForce?: boolean): void
 
         /**
 		 * toggles screen drawing on and off
@@ -2160,13 +2192,13 @@ declare global {
 		 * @env Client | Server
 		 * @param {string} pType - type of interface object to add
 		 * @param {string} pInterface - name of the interface to add the interface element to
-		 * @param {string} [pName] - optional; name to give the element being added
+		 * @param {string | number} [pName] - optional; name to give the element being added
 		 * @param {number} [pX] - optional; x position to give the element
 		 * @param {number} [pY] - optional; y position to the give the element
-		 * @param {any[]} [pArgs] - optional; array of arguments to pass to the onNew event of the interface element being created
+		 * @param {unknown[]} [pArgs] - optional; array of arguments to pass to the onNew event of the interface element being created
 		 * @returns {Diob} returns it
 		 */
-		addInterfaceElement(pType: string, pInterface: string, pName?: string, pX?: number, pY?: number, pArgs?: any[]): Diob
+		addInterfaceElement(pType: string, pInterface: string, pName?: string | number, pX?: number, pY?: number, pArgs?: unknown[]): Diob
 
         /**
 		 * sets the content of the web tag with the id pID to the value of pContent
@@ -2218,9 +2250,9 @@ declare global {
         /**
 		 * moves the client to a new server located at the address pAddress
 		 * @env Client | Server
-		 * @param {any} pAddres - address for the server to move the client to; example '127.0.0.1:1234'
+		 * @param {unknown} pAddres - address for the server to move the client to; example '127.0.0.1:1234'
 		 */
-		changeServer(pAddres: any): void
+		changeServer(pAddres: unknown): void
 
         /**
 		 * returns an array of interface elements on the interface pInterface depending on the provided arguments; if pType is not set, all elements on the interface will be returned; if pType is set but pChild is not, elements on the interface with the exact type of pType will be returned; if pType is set and pChild is set, all elements with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Interface/A' with pChild undefined, all elements with the exact type of 'Interface/A' will be returned, but if pChild is set, then all types starting with 'Interface/A' on the interface will be returned
@@ -2243,13 +2275,13 @@ declare global {
         /**
 		 * changes the name and layer of the top screen with the name pName; adding data optional
 		 * @env Client | Server
-		 * @param {string} pName - name of the top screen to set
-		 * @param {any} pNewName - new name of the top screen
-		 * @param {any} pNewLayer - new layer of the top screen
-		 * @param {any} [pNewData] - optional; data to add to the screen
-		 * @param {any} [pNewSet] - optional; new settings object
+		 * @param {string | number} pName - name of the top screen to set
+		 * @param {unknown} pNewName - new name of the top screen
+		 * @param {unknown} pNewLayer - new layer of the top screen
+		 * @param {unknown} [pNewData] - optional; data to add to the screen
+		 * @param {unknown} [pNewSet] - optional; new settings object
 		 */
-		setTopScreen(pName: string, pNewName: any, pNewLayer: any, pNewData?: any, pNewSet?: any): void
+		setTopScreen(pName: string | number, pNewName: unknown, pNewLayer: unknown, pNewData?: unknown, pNewSet?: unknown): void
 
         /**
 		 * sets the edge limit of the map for the client
@@ -2269,11 +2301,11 @@ declare global {
         /**
 		 * brings up a prompt window to ask for text from the user
 		 * @env Client | Server
-		 * @param {any} pTitle - title of the prompt
+		 * @param {unknown} pTitle - title of the prompt
 		 * @param {string} pMes - default text in the input
 		 * @param {Function} pFunc - function to call after input; the first argument will be the input; can be a "callback array" containing the function, the 'this', and arguments; ex ( [this.someFunc, this] )
 		 */
-		prompt(pTitle: any, pMes: string, pFunc: Function): void
+		prompt(pTitle: unknown, pMes: string, pFunc: Function): void
 
         /**
 		 * amount of pixels the client's view is offset by from the view eye on the x-axis
@@ -2284,11 +2316,11 @@ declare global {
         /**
 		 * returns true if pInt is currently shown, false if not; if pEl is set, checks if the specified element is shown
 		 * @env Client | Server
-		 * @param {any} pInt - name of the interface
-		 * @param {any} [pEl] - optional; name of the element
+		 * @param {unknown} pInt - name of the interface
+		 * @param {unknown} [pEl] - optional; name of the element
 		 * @returns {boolean} returns true if pInt is currently shown, false if not; if pEl is set, checks if the specified element is shown
 		 */
-		checkInterfaceShown(pInt: any, pEl?: any): boolean
+		checkInterfaceShown(pInt: unknown, pEl?: unknown): boolean
 
         /**
 		 * outputs text to an interface element; if pInt or pEl is not set or is invalid, text goes to client.mainOutput
@@ -2314,9 +2346,9 @@ declare global {
         /**
 		 * removes a font from being usable
 		 * @env Client | Server
-		 * @param {string} pName - name of the font to remove
+		 * @param {string | number} pName - name of the font to remove
 		 */
-		removeCustomFont(pName: string): void
+		removeCustomFont(pName: string | number): void
 
         /**
 		 * string containing a color (null for transparent) to set the client's screen background to, for example '#000' for black; default is '#000'
@@ -2344,10 +2376,10 @@ declare global {
         /**
 		 * grabs an object with the screen name, layer, settings, and either an array of pixel data or a data url depending on pType for the entire screen named pName or the default top screen if no name is given. The array of pixel data can then be changed and used elsewhere or drawn onto another screen. To read the width and height you could use object.width and object.height, where object is the object returned by the function. The object data array is as follows: object.data[0] is the red value (0-255) of the pixel at 0,0, object.data[1] is the green value (0-255) of the pixel at 0,0, object.data[2] is the blue value (0-255) of the pixel at 0,0, and object.data[3] is the alpha value (0-255) of the pixel at 0,0. Then object.data[4], object.data[5], object.data[6], and object.data[7] are the respective values for the pixel at 1,0. This trend continues through the whole array for every pixel. object ex: {'name': '', 'layer': 1, 'data': ''}
 		 * @env Client | Server
-		 * @param {string} [pName] - optional; name of the top screen to get the data of
+		 * @param {string | number} [pName] - optional; name of the top screen to get the data of
 		 * @param {string} [pType] - optional; type of data to get; 'url' or 'pixels' or 'canvas'
 		 */
-		getTopScreen(pName?: string, pType?: string): void
+		getTopScreen(pName?: string | number, pType?: string): void
 
         /**
 		 * sets the cursor of the client
@@ -2367,9 +2399,9 @@ declare global {
         /**
 		 * removes a CSS style with the name pName
 		 * @env Client | Server
-		 * @param {string} pName - unique name of style
+		 * @param {string | number} pName - unique name of style
 		 */
-		removeWebStyle(pName: string): void
+		removeWebStyle(pName: string | number): void
 
         /**
 		 * returns an object {'step': step, 'max': {'x': x, 'y': y}} containing delay details of client's view eye
@@ -2462,9 +2494,9 @@ declare global {
 		 * removes an interface element from the interface
 		 * @env Client | Server
 		 * @param {string} pInterface - name of the interface to remove an interface element from
-		 * @param {string} pName - name of the interface element to remove
+		 * @param {string | number} pName - name of the interface element to remove
 		 */
-		removeInterfaceElement(pInterface: string, pName: string): void
+		removeInterfaceElement(pInterface: string, pName: string | number): void
 
         /**
 		 * returns an object containing the width and height of the game screen; ex: {'width': 100, 'height': 100}
@@ -2483,32 +2515,32 @@ declare global {
         /**
 		 * creates a new interface file named pName
 		 * @env Client | Server
-		 * @param {string} pName - name of the interface to create
+		 * @param {string | number} pName - name of the interface to create
 		 */
-		createInterface(pName: string): void
+		createInterface(pName: string | number): void
 
         /**
 		 * sends the data for the pD diob to the client, if pVar is set it will send only those variables, if it is not set it will only send built-in engine variables
 		 * @env Server
 		 * @param {Diob} pD - reference to the diob to send
-		 * @param {any[]} [pVar] - optional; variable name or array of variable names
+		 * @param {unknown[]} [pVar] - optional; variable name or array of variable names
 		 */
-		sendDiob(pD: Diob, pVar?: any[]): void
+		sendDiob(pD: Diob, pVar?: unknown[]): void
 
         /**
 		 * adds CSS style
 		 * @env Client | Server
-		 * @param {string} pName - unique name of style
-		 * @param {any} pStyle - text as CSS to add to the client
+		 * @param {string | number} pName - unique name of style
+		 * @param {unknown} pStyle - text as CSS to add to the client
 		 */
-		addWebStyle(pName: string, pStyle: any): void
+		addWebStyle(pName: string | number, pStyle: unknown): void
 
         /**
 		 * removes the custom macro pName from the client's custom macros
 		 * @env Client | Server
-		 * @param {string} pName - name of the custom macro
+		 * @param {string | number} pName - name of the custom macro
 		 */
-		removeCustomMacro(pName: string): void
+		removeCustomMacro(pName: string | number): void
 
         /**
 		 * object containing eye delay information; possible values 'step' (determines number of pixels the eye moves per frame; default 1) and 'max' (object determining maximum distance in pixels the screen can be from the eye {'x': 100, 'y': 100}); ex {'step': 2, 'max': {'x': 100, 'y': 100}}
@@ -2537,51 +2569,56 @@ declare global {
 		 * @env Client | Server
 		 */
 		mapView: object
+		[key: string]: any
                 
 	}
             
                 
+	
+	/**The resource object.*/
 	type Resource = {
                     
 		/**
 		 * sets a game resource to use the resource file located at pPath
 		 * @env Client | Server
 		 * @param {string} pType - type of file to set
-		 * @param {string} pName - name of file to set; this will be referenced in the project; example if pName was set to 'my_atlas' ( atlasName = 'my_atlas' )
+		 * @param {string | number} pName - name of file to set; this will be referenced in the project; example if pName was set to 'my_atlas' ( atlasName = 'my_atlas' )
 		 * @param {string} pPath - path to the file; if not a remote file this will be the name of the file (or path if any sub directories were added) inside resources/files/ for the game, otherwise it will be a web URL path to the file
-		 * @param {any} [pRemote] - optional; if set the pPath file will be treated like a web URL
+		 * @param {unknown} [pRemote] - optional; if set the pPath file will be treated like a web URL
 		 */
-		setResource(pType: string, pName: string, pPath: string, pRemote?: any): void
+		setResource(pType: string, pName: string | number, pPath: string, pRemote?: unknown): void
 
         /**
 		 * returns the direct path to the resource
 		 * @env Client | Server
 		 * @param {string} pType - type of file to get
-		 * @param {string} pName - name of file to get
+		 * @param {string | number} pName - name of file to get
 		 * @returns {string} returns the direct path to the resource
 		 */
-		getResourcePath(pType: string, pName: string): string
+		getResourcePath(pType: string, pName: string | number): string
 
         /**
 		 * loads the resource of type pType with the name pName and then calls the function pFunc
 		 * @env Client | Server
 		 * @param {string} pType - type of file to load
-		 * @param {string} pName - name of file to load
+		 * @param {string | number} pName - name of file to load
 		 * @param {Function} pFunc - function to call after the resource has finished loading or failed to load
 		 */
-		loadResource(pType: string, pName: string, pFunc: Function): void
+		loadResource(pType: string, pName: string | number, pFunc: Function): void
 
         /**
 		 * returns a string containing the text inside of a loaded non-VS text file; the file must already be loaded to get the text
 		 * @env Client | Server
-		 * @param {string} pName - name of loaded file to get text of
+		 * @param {string | number} pName - name of loaded file to get text of
 		 * @returns {string} returns a string containing the text inside of a loaded non-VS text file; the file must already be loaded to get the text
 		 */
-		getFileText(pName: string): string
+		getFileText(pName: string | number): string
                 
 	}
             
                 
+	
+	/**The util object.*/
 	type Util = {
                     
 		/**
@@ -2595,34 +2632,34 @@ declare global {
         /**
 		 * unzips gzipped data and returns the unzipped data
 		 * @env Client | Server
-		 * @param {any} pData - gzipped data
+		 * @param {unknown} pData - gzipped data
 		 * @returns {string} returns the unzipped data
 		 */
-		gzUnzip(pData: any): string
+		gzUnzip(pData: unknown): string
 
         /**
 		 * returns a string containing the type of variable
 		 * @env Client | Server
-		 * @param {any} pVar - variable to check
+		 * @param {unknown} pVar - variable to check
 		 * @returns {string} returns a string containing the type of variable
 		 */
-		getVariableType(pVar: any): string
+		getVariableType(pVar: unknown): string
 
         /**
 		 * handles either a stored callback function or a "callback array" and returns the results
 		 * @env Client | Server
-		 * @param {[Function, this: Diob | Object, [arg1: any, arg2: any]]} [pCallback] - reference to a function or a "callback array" which contains the reference to the callback function, followed by the call owner (the `this` of the function call), then an optional array of arguments; ex ( [this.func, this, [arg1, arg2]] )
+		 * @param {[Function, this: Diob | Object, [arg1: unknown, arg2: unknown]]} [pCallback] - reference to a function or a "callback array" which contains the reference to the callback function, followed by the call owner (the `this` of the function call), then an optional array of arguments; ex ( [this.func, this, [arg1, arg2]] )
 		 * @returns {void} returns the results
 		 */
-		handleCallback(pCallback?: [Function, this: Diob | Object, [arg1: any, arg2: any]]): void
+		handleCallback(pCallback?: [Function, this: Diob | Object, [arg1: unknown, arg2: unknown]]): void
 
         /**
 		 * converts pRad into degrees and returns the number
 		 * @env Client | Server
-		 * @param {any} pRad - radians to convert
+		 * @param {unknown} pRad - radians to convert
 		 * @returns {number} returns the number
 		 */
-		toDegrees(pRad: any): number
+		toDegrees(pRad: unknown): number
 
         /**
 		 * returns pVal converted to a number value
@@ -2683,10 +2720,10 @@ declare global {
         /**
 		 * converts pDeg into radians and returns the number
 		 * @env Client | Server
-		 * @param {any} pDeg - degrees to convert
+		 * @param {unknown} pDeg - degrees to convert
 		 * @returns {number} returns the number
 		 */
-		toRadians(pDeg: any): number
+		toRadians(pDeg: unknown): number
 
         /**
 		 * returns true if value is an array; returns false if value is not an array
@@ -2700,9 +2737,9 @@ declare global {
 		 * returns an array containing the values of pO
 		 * @env Client | Server
 		 * @param {object} pO - object to get values from
-		 * @returns {any[]} returns an array containing the values of pO
+		 * @returns {unknown[]} returns an array containing the values of pO
 		 */
-		getObjectValues(pO: object): any[]
+		getObjectValues(pO: object): unknown[]
 
         /**
 		 * copies all variables from pC and gives them to pO; warning: trying to copy an object that has recursive references will reach a stack limit and throw an error
@@ -2724,10 +2761,10 @@ declare global {
         /**
 		 * returns a randomly picked item from pVal1 (if an array and pVal2 is not set) or all the arguments provided
 		 * @env Client | Server
-		 * @param {any[]} pValn - first value to pick from or an array to pick from
-		 * @returns {any} returns a randomly picked item from pVal1 (if an array and pVal2 is not set) or all the arguments provided
+		 * @param {unknown[]} pValn - first value to pick from or an array to pick from
+		 * @returns {unknown} returns a randomly picked item from pVal1 (if an array and pVal2 is not set) or all the arguments provided
 		 */
-		pick(pValn: any[]): any
+		pick(pValn: unknown[]): unknown
 
         /**
 		 * returns pVal converted to a whole number
@@ -2741,20 +2778,20 @@ declare global {
         /**
 		 * returns a regular expression pattern from the pPattern string using the pFlags flag
 		 * @env Client | Server
-		 * @param {any} pPattern - regular expression (regex) pattern string
-		 * @param {any} [pFlags] - optional; 'g' = global match; 'i' = ignore case; 'm' = multiline, treat start and end characters (^ and $) as working over multiple lines;
+		 * @param {unknown} pPattern - regular expression (regex) pattern string
+		 * @param {unknown} [pFlags] - optional; 'g' = global match; 'i' = ignore case; 'm' = multiline, treat start and end characters (^ and $) as working over multiple lines;
 		 * @returns {RegExp} returns a regular expression pattern from the pPattern string using the pFlags flag
 		 */
-		regExp(pPattern: any, pFlags?: any): RegExp
+		regExp(pPattern: unknown, pFlags?: unknown): RegExp
 
         /**
 		 * returns char or string associated with the code pCode
 		 * @env Client | Server
-		 * @param {any} pCode - code to get character of; can use multiple codes separated by commas which returns the codes as a string
+		 * @param {unknown} pCode - code to get character of; can use multiple codes separated by commas which returns the codes as a string
 		 * @returns {string} returns the codes as a string<br />
 				called: returns char or string associated with the code pCode
 		 */
-		getCharFromCode(pCode: any): string
+		getCharFromCode(pCode: unknown): string
 
         /**
 		 * returns true if value is a number; returns false if value is not a number
@@ -2791,9 +2828,9 @@ declare global {
         /**
 		 * converts an ArrayBuffer to a base64 string
 		 * @env Client | Server
-		 * @param {any} pArrBuff - ArrayBuffer to convert to base64
+		 * @param {unknown} pArrBuff - ArrayBuffer to convert to base64
 		 */
-		arrayBufferToBase64(pArrBuff: any): void
+		arrayBufferToBase64(pArrBuff: unknown): void
 
         /**
 		 * returns pVal converted to a string value
@@ -2823,22 +2860,24 @@ declare global {
 	}
             
                 
+	
+	/**The event object.*/
 	type Event = {
                     
 		/**
 		 * remove pO to the ticker
 		 * @env Client | Server
-		 * @param {any} pO - reference to the object
+		 * @param {unknown} pO - reference to the object
 		 */
-		removeTicker(pO: any): void
+		removeTicker(pO: unknown): void
 
         /**
 		 * add pO to the ticker
 		 * @env Client | Server
-		 * @param {any} pO - reference to the object
+		 * @param {unknown} pO - reference to the object
 		 * @param {object} [pS] - optional; an object containing settings for this object's ticker
 		 */
-		addTicker(pO: any, pS?: object): void
+		addTicker(pO: unknown, pS?: object): void
 
         /**
 		 * forces a thread to stop doing its executions
@@ -2871,6 +2910,8 @@ declare global {
 	}
             
                 
+	
+	/**The file object.*/
 	type File = {
                     
 		/**
@@ -2912,10 +2953,10 @@ declare global {
 		 * creates pFile if needed and then add pData to the end of the file
 		 * @env Server
 		 * @param {string} pFile - path to the file
-		 * @param {any} pData - text to add to the end of pFile
+		 * @param {unknown} pData - text to add to the end of pFile
 		 * @param {Function} pFunc - function to call after appending is complete; first argument pErr is set if an error has occured
 		 */
-		appendText(pFile: string, pData: any, pFunc: Function): void
+		appendText(pFile: string, pData: unknown, pFunc: Function): void
 
         /**
 		 * provides an array of files in pPath directory
@@ -2971,14 +3012,16 @@ declare global {
 		 * creates pFile if needed and then writes pData to the file; overwrites existing data
 		 * @env Server
 		 * @param {string} pFile - path to the file
-		 * @param {any} pData - text to put into the file
+		 * @param {unknown} pData - text to put into the file
 		 * @param {Function} pFunc - function to call after writing is complete; first argument pErr is set if an error occurs
 		 */
-		writeText(pFile: string, pData: any, pFunc: Function): void
+		writeText(pFile: string, pData: unknown, pFunc: Function): void
                 
 	}
             
                 
+	
+	/**The icon object.*/
 	type Icon = {
                     
 		/**
@@ -3124,14 +3167,14 @@ declare global {
         /**
 		 * changes the icon to match the pixel data given with pData
 		 * @env Client | Server
-		 * @param {any} pData - pixel data object to use
+		 * @param {unknown} pData - pixel data object to use
 		 * @param {string} pAtlas - name of the icon atlas involved
 		 * @param {string} pIcon - name of the icon involved
 		 * @param {string} [pState] - optional; name of the icon state involved
 		 * @param {number} [pFrame] - optional; number of the frame involved
 		 * @param {Function} [pFunc] - optional; function to call after the icon data has changed and loaded
 		 */
-		setRawData(pData: any, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
+		setRawData(pData: unknown, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
 
         /**
 		 * returns an array of strings containing the names of all the icon states belonging to the icon pIcon in icon atlas pAtlas
@@ -3151,14 +3194,14 @@ declare global {
         /**
 		 * sets the image of the specified icon using the pData data URL
 		 * @env Client | Server
-		 * @param {any} pData - text containing data URL
+		 * @param {unknown} pData - text containing data URL
 		 * @param {string} pAtlas - name of the icon atlas
 		 * @param {string} pIcon - name of the icon
 		 * @param {string} [pState] - optional; name of the state
 		 * @param {number} [pFrame] - optional; number of the frame
 		 * @param {Function} [pFunc] - optional; function to call after the icon has changed; passes an error as the first argument if there was en error
 		 */
-		setDataURL(pData: any, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
+		setDataURL(pData: unknown, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
 
         /**
 		 * applies a filter to the icon(s) involved; possible filter types: 'grayscale', 'invert', 'darken', 'lighten'
@@ -3175,6 +3218,8 @@ declare global {
 	}
             
                 
+	
+	/**The map object.*/
 	type Map = {
                     
 		/**
@@ -3330,9 +3375,9 @@ declare global {
         /**
 		 * deletes the map and all diobs on it
 		 * @env Client | Server
-		 * @param {string} pName - name of the map to delete
+		 * @param {string | number} pName - name of the map to delete
 		 */
-		deleteMap(pName: string): void
+		deleteMap(pName: string | number): void
 
         /**
 		 * returns the Tile by the position pX, pY on the map pMap
@@ -3369,9 +3414,9 @@ declare global {
 		 * @param {string} pType - type or parent type of diobs to get
 		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
 		 * @param {string} [pMap] - optional; name of the map to check the Region of; if not set all loaded maps with the specified Region will be used
-		 * @returns {any[]} returns an array of diobs in the Region pR on all loaded maps or on the map pMap if specified with a type of pType (if specified) or a child of pType if pChild is set
+		 * @returns {unknown[]} returns an array of diobs in the Region pR on all loaded maps or on the map pMap if specified with a type of pType (if specified) or a child of pType if pChild is set
 		 */
-		getDiobsByRegion(pR: string, pType: string, pChild: boolean, pMap?: string): any[]
+		getDiobsByRegion(pR: string, pType: string, pChild: boolean, pMap?: string): unknown[]
 
         /**
 		 * returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob
@@ -3391,18 +3436,18 @@ declare global {
 		 * @param {string} [pType] - optional; ending x position
 		 * @param {boolean} [pChild] - optional; ending y position
 		 * @param {string} [pAdd] - optional; string containing type path to return
-		 * @returns {any[]} returns an array of diobs on the map pMap that overlap the specified position box depending on the provided arguments; if pType is not set, all diobs in the position box will be returned; if pType is set but pChild is not, diobs in the position box with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs on the map will be returned
+		 * @returns {unknown[]} returns an array of diobs on the map pMap that overlap the specified position box depending on the provided arguments; if pType is not set, all diobs in the position box will be returned; if pType is set but pChild is not, diobs in the position box with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs on the map will be returned
 		 */
-		getDiobsByPos(pMap: string, pX: number, pY: number, pType?: string, pChild?: boolean, pAdd?: string): any[]
+		getDiobsByPos(pMap: string, pX: number, pY: number, pType?: string, pChild?: boolean, pAdd?: string): unknown[]
 
         /**
 		 * creates a new map which is a clone of a map file
 		 * @env Client | Server
 		 * @param {string} pMap - name of the map file to clone
-		 * @param {string} pName - name to give the new cloned map
+		 * @param {string | number} pName - name to give the new cloned map
 		 * @param {Function} [pFunc] - optional; function to call once the clone is finished
 		 */
-		cloneMap(pMap: string, pName: string, pFunc?: Function): void
+		cloneMap(pMap: string, pName: string | number, pFunc?: Function): void
 
         /**
 		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob
@@ -3513,21 +3558,21 @@ declare global {
         /**
 		 * creates a new map with the name pName and a size of pX, pY
 		 * @env Client | Server
-		 * @param {string} pName - unique name of the map
+		 * @param {string | number} pName - unique name of the map
 		 * @param {number} pX - amount of tiles on the x-axis
 		 * @param {number} pY - amount of tiles on the y-axis
 		 * @param {string} pTile - tile object type to use as the default tiles
 		 */
-		createMap(pName: string, pX: number, pY: number, pTile: string): void
+		createMap(pName: string | number, pX: number, pY: number, pTile: string): void
 
         /**
 		 * sends the data for the pD diob to all clients on the pMap map, if pVar is set it will send only those variables, if it is not set it will only send built-in engine variables
 		 * @env Server
 		 * @param {string} pMap - name of the map
 		 * @param {Diob} pD - reference to the diob to send
-		 * @param {any[]} [pVar] - optional; variable name or array of variable names
+		 * @param {unknown[]} [pVar] - optional; variable name or array of variable names
 		 */
-		sendDiob(pMap: string, pD: Diob, pVar?: any[]): void
+		sendDiob(pMap: string, pD: Diob, pVar?: unknown[]): void
 
         /**
 		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob
@@ -3558,25 +3603,27 @@ declare global {
 	}
             
                 
+	
+	/**The macro object.*/
 	type Macro = {
                     
 		/**
 		 * creates a new blank macro atlas named pName
 		 * @env Client | Server
-		 * @param {string} pName - name of the new macro atlas
+		 * @param {string | number} pName - name of the new macro atlas
 		 */
-		newMacroAtlas(pName: string): void
+		newMacroAtlas(pName: string | number): void
 
         /**
 		 * creates a new macro with the keyUp command pUp, and keyDown command pDown, and the name pName and adds it to the macro atlas pAtlas
 		 * @env Client | Server
-		 * @param {string} pName - name of the macro to create
+		 * @param {string | number} pName - name of the macro to create
 		 * @param {string} pAtlas - name of the macro atlas to add the new macro to
 		 * @param {string} pKey - string of key that will execute this macro
 		 * @param {string} [pDown] - optional; string containing the command to execute when the key is pushed down; example 'test(1)' would execute the client command 'test' with one parameter that is equal to '1'
 		 * @param {string} [pUp] - optional; string containing the command to execute when the key is let go of; example 'test(1)' would execute the client command 'test' with one parameter that is equal to '1'
 		 */
-		newMacro(pName: string, pAtlas: string, pKey: string, pDown?: string, pUp?: string): void
+		newMacro(pName: string | number, pAtlas: string, pKey: string, pDown?: string, pUp?: string): void
 
         /**
 		 * returns an array containing the names of all the macros in the macro atlas pAtlas
@@ -3596,34 +3643,36 @@ declare global {
         /**
 		 * removes the macro pName from the macro atlas pAtlas
 		 * @env Client | Server
-		 * @param {string} pName - name of the macro to remove
+		 * @param {string | number} pName - name of the macro to remove
 		 * @param {string} pAtlas - name of the macro atlas to remove the macro from
 		 */
-		removeMacro(pName: string, pAtlas: string): void
+		removeMacro(pName: string | number, pAtlas: string): void
                 
 	}
             
                 
+	
+	/**The type object.*/
 	type Type = {
                     
 		/**
 		 * returns an object containing all the default variables belonging to the type pType
 		 * @env Client | Server
 		 * @param {string} pType - type to get variables of
-		 * @param {any} [pAll] - optional; if set every variable this type has will be returned, if false only variables belonging directly to this type will be returned
-		 * @returns {any[]} returns an object containing all the default variables belonging to the type pType
+		 * @param {unknown} [pAll] - optional; if set every variable this type has will be returned, if false only variables belonging directly to this type will be returned
+		 * @returns {unknown[]} returns an object containing all the default variables belonging to the type pType
 		 */
-		getVariables(pType: string, pAll?: any): any[]
+		getVariables(pType: string, pAll?: unknown): unknown[]
 
         /**
 		 * returns the default value of the pVar variable belonging to the type pType
 		 * @env Client | Server
 		 * @param {string} pType - type to get variable of
-		 * @param {any} pVar - name of the variable to get
-		 * @param {any} [pOwn] - optional; if set the returned value will be undefined if the variable belongs to an inherited object
-		 * @returns {any} returns the default value of the pVar variable belonging to the type pType
+		 * @param {unknown} pVar - name of the variable to get
+		 * @param {unknown} [pOwn] - optional; if set the returned value will be undefined if the variable belongs to an inherited object
+		 * @returns {unknown} returns the default value of the pVar variable belonging to the type pType
 		 */
-		getVariable(pType: string, pVar: any, pOwn?: any): any
+		getVariable(pType: string, pVar: unknown, pOwn?: unknown): unknown
 
         /**
 		 * sets the type pType's default variables specified within the pVars object; example {'a': 1, 'b': 2} would set this type's 'a' and 'b' variables respectively
@@ -3637,9 +3686,9 @@ declare global {
 		 * makes the type pType inherit from the type pInherit; this change only works for newly created objects, objects already in existence will not change
 		 * @env Client | Server
 		 * @param {string} pType - type to add inheritance to
-		 * @param {any} pInherit - type to inherit from
+		 * @param {unknown} pInherit - type to inherit from
 		 */
-		addInheritance(pType: string, pInherit: any): void
+		addInheritance(pType: string, pInherit: unknown): void
 
         /**
 		 * creates a new type called pType
@@ -3652,10 +3701,10 @@ declare global {
 		 * returns the default value of the pName function belonging to the type pType
 		 * @env Client | Server
 		 * @param {string} pType - type to get function of
-		 * @param {string} pName - name of the function to get
+		 * @param {string | number} pName - name of the function to get
 		 * @returns {Function} returns the default value of the pName function belonging to the type pType
 		 */
-		getFunction(pType: string, pName: string): Function
+		getFunction(pType: string, pName: string | number): Function
 
         /**
 		 * returns an array of the type pType custom inheritances
@@ -3669,45 +3718,45 @@ declare global {
 		 * sets the pVal value of the pVar static variable belonging to the type pType; static variables are variables that belong to all Objects of this type collectively and are different than normal variables, usually static variables can only be set once, but VyScript static variables may be changed if that is what the developer wants; these variables are not inherited by child types
 		 * @env Client | Server
 		 * @param {string} pType - type to set static variable of
-		 * @param {any} pVar - name of the static variable to set
+		 * @param {unknown} pVar - name of the static variable to set
 		 * @param {boolean} pVal - value to give to the static variable
 		 */
-		setStaticVariable(pType: string, pVar: any, pVal: boolean): void
+		setStaticVariable(pType: string, pVar: unknown, pVal: boolean): void
 
         /**
 		 * sets the type pType's pName function to pFunc; this change only works for newly created objects, objects already in existence will not change
 		 * @env Client | Server
 		 * @param {string} pType - type to set function for
-		 * @param {string} pName - string containing the name of the function
+		 * @param {string | number} pName - string containing the name of the function
 		 * @param {Function} pFunc - function
 		 */
-		setFunction(pType: string, pName: string, pFunc: Function): void
+		setFunction(pType: string, pName: string | number, pFunc: Function): void
 
         /**
 		 * returns the static variable value belonging to the type pType
 		 * @env Client | Server
 		 * @param {string} pType - type to get static variable of
-		 * @param {any} pVar - name of the static variable to get
-		 * @returns {any} returns the static variable value belonging to the type pType
+		 * @param {unknown} pVar - name of the static variable to get
+		 * @returns {unknown} returns the static variable value belonging to the type pType
 		 */
-		getStaticVariable(pType: string, pVar: any): any
+		getStaticVariable(pType: string, pVar: unknown): unknown
 
         /**
 		 * returns an array of all Object types in the game; if pParent is set, only child types of pParent are returned
 		 * @env Client | Server
-		 * @param {any} [pParent] - optional; parent type to start with
+		 * @param {unknown} [pParent] - optional; parent type to start with
 		 * @param {boolean} [pOmit] - optional; if set will not return the included path, only the children
 		 * @returns {string[]} returns an array of all Object types in the game; if pParent is set, only child types of pParent are returned
 		 */
-		getTypes(pParent?: any, pOmit?: boolean): string[]
+		getTypes(pParent?: unknown, pOmit?: boolean): string[]
 
         /**
 		 * removes the inheritance pInherit from the type pType; this change only works for newly created objects, objects already in existence will not change
 		 * @env Client | Server
 		 * @param {string} pType - type to remove inheritance from
-		 * @param {any} pInherit - type of inheritance
+		 * @param {unknown} pInherit - type of inheritance
 		 */
-		removeInheritance(pType: string, pInherit: any): void
+		removeInheritance(pType: string, pInherit: unknown): void
 
         /**
 		 * calls the function pFunc attached to the type pType as if the function belonged to the object pDiob using the arguments pArgs
@@ -3715,9 +3764,9 @@ declare global {
 		 * @param {string} pType - type to call function of
 		 * @param {Function} pFunc - name of function to call
 		 * @param {Diob} pDiob - array of arguments to pass in
-		 * @param {any[]} pArgs - calls the function pFunc attached to the type pType as if the function belonged to the object pDiob using the arguments pArgs
+		 * @param {unknown[]} pArgs - calls the function pFunc attached to the type pType as if the function belonged to the object pDiob using the arguments pArgs
 		 */
-		callFunction(pType: string, pFunc: Function, pDiob: Diob, pArgs: any[]): void
+		callFunction(pType: string, pFunc: Function, pDiob: Diob, pArgs: unknown[]): void
 
         /**
 		 * checks to see if pType is a valid type that exists in the game; if pType2 is defined, checks if pType is pType2 or a child of pType2
@@ -3729,23 +3778,33 @@ declare global {
 	}
             
             
+	/**The vylo type*/
 	type VyloType = {
                 
+		/**The world object.*/
 		World: World
+		/**The client object.*/
 		Client: Client
+		/**The resource object.*/
 		Resource: Resource
+		/**The util object.*/
 		Util: Util
+		/**The event object.*/
 		Event: Event
+		/**The file object.*/
 		File: File
+		/**The icon object.*/
 		Icon: Icon
+		/**The map object.*/
 		Map: Map
+		/**The type object.*/
 		Type: Type
 
         /**
          * The global object referencing all global variables in VyScript.
          * @env Client | Server
          */
-        global: {}
+        global: { [key: string]: unknown };
 
         /**
          * Loads the engine. When using loadResource before this is called, the resources will be treated as preloaded resources.
@@ -3758,21 +3817,21 @@ declare global {
          * Deletes the Diob referenced by pDiob.
          * @env Client | Server
          * @param {Diob} pDiob - A reference to the Diob to delete.
-         * @param {...any[]} [pArgN - Optional parameters to pass as arguments into the Diob's onDel() event function.
+         * @param {...unknown[]} [pArgN - Optional parameters to pass as arguments into the Diob's onDel() event function.
          * @template T - The type of additional arguments.
          * @returns {void}
          */
-        delDiob: <T = any>(pDiob: Diob, ...pArgN: T[]) => void;
+        delDiob: <T = unknown>(pDiob: Diob, ...pArgN: T[]) => void;
 
         /**
          * Creates a new Diob with the specified Object type of pType and returns it.
          * @env Client | Server
          * @param pType - A string containing the type path of the Object to be created as a Diob.
-         * @param {...any[]} [pArgN] - optional; Parameters to pass as arguments into the Diob's onNew() event function.
+         * @param {...unknown[]} [pArgN] - optional; Parameters to pass as arguments into the Diob's onNew() event function.
          * @template T - The type of additional arguments.
          * @returns {Diob} - The newly created Diob.
          */
-        newDiob: <T = any>(pType: string, ...pArgN: T[]) => Diob;
+        newDiob: <T = unknown>(pType: string, ...pArgN: T[]) => Diob;
 
         /**
          * Creates a new type called pType.
@@ -3786,5 +3845,5 @@ declare global {
         
 	}
         
-}
-export {};
+
+export { VyloType, World, Diob, Movable, Particle, Tile, Region, Mob, Overlay, Sound, Interface, Client, Resource, Util, Icon, Macro, Type };

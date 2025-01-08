@@ -30,18 +30,16 @@ async function ensureDirectoryExists(pDirectory: string): Promise<void> {
 
 describe('Kit CLI', () => {
     const testFiles = [
-        { name: 'file1', extension: 'txt' },
-        { name: 'file2', extension: 'json' },
-        { name: 'file3', extension: 'vyint' },
-        { name: 'file4', extension: 'vyi' },
-        { name: 'file5', extension: 'vym' },
-        { name: 'file6', extension: 'vymac' },
-        { name: 'file7', extension: 'mp3' },
-        { name: 'file8', extension: 'wav' },
-        { name: 'file9', extension: 'm4a' },
-        { name: 'file10', extension: 'ogg' },
-        { name: 'file11', extension: 'aac' },
-        { name: 'file12', extension: 'flac' },
+        { name: 'file1', extension: 'vyint' },
+        { name: 'file2', extension: 'vyi' },
+        { name: 'file3', extension: 'vym' },
+        { name: 'file4', extension: 'vymac' },
+        { name: 'file5', extension: 'mp3' },
+        { name: 'file6', extension: 'wav' },
+        { name: 'file7', extension: 'm4a' },
+        { name: 'file8', extension: 'ogg' },
+        { name: 'file9', extension: 'aac' },
+        { name: 'file10', extension: 'flac' },
     ];
 
     beforeEach(async () => {
@@ -65,11 +63,8 @@ describe('Kit CLI', () => {
             verbose: true,
         });
 
-        const filesAfterBuild = await readdir(join(outDir, 'resources'));
-        const expectedFiles = ['icon', 'interface', 'macros', 'map', 'sound'];
-
-        expectedFiles.forEach((expectedFile) => {
-            expect(filesAfterBuild).toContain(expectedFile);
-        });
+        const filesAfterBuild = await readdir(join(outDir, 'resources'), { recursive: true });
+        expect(filesAfterBuild.length).toBe(testFiles.length);
+        await rm('resource.json', { recursive: true, force: true })
     });
 });

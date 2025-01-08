@@ -1,6 +1,6 @@
-import { EventEmitter } from './event-system';
-import type { KitPlugin } from '@evitcastudio/kit-plugin';
+import type { KitPlugin } from './plugins/kit-plugin';
 import type { EmitterEvent, ResourceData, Listener, KitPluginConstructor } from './types/shared-types';
+import { EventEmitter } from './events/event-system';
 
 const extensionToPath: Record<string, string> = {
     '.vyint': 'interface',
@@ -49,20 +49,27 @@ export class Kit {
      */
     static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>): void {
         const plugin = new pPlugin();
+        const pluginName = plugin.name;
 
-        if (Kit.plugins[plugin.name]) {
-            throw new Error(`[Kit] plugin with name '${plugin.name}' is already registered.`);
+        if (!pluginName || typeof pluginName !== 'string' || !/^[a-zA-Z0-9-_]+$/.test(pluginName)) {
+            throw new Error(`[Kit] Invalid plugin name: '${pluginName}'. The name must be a non-empty string containing only alphanumeric characters, dashes, or underscores.`);
         }
 
-        const listener: Listener = (pEvent: EmitterEvent) => {
+        if (Kit.plugins[pluginName]) {
+            throw new Error(`[Kit] plugin with name '${pluginName}' is already registered.`);
+        }
+
+        const listener = function(pEvent: EmitterEvent) {
             Kit.emit(pEvent);
         }
-        
-        const emitter = new EventEmitter(listener, plugin);
-        Kit.emitters.set(plugin.name, emitter);
 
-        Kit.plugins[plugin.name] = plugin;
+        const emitter = new EventEmitter(listener, plugin);
+
+        Kit.emitters.set(pluginName, emitter);
+        Kit.plugins[pluginName] = plugin;
+
         plugin._register(emitter);
+        plugin.onRegistered();
     }
 
     /**
@@ -70,7 +77,11 @@ export class Kit {
      * @param pName - String name of the plugin to retrieve.
      */
     static getPlugin<T extends KitPlugin>(pName: string): T | undefined {
-        return Kit.plugins[pName] as T;
+        const plugin = Kit.plugins[pName];
+        if (!plugin) {
+            return undefined;
+        }
+        return plugin as T;
     }
 
     /**
@@ -115,7 +126,7 @@ export class Kit {
      * @param pEventName - The event name.
      * @param pListener - The listener to remove.
      */
-    static off(pPluginName: string, pEventName: string, pListener: (pData: EmitterEvent) => void): void {
+    static off(pPluginName: string, pEventName: string, pListener: Listener): void {
         const eventScope = `${pPluginName}-${pEventName}`;
         if (Kit.events[eventScope].includes(pListener)) {
             Kit.events[eventScope].splice(Kit.events[eventScope].indexOf(pListener), 1);

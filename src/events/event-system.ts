@@ -1,5 +1,6 @@
-import type { EmitterEvent, Listener } from './types/shared-types';
-import type { KitPlugin } from '@evitcastudio/kit-plugin';
+import type { EmitterEvent, Listener } from '../types/shared-types';
+import type { KitPlugin } from '../plugins/kit-plugin';
+
 export class EventEmitter {
     private listener: Listener;
     private plugin: KitPlugin;
