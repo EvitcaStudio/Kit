@@ -39,11 +39,8 @@ await Kit.setResources(resourceJSON);
 ```ts
 import { Plugin } from 'custom-plugin';
 
-// Initialize an array of plugins.
-Kit.init([Plugin]);
-
 // or you can just register one plugin
-Kit.registerPlugin(Plugin);
+const plugin = Kit.registerPlugin(Plugin);
 ```
 
 # Listening for plugin events

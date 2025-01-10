@@ -1,7 +1,6 @@
 ---
 title: Network Plugin
 group: Plugins
-category: Documentation
 ---
 
 # Network Plugin
@@ -17,8 +16,7 @@ When using this plugin make sure the data you send is **in an array**. e.g, *`se
     // client-network.ts
     import { Kit, Network } from '@evitcastudio/kit';
 
-    Kit.registerPlugin(Network);
-    const networkPlugin = Kit.getPlugin<Network>('Network');
+    const networkPlugin = Kit.registerPlugin(Network);
 
     VYLO.setType('Client', {
         onPacket(this: Client, pPacketName: string, pData: unknown[]) {
