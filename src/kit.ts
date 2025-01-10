@@ -35,6 +35,7 @@ export class Kit {
 
     /**
      * Initialize the Kit class with plugins.
+     * @deprecated Use `registerPlugin` instead.
      * @param pPlugins - An array of plugins to initialize.
      */
     static init<T extends KitPlugin>(pPlugins: KitPluginConstructor<T>[]): void {
@@ -47,29 +48,43 @@ export class Kit {
      * Register a plugin with the Kit class.
      * @param pPlugin - The plugin to register.
      */
-    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>): void {
-        const plugin = new pPlugin();
-        const pluginName = plugin.name;
+    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>): T;
+    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>[]): T[];
+    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T> | KitPluginConstructor<T>[]): T | T[] {
+        if (Array.isArray(pPlugin)) {
+            const plugins: T[] = [];
+            pPlugin.forEach(pPlugin => {
+                const plugin = this.registerPlugin(pPlugin);
+                if (plugin && !Array.isArray(plugin)) {
+                    plugins.push(plugin);
+                }
+            });
+            return plugins;
+        } else {
+            const plugin = new pPlugin();
+            const pluginName = plugin.name;
 
-        if (!pluginName || typeof pluginName !== 'string' || !/^[a-zA-Z0-9-_]+$/.test(pluginName)) {
-            throw new Error(`[Kit] Invalid plugin name: '${pluginName}'. The name must be a non-empty string containing only alphanumeric characters, dashes, or underscores.`);
+            if (!pluginName || typeof pluginName !== 'string' || !/^[a-zA-Z0-9-_]+$/.test(pluginName)) {
+                throw new Error(`[Kit] Invalid plugin name: '${pluginName}'. The name must be a non-empty string containing only alphanumeric characters, dashes, or underscores.`);
+            }
+
+            if (Kit.plugins[pluginName]) {
+                throw new Error(`[Kit] plugin with name '${pluginName}' is already registered.`);
+            }
+
+            const listener = function(pEvent: EmitterEvent) {
+                Kit.emit(pEvent);
+            }
+
+            const emitter = new EventEmitter(listener, plugin);
+
+            Kit.emitters.set(pluginName, emitter);
+            Kit.plugins[pluginName] = plugin;
+
+            plugin._register(emitter);
+            plugin.onRegistered();
+            return plugin;
         }
-
-        if (Kit.plugins[pluginName]) {
-            throw new Error(`[Kit] plugin with name '${pluginName}' is already registered.`);
-        }
-
-        const listener = function(pEvent: EmitterEvent) {
-            Kit.emit(pEvent);
-        }
-
-        const emitter = new EventEmitter(listener, plugin);
-
-        Kit.emitters.set(pluginName, emitter);
-        Kit.plugins[pluginName] = plugin;
-
-        plugin._register(emitter);
-        plugin.onRegistered();
     }
 
     /**
