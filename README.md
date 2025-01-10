@@ -1,11 +1,6 @@
 # Kit
 
-**Kit** is a lightweight, extensible 2D framework for game development in TypeScript. Designed to be simple and modular, Kit lets you build powerful projects through a plugin-driven architecture.
-
-**Lightweight and modular**: Core functionality is minimal; plugins add power.  
-**Plugin support**: Easily extend Kit with official or third-party plugins.  
-**Event system**: Decouple functionality with a robust event-driven API.  
-**TypeScript-first**: Full TypeScript support for strong typing and modern workflows.  
+**Kit** is a lightweight, extensible 2D framework for game development in the [Vylocity Game Engine](https://www.vylocity.com/). Designed to be simple and modular, Kit lets you build powerful projects through a plugin-driven architecture.
 
 # Install
 ```bash
@@ -28,10 +23,10 @@ It is recommended to exclude this file from your version control system, as it i
 
 
 > [!IMPORTANT]
-> This API should be ran BEFORE VYLO.load() is called.
+This API should be ran BEFORE `VYLO.load()` is called.
 
 > [!WARNING]
-> Depending on your environment the following [import syntax](https://github.com/EvitcaStudio/Kit/wiki/FAQ#importing-json-resources) for json may not work.
+Depending on your environment the following [import syntax](https://github.com/EvitcaStudio/Kit/wiki/FAQ#importing-json-resources) for json may not work.
 
 
 ```js
@@ -65,3 +60,5 @@ Kit.on('Plugin', 'eventName', listener);
 // You can also stop listening for an event
 Kit.off('Plugin', 'eventName', listener);
 ```
+
+For more information check out the [wiki](https://github.com/EvitcaStudio/Kit/wiki)
