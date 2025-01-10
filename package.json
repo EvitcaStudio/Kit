@@ -29,7 +29,7 @@
     "test": "bun test ./tests",
     "lint": "bun eslint ./src",
     "pack": "bun pm pack --dry-run",
-    "build-types": "bun tsc",
+    "build-types": "bun tsc && shx cp ./src/types/vylo.d.ts ./lib/types/vylo.d.ts",
     "build": "bun bun-build.ts",
     "build-docs": "bun typedoc",
     "build-all": "bun run build-types && bun run build && bun run build-docs"
@@ -45,6 +45,7 @@
     "bun": "^1.1.42",
     "eslint": "^9.17.0",
     "globals": "^15.14.0",
+    "shx": "^0.3.4",
     "typedoc": "^0.27.5",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0"
