@@ -39,7 +39,6 @@ await Kit.setResources(resourceJSON);
 ```ts
 import { Plugin } from 'custom-plugin';
 
-// or you can just register one plugin
 const plugin = Kit.registerPlugin(Plugin);
 ```
 
