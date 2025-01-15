@@ -1206,7 +1206,7 @@
 		 * name of the map
 		 * @env Client | Server
 		 */
-		mapName: unknown
+		mapName: string
 
         /**
 		 * sets the x and y icon offsets
@@ -1274,7 +1274,7 @@
 		 * order of display of the diob; higher layer objects appear above lower layer objects
 		 * @env Client | Server
 		 */
-		layer: unknown
+		layer: number
 
         /**
 		 * returns an array of diobs that are overlays of this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
