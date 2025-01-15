@@ -1,6 +1,6 @@
 {
   "name": "@evitcastudio/kit",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "author": "doubleactii 56242467+doubleactii@users.noreply.github.com (https://evitcastudio.com)",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
