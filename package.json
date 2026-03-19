@@ -4,16 +4,23 @@
   "author": "doubleactii 56242467+doubleactii@users.noreply.github.com (https://evitcastudio.com)",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "module": "lib/index.js",
+  "module": "./lib/index.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
   "description": "A single-player/multiplayer framework for the Vylocity Game Engine.",
-  "cli-description": "CLI for handling building resources and running | testing | publishing games.",
+  "cli-description": "The ultimate toolkit for Vylocity game development.",
   "keywords": [
     "framework",
     "multiplayer",
     "single-player",
     "toolkit",
-    "kit"
+    "kit",
+    "vylocity"
   ],
   "repository": {
     "type": "git",
@@ -25,8 +32,9 @@
   "homepage": "https://github.com/EvitcaStudio/Kit",
   "license": "MIT",
   "scripts": {
+    "prepare": "bun run build-all",
     "prepublishOnly": "bun run build-types && bun run build",
-    "test": "bun test ./tests",
+    "test": "bun test",
     "lint": "bun eslint ./src",
     "pack": "bun pm pack --dry-run",
     "build-types": "bun tsc && shx cp ./src/types/vylo.d.ts ./lib/types/vylo.d.ts",

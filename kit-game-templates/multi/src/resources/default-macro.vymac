@@ -1,0 +1,27 @@
+{"macros": [
+        {
+            "name":"move_north","key":"ArrowUp","keyDown":"startMove.call%28this%2C%22north%22%29%3B","keyUp":"endMove.call%28this%2C%22north%22%29%3B"
+        },
+        {
+            "name":"move_south","key":"ArrowDown","keyDown":"startMove.call%28this%2C%22south%22%29%3B","keyUp":"endMove.call%28this%2C%22south%22%29%3B"
+        },
+        {
+            "name":"move_east","key":"ArrowRight","keyDown":"startMove.call%28this%2C%22east%22%29%3B","keyUp":"endMove.call%28this%2C%22east%22%29%3B"
+        },
+        {
+            "name":"move_west","key":"ArrowLeft","keyDown":"startMove.call%28this%2C%22west%22%29%3B","keyUp":"endMove.call%28this%2C%22west%22%29%3B"
+        },
+        {
+            "name":"move_north","key":"w","keyDown":"startMove.call%28this%2C%22north%22%29%3B","keyUp":"endMove.call%28this%2C%22north%22%29%3B"
+        },
+        {
+            "name":"move_south","key":"s","keyDown":"startMove.call%28this%2C%22south%22%29%3B","keyUp":"endMove.call%28this%2C%22south%22%29%3B"
+        },
+        {
+            "name":"move_east","key":"d","keyDown":"startMove.call%28this%2C%22east%22%29%3B","keyUp":"endMove.call%28this%2C%22east%22%29%3B"
+        },
+        {
+            "name":"move_west","key":"a","keyDown":"startMove.call%28this%2C%22west%22%29%3B","keyUp":"endMove.call%28this%2C%22west%22%29%3B"
+        }
+    ]
+}

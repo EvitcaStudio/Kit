@@ -1,0 +1,23 @@
+{
+  "name": "kit-multiplayer-template",
+  "version": "1.0.0",
+  "author": "{{PROJECT_AUTHOR}}",
+  "type": "module",
+  "module": "src/index.ts",
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "dependencies": {
+    "@evitcastudio/kit": "^2.1.1"
+  },
+  "devDependencies": {
+    "@evitcastudio/copy-bun-plugin": "^1.0.4",
+    "@types/bun": "latest",
+    "chalk": "^5.4.1",
+    "typescript": "^5.7.2"
+  },
+  "scripts": {
+    "build": "kit build -v -i ./src/resources -o ./dist && bun bun-build.ts",
+    "host": "bun run build && cd dist && node server.js"
+  }
+}

@@ -1,40 +1,41 @@
 # Kit
 
-**Kit** is a lightweight, extensible 2D framework for game development in the [Vylocity Game Engine](https://www.vylocity.com/). Designed to be simple and modular, Kit lets you build powerful projects through a plugin-driven architecture.
+**Kit** is a lightweight, extensible 2D framework for game development in the [Vylocity Game Engine](https://www.vylocity.com/). Designed to be simple and modular, Kit empowers developers to build complex projects quickly through a robust plugin-driven architecture.
 
-# Install
+## Installation
+
 ```bash
-npm i @evitcastudio/kit -g
+npm install -g @evitcastudio/kit
 ```
+> **Note:** The `-g` flag ensures the `kit` CLI tool is globally available in your PATH.
 
-*global flag is so the path is set properly for the CLI tool*
+## CLI Core Commands
 
-# Resources
-
-This script will locate all Vylocity engine-related files within the specified directory and anonymize them before placing them in the designated resources folder.
+The `kit build` command locates all Vylocity engine-related resources in your source directory, anonymizes them, and moves them to a deploy-ready output directory.
 
 ```bash
-# From the CLI you will build all your resources to the out dir
 kit build -i ./<in-dir> -o ./<out-dir>
 ```
 
-During the execution of this command, a `resource.json` file will be automatically generated within your source directory.
-It is recommended to exclude this file from your version control system, as it is considered a build artifact.
+Executing this command automatically generates a `resource.json` map in your input directory. 
+**Best Practice:** Exclude `resource.json` from version control (`.gitignore`), as it is an ephemeral build artifact.
 
+## Runtime Resource Loading
 
 > [!IMPORTANT]
-This API should be ran BEFORE `VYLO.load()` is called.
+> `Kit.setResources()` should be called **before** `VYLO.load()`.
 
 > [!WARNING]
-Depending on your environment the following [import syntax](https://github.com/EvitcaStudio/Kit/wiki/FAQ#importing-json-resources) for json may not work.
+> Depending on your build environment (e.g., webpack, vite, or bun), you may need specific loaders or assertions to import JSON natively.
 
+```typescript
+import resourceJSON from './resource.json';
 
-```js
-import resourceJSON from 'resource.json';
+// Initialize the engine with mapped resources
 await Kit.setResources(resourceJSON);
 ```
 
-# Using Kit with plugins
+## Plugin Architecture
 
 ```ts
 import { Plugin } from 'custom-plugin';

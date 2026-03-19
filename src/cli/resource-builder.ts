@@ -1,6 +1,6 @@
-import type { ProcessOptions } from './types/shared-types';
+import type { ProcessOptions } from './types';
 import { promises as fs } from 'fs';
-import { join, extname, basename, parse } from 'path';
+import { join, extname, basename } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -37,20 +37,20 @@ function initializeResourceJSON(): ResourceJSON {
 /**
  * Processes a single file and updates the resource JSON.
  */
-function prepareFileForProcessing(filePath: string): void {
-    const extension = extname(filePath).slice(1);
-    const fileName = basename(filePath);
+function prepareFileForProcessing(pFilePath: string): void {
+    const extension = extname(pFilePath).slice(1);
+    const fileName = basename(pFilePath);
     const resourceIdentifier = `${uuidv4()}.vyr`;
 
     const type = getResourceType(extension);
     if (!type) return;
 
     if (type === 'sound' && ignoringSound) {
-        logVerbose(`[Ignored File] ${filePath} (ignoreSound flag enabled)`);
+        logVerbose(`[Ignored File] ${pFilePath} (ignoreSound flag enabled)`);
         return;
     }
 
-    resourcesToProcess.push({ filePath, type });
+    resourcesToProcess.push({ filePath: pFilePath, type });
     resourceJSON[type].push({ resourceIdentifier, fileName });
 }
 
@@ -127,8 +127,9 @@ async function processAllFiles(): Promise<void> {
 
         logVerbose(`[Kit CLI] All resources have been processed.`);
         await saveResourceJSON();
-    } catch (pError: any) {
-        logError(`[Error] Processing files in batch: ${pError.message}`);
+    } catch (pError) {
+        const errorMessage = pError instanceof Error ? pError.message : String(pError);
+        logError(`[Error] Processing files in batch: ${errorMessage}`);
     }
 }
 

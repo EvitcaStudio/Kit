@@ -1,4 +1,4 @@
 {
     "entryPoints": ["src/index.ts", "src/plugins/network/index.ts"],
-    "projectDocuments": ["src/plugins/PluginHome.md", "./wiki/Home.md"]
+    "projectDocuments": ["src/plugins/PluginHome.md"]
 }

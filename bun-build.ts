@@ -15,13 +15,13 @@ const banner = [
 
 
 function logMessage(pLevel: string, pMessage: string): void {
-    const colors = { error: '#c42847', info: '#ffa552' };
+    const colors: Record<string, string> = { error: '#c42847', info: '#ffa552' };
     const levelFormatted = pLevel.charAt(0).toUpperCase() + pLevel.slice(1);
     const color = colors[pLevel] || '#ffa552';
     console.log(chalk.hex(color)(`[${levelFormatted}]`), `${pMessage}`);
 };
 
-const oldNow = Date.now();
+const startStamp = Date.now();
 
 await Promise.all([
     // Natural version
@@ -51,6 +51,29 @@ await Promise.all([
     })
 ]);
 
-const elapsed = Date.now() - oldNow;
+const buildElapsed = Date.now() - startStamp;
+logMessage('info', `Build took: ${buildElapsed}ms`);
 
-logMessage('info', `Client Build took: ${elapsed}ms`);
+// Post-build: Ensure shebang on CLI
+const cliPath = './lib/bundle/cli/cli.js';
+const cliFile = Bun.file(cliPath);
+if (await cliFile.exists()) {
+    const content = await cliFile.text();
+    const shebang = '#!/usr/bin/env node\n';
+    if (!content.startsWith(shebang)) {
+        const cleanContent = content.replace(/^#!\/usr\/bin\/env node\r?\n/, '');
+        await Bun.write(cliPath, shebang + cleanContent);
+        logMessage('info', 'Shebang prepended to CLI bundle.');
+    } else {
+        logMessage('info', 'Shebang already prepended to CLI bundle.');
+    }
+}
+
+// Copy templates to build directory
+const templatesSrc = './kit-game-templates';
+const templatesDest = './lib/bundle/cli/';
+const templatesTarget = './lib/bundle/cli/kit-game-templates';
+// Purge the target directory first to avoid merging with old templates
+await Bun.spawn(['shx', 'rm', '-rf', templatesTarget]).exited;
+await Bun.spawn(['shx', 'cp', '-r', templatesSrc, templatesDest]).exited;
+logMessage('info', 'Game templates copied to CLI bundle directory.');

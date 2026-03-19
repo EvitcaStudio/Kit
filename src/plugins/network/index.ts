@@ -29,11 +29,21 @@ export class Network extends KitPlugin {
      * @param pPacketName - The name of the packet that will be listened to.
      * @param pListener - The listener that will be called when the packet is received.
      */
-    on<T extends unknown[]>(pPacketName: string, pListener: NetworkListener<T>): void {
+    onPacket<T extends unknown[]>(pPacketName: string, pListener: NetworkListener<T>): void {
         if (!this.packets.has(pPacketName)) {
             throw new Error(`Packet name '${pPacketName}' is not registered.`);
         }
         this.listeners.set(pPacketName, pListener as NetworkListener<unknown[]>);
+    }
+
+    /**
+     * Register a listener for a packet.
+     * @deprecated Use `onPacket` instead.
+     * @param pPacketName - The name of the packet that will be listened to.
+     * @param pListener - The listener that will be called when the packet is received.
+     */
+    on<T extends unknown[]>(pPacketName: string, pListener: NetworkListener<T>): void {
+        this.onPacket(pPacketName, pListener);
     }
     /**
      * API for receiving data from the server.
@@ -49,7 +59,11 @@ export class Network extends KitPlugin {
             const packetName = this.reversedPacketMap.get(pPacketName);
 
             if (!packetName) {
-                console.warn(`Unknown packet index: ${pPacketName}`);
+                if (pVerbose) {
+                    console.group(`Kit.${this.name}Plugin.onNetwork`);
+                    console.warn(`Unknown packet index: ${pPacketName}`);
+                    console.groupEnd();
+                }
                 return;
             }
 
@@ -57,14 +71,13 @@ export class Network extends KitPlugin {
 
             if (pVerbose) {
                 console.group(`Kit.${this.name}Plugin.onNetwork`);
+                if (!listener) {
+                    console.warn(`No listener was registered for this packet: ${packetName}`);
+                }
                 console.log(`Packet name: ${pPacketName}`);
                 console.log(`Resolved packet name: ${packetName}`)
                 console.log(`Data:`, pData);
                 console.groupEnd();
-
-                if (!listener) {
-                    console.warn(`No listener registered for packet: ${packetName}`);
-                }
             }
 
             listener?.(pClient, ...pData);

@@ -1,7 +1,8 @@
 import { describe, beforeEach, afterEach, test, expect } from 'bun:test';
-import { writeFile, rm, readdir, mkdir } from 'fs/promises';
+import { writeFile, rm, readdir, mkdir, readFile } from 'fs/promises';
 import { join } from 'path';
-import { KitCLI } from '../bin/index.ts';
+import { KitCLI } from '../src/cli/main';
+import { processInit } from '../src/cli/init';
 
 const tempDir = join(process.cwd(), 'tests/temp');
 const outDir = join(process.cwd(), 'tests/temp/dist');
@@ -53,6 +54,8 @@ describe('Kit CLI', () => {
 
     afterEach(async () => {
         await cleanUpDirectory(tempDir);
+        // Robust cleanup of resource.json if it was created in the root
+        await rm(join(process.cwd(), 'resource.json'), { force: true });
     });
 
     test('should process resources with KitCLI', async () => {
@@ -60,11 +63,34 @@ describe('Kit CLI', () => {
             inDirectory: tempDir,
             outDirectory: outDir,
             ignoreSound: false,
-            verbose: true,
+            verbose: false,
         });
 
         const filesAfterBuild = await readdir(join(outDir, 'resources'), { recursive: true });
         expect(filesAfterBuild.length).toBe(testFiles.length);
-        await rm('resource.json', { recursive: true, force: true })
+    });
+
+    test('should initialize a new project (non-interactive)', async () => {
+        const projectName = 'test-project';
+        const projectDir = join(process.cwd(), projectName);
+        
+        // Ensure clean state
+        await rm(projectDir, { recursive: true, force: true });
+
+        await processInit({
+            projectName,
+            single: true,
+            verbose: false
+        });
+
+        const files = await readdir(projectDir, { recursive: true });
+        expect(files.length).toBeGreaterThan(0);
+        
+        // Check if placeholders were replaced
+        const pkgJson = JSON.parse(await readFile(join(projectDir, 'package.json'), 'utf8'));
+        expect(pkgJson.name).toBe(projectName);
+
+        // Cleanup
+        await rm(projectDir, { recursive: true, force: true });
     });
 });
