@@ -5,6 +5,7 @@
         "declarationMap": true, // Generate .d.ts.map files for debugging
         "emitDeclarationOnly": false, // Only emit type declarations
         "outDir": "./lib", // Output folder for compiled files
+        "rootDir": "./src", // Root directory for source files
         "baseUrl": ".", // Base URL for module resolution
         "esModuleInterop": true, // Enable ES module interop
         // Enable latest features

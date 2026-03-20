@@ -1,4 +1,4 @@
 {
-    "name": "Kit Tester",
+    "name": "{{PROJECT_NAME}}",
     "port": 30000
 }

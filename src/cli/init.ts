@@ -56,6 +56,7 @@ function copyTemplate(pSrc: string, pDest: string, pProjectName: string, pVersio
         const stats = fs.statSync(srcPath);
 
         if (stats.isDirectory()) {
+            if (file === '.git') continue; // Do not copy .git directories
             copyTemplate(srcPath, destPath, pProjectName, pVersion, pAuthor);
         } else {
             const ext = path.extname(file).toLowerCase();
@@ -175,6 +176,18 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
             copyTemplate(localTemplatesDir, projectPath, projectName, packageJSON.version, author);
         } else {
             copyTemplate(templatesDir, projectPath, projectName, packageJSON.version, author);
+        }
+
+        // Initialize git and create initial commit
+        try {
+            spawnSync('git', ['init'], { cwd: projectPath });
+            spawnSync('git', ['add', '.'], { cwd: projectPath });
+            spawnSync('git', ['commit', '-m', 'Initial commit from Kit CLI'], { 
+                cwd: projectPath,
+                env: { ...process.env, GIT_AUTHOR_NAME: author.split(' <')[0], GIT_AUTHOR_EMAIL: author.split('<')[1]?.slice(0, -1) || '' }
+            });
+        } catch {
+            // Silently fail if git is not installed or config is missing 
         }
 
         s.stop(`Project ${chalk.green(projectName)} created!`);

@@ -1,5 +1,5 @@
 {
-  "name": "kit-singleplayer-template",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
   "author": "{{PROJECT_AUTHOR}}",
   "description": "",
@@ -10,11 +10,11 @@
   },
   "scripts": {
     "build": "kit build -v -i ./src/resources -o ./dist && bun run bun-build.ts",
-    "play": "bun run build && bun run bun-serve.ts"
+    "host": "bun run build && bun run bun-serve.ts"
   },
   "keywords": [],
   "dependencies": {
-    "@evitcastudio/kit": "^2.0.0"
+    "@evitcastudio/kit": "latest"
   },
   "devDependencies": {
     "@evitcastudio/copy-bun-plugin": "^1.0.4",

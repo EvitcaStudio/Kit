@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { logMessage } from './bun-build.ts';
 
 const server = Bun.serve({
@@ -12,12 +11,14 @@ const server = Bun.serve({
   },
 });
 
+// signal interrupt event
 process.on('SIGINT', () => {
     logMessage('info', 'Shutting down server...');
     server.stop();
     process.exit(0);
 });
 
+// signal termination event
 process.on('SIGTERM', () => {
     logMessage('info', 'Shutting down server...');
     server.stop();

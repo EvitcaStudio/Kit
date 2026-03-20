@@ -1,15 +1,5 @@
-# kit-tester
+# kit-multiplayer-template
 
-To install dependencies:
+This is a multiplayer game template for the Vylocity Game Engine.
 
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.1.42. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+More info coming soon.
