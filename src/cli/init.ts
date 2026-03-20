@@ -52,7 +52,9 @@ function copyTemplate(pSrc: string, pDest: string, pProjectName: string, pVersio
 
     for (const file of files) {
         const srcPath = path.join(pSrc, file);
-        const destPath = path.join(pDest, file);
+        // Rename _gitignore back to .gitignore in the destination
+        const destFile = file === '_gitignore' ? '.gitignore' : file;
+        const destPath = path.join(pDest, destFile);
         const stats = fs.statSync(srcPath);
 
         if (stats.isDirectory()) {
@@ -62,7 +64,7 @@ function copyTemplate(pSrc: string, pDest: string, pProjectName: string, pVersio
             const ext = path.extname(file).toLowerCase();
             const textExtensions = ['.ts', '.js', '.json', '.html', '.css', '.md', '.txt'];
             
-            if (textExtensions.includes(ext) || file === '.gitignore' || file.startsWith('.')) {
+            if (textExtensions.includes(ext)) {
                 let content = fs.readFileSync(srcPath, 'utf8');
                 // Replace placeholders
                 content = content.replace(/{{PROJECT_NAME}}/g, pProjectName);
