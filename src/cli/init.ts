@@ -3,7 +3,8 @@ import chalk from 'chalk';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, execSync } from 'node:child_process';
+import os from 'node:os';
 import packageJSON from '../../package.json';
 
 /**
@@ -32,6 +33,29 @@ function getGitUser(): string {
         return name || 'Author';
     } catch {
         return 'Author';
+    }
+}
+
+function checkBun(): boolean {
+    const result = spawnSync('bun', ['--version'], { stdio: 'ignore', shell: true });
+    return !result.error && result.status === 0;
+}
+
+/**
+ * Installs Bun using the official installation scripts.
+ * @returns True if the installation was successful.
+ */
+function installBun(): boolean {
+    const isWindows = os.platform() === 'win32';
+    const command = isWindows 
+        ? 'powershell -c "irm bun.sh/install.ps1 | iex"' 
+        : 'curl -fsSL https://bun.sh/install | bash';
+
+    try {
+        execSync(command, { stdio: 'inherit' });
+        return true;
+    } catch {
+        return false;
     }
 }
 
@@ -86,6 +110,31 @@ function copyTemplate(pSrc: string, pDest: string, pProjectName: string, pVersio
  */
 export async function processInit(pOptions: InitOptions): Promise<void> {
     intro(chalk.cyan(`Kit CLI v${packageJSON.version}`));
+
+    // Environment Check
+    if (!checkBun()) {
+        note(`Kit requires the Bun runtime to build and run projects.\nYou can download it manually at ${chalk.cyan('https://bun.sh/')}`, 'Bun Not Found');
+
+        const install = await confirm({
+            message: 'Would you like to install Bun automatically now?',
+            initialValue: true,
+        });
+
+        if (isCancel(install) || !install) {
+            cancel(`Please install Bun manually to use Kit: ${chalk.cyan('https://bun.sh/')}\nNote: Kit projects cannot build or run without Bun.`);
+            process.exit(1);
+        }
+
+        const sInstall = spinner();
+        sInstall.start('Installing Bun...');
+        const success = installBun();
+        
+        if (!success) {
+            sInstall.stop(chalk.red('Automatic installation failed.'));
+            note(`Please install Bun manually: ${chalk.cyan('https://bun.sh/')}`, 'Manual Installation Required');
+            process.exit(1);
+        }
+    }
 
     let projectName = pOptions.projectName;
     let gameType: 'single' | 'multi' | 'both' = 'single';
