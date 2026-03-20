@@ -134,6 +134,7 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
             note(`Please install Bun manually: ${chalk.cyan('https://bun.sh/')}`, 'Manual Installation Required');
             process.exit(1);
         }
+        sInstall.stop();
     }
 
     let projectName = pOptions.projectName;
