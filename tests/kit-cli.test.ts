@@ -56,9 +56,53 @@ describe('Kit CLI', () => {
         await cleanUpDirectory(tempDir);
         // Robust cleanup of resource.json if it was created in the root
         await rm(join(process.cwd(), 'resource.json'), { force: true });
+        await rm(join(process.cwd(), 'bounds.json'), { force: true });
     });
 
-    test('should process resources with KitCLI', async () => {
+    test('should process resources with KitCLI and generate bounds.json', async () => {
+        // Write a mock vyi file with bounds to tempDir
+        const mockVyiData = {
+            v: 1,
+            i: [
+                [
+                    "player", // name
+                    32, // width
+                    32, // height
+                    100, // delay
+                    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAA", // dataURL
+                    [], // frames
+                    [ // states
+                        [
+                            "run", // state name
+                            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAA", // dataURL
+                            100, // delay
+                            [], // frames
+                            { // bounds
+                                "hitbox": {
+                                    "type": "rect",
+                                    "width": 16,
+                                    "height": 16,
+                                    "xOrigin": 8,
+                                    "yOrigin": 8
+                                }
+                            }
+                        ]
+                    ],
+                    [], // iconPoints
+                    { // bounds
+                        "hitbox": {
+                            "type": "rect",
+                            "width": 20,
+                            "height": 20,
+                            "xOrigin": 6,
+                            "yOrigin": 6
+                        }
+                    }
+                ]
+            ]
+        };
+        await writeFile(join(tempDir, 'characters.vyi'), JSON.stringify(mockVyiData));
+
         await KitCLI.processResources({
             inDirectory: tempDir,
             outDirectory: outDir,
@@ -67,7 +111,32 @@ describe('Kit CLI', () => {
         });
 
         const filesAfterBuild = await readdir(join(outDir, 'resources'), { recursive: true });
-        expect(filesAfterBuild.length).toBe(testFiles.length);
+        // The original 10 files + characters.vyi = 11 files
+        expect(filesAfterBuild.length).toBe(testFiles.length + 1);
+
+        // Verify bounds.json exists and contains correct structure
+        const boundsJsonContent = await readFile(join(process.cwd(), 'bounds.json'), 'utf8');
+        const boundsData = JSON.parse(boundsJsonContent);
+
+        expect(boundsData.characters).toBeDefined();
+        expect(boundsData.characters.player).toBeDefined();
+        expect(boundsData.characters.player.bounds).toBeDefined();
+        expect(boundsData.characters.player.bounds.hitbox).toEqual({
+            type: "rect",
+            width: 20,
+            height: 20,
+            xOrigin: 6,
+            yOrigin: 6
+        });
+        expect(boundsData.characters.player.states).toBeDefined();
+        expect(boundsData.characters.player.states.run).toBeDefined();
+        expect(boundsData.characters.player.states.run.bounds.hitbox).toEqual({
+            type: "rect",
+            width: 16,
+            height: 16,
+            xOrigin: 8,
+            yOrigin: 8
+        });
     });
 
     test('should initialize a new project (non-interactive)', async () => {

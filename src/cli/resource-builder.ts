@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import { join, extname, basename } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
+import { VYI } from '../vendor/vyi';
 
 // Logging helpers
 const log = console.log;
@@ -127,9 +128,79 @@ async function processAllFiles(): Promise<void> {
 
         logVerbose(`[Kit CLI] All resources have been processed.`);
         await saveResourceJSON();
+        const boundsData = await buildBoundsJSON();
+        await saveBoundsJSON(boundsData);
     } catch (pError) {
         const errorMessage = pError instanceof Error ? pError.message : String(pError);
         logError(`[Error] Processing files in batch: ${errorMessage}`);
+    }
+}
+
+/**
+ * Builds the bounds map from all processed vyi files.
+ */
+async function buildBoundsJSON(): Promise<Record<string, any>> {
+    const boundsData: Record<string, any> = {};
+
+    for (const { filePath, type } of resourcesToProcess) {
+        if (type !== 'icon') continue;
+
+        try {
+            const fileBuffer = await fs.readFile(filePath);
+            const vyi = new VYI().parse(fileBuffer);
+            const atlasName = basename(filePath, '.vyi');
+            const atlasEntry: Record<string, any> = {};
+
+            for (const icon of vyi.getIcons()) {
+                const iconName = icon.getName();
+                const iconBounds = icon.getBoundsExport();
+                const hasIconBounds = Object.keys(iconBounds).length > 0;
+
+                const iconEntry: any = {};
+                if (hasIconBounds) {
+                    iconEntry.bounds = iconBounds;
+                }
+
+                const statesEntry: Record<string, any> = {};
+                for (const state of icon.getStates()) {
+                    const stateName = state.getName();
+                    const stateBounds = state.getBoundsExport();
+                    if (Object.keys(stateBounds).length > 0) {
+                        statesEntry[stateName] = {
+                            bounds: stateBounds
+                        };
+                    }
+                }
+
+                if (Object.keys(statesEntry).length > 0) {
+                    iconEntry.states = statesEntry;
+                }
+
+                if (Object.keys(iconEntry).length > 0) {
+                    atlasEntry[iconName] = iconEntry;
+                }
+            }
+
+            if (Object.keys(atlasEntry).length > 0) {
+                boundsData[atlasName] = atlasEntry;
+            }
+        } catch (pError) {
+            logError(`[Error] Failed to parse bounds from ${filePath}: ${pError}`);
+        }
+    }
+
+    return boundsData;
+}
+
+/**
+ * Saves the bounds JSON to a file.
+ */
+async function saveBoundsJSON(pBoundsData: Record<string, any>): Promise<void> {
+    const filePath = 'bounds.json';
+    try {
+        await fs.writeFile(filePath, JSON.stringify(pBoundsData, null, 4));
+    } catch (pError) {
+        logError(`[Error] Saving bounds JSON: ${pError}`);
     }
 }
 
@@ -183,6 +254,7 @@ export async function processResources({ inDirectory, outDirectory, verbose, ign
     isVerbose = verbose;
     ignoringSound = ignoreSound;
     resourceJSON = initializeResourceJSON();
+    resourcesToProcess.length = 0;
 
     // Validate inputs
     if (!resourceInDirectory || !resourceOutDirectory) {
@@ -198,6 +270,7 @@ export async function processResources({ inDirectory, outDirectory, verbose, ign
     } else {
         logAlert('No resources found!');
         await saveResourceJSON();
+        await saveBoundsJSON({});
     }
 }
 
