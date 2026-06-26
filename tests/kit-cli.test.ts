@@ -57,10 +57,12 @@ describe('Kit CLI', () => {
         // Robust cleanup of resource.json if it was created in the root
         await rm(join(process.cwd(), 'resource.json'), { force: true });
         await rm(join(process.cwd(), 'bounds.json'), { force: true });
+        await rm(join(process.cwd(), 'icon-points.json'), { force: true });
+        await rm(join(process.cwd(), 'sizes.json'), { force: true });
     });
 
-    test('should process resources with KitCLI and generate bounds.json', async () => {
-        // Write a mock vyi file with bounds to tempDir
+    test('should process resources with KitCLI and generate bounds.json, icon-points.json and sizes.json', async () => {
+        // Write a mock vyi file with bounds and iconPoints to tempDir
         const mockVyiData = {
             v: 1,
             i: [
@@ -85,10 +87,27 @@ describe('Kit CLI', () => {
                                     "xOrigin": 8,
                                     "yOrigin": 8
                                 }
-                            }
+                            },
+                            [ // state points (optional iconPoints in state)
+                                {
+                                    "width": 32,
+                                    "height": 32,
+                                    "x": 5,
+                                    "y": 5,
+                                    "id": "state_point"
+                                }
+                            ]
                         ]
                     ],
-                    [], // iconPoints
+                    [ // iconPoints
+                        {
+                            "width": 32,
+                            "height": 32,
+                            "x": 10,
+                            "y": 10,
+                            "id": "player_point"
+                        }
+                    ],
                     { // bounds
                         "hitbox": {
                             "type": "rect",
@@ -137,6 +156,27 @@ describe('Kit CLI', () => {
             xOrigin: 8,
             yOrigin: 8
         });
+
+        // Verify icon-points.json exists and contains correct structure
+        const pointsJsonContent = await readFile(join(process.cwd(), 'icon-points.json'), 'utf8');
+        const pointsData = JSON.parse(pointsJsonContent);
+
+        expect(pointsData.characters.player.points).toBeDefined();
+        expect(pointsData.characters.player.points.player_point).toEqual({
+            width: 32,
+            height: 32,
+            x: 10,
+            y: 10
+        });
+
+        // Verify sizes.json exists and contains correct structure
+        const sizesJsonContent = await readFile(join(process.cwd(), 'sizes.json'), 'utf8');
+        const sizesData = JSON.parse(sizesJsonContent);
+
+        expect(sizesData.characters).toBeDefined();
+        expect(sizesData.characters.player).toBeDefined();
+        expect(sizesData.characters.player.width).toBe(32);
+        expect(sizesData.characters.player.height).toBe(32);
     });
 
     test('should initialize a new project (non-interactive)', async () => {

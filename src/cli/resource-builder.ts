@@ -103,6 +103,7 @@ function isValidExtension(pExtension: string): boolean {
     return VALID_EXTENSIONS.includes(pExtension as typeof VALID_EXTENSIONS[number]);
 }
 
+
 /**
  * Executes all file copy operations in parallel after preparation.
  */
@@ -130,6 +131,10 @@ async function processAllFiles(): Promise<void> {
         await saveResourceJSON();
         const boundsData = await buildBoundsJSON();
         await saveBoundsJSON(boundsData);
+        const pointsData = await buildIconPointsJSON();
+        await saveIconPointsJSON(pointsData);
+        const sizesData = await buildSizesJSON();
+        await saveSizesJSON(sizesData);
     } catch (pError) {
         const errorMessage = pError instanceof Error ? pError.message : String(pError);
         logError(`[Error] Processing files in batch: ${errorMessage}`);
@@ -198,9 +203,140 @@ async function buildBoundsJSON(): Promise<Record<string, any>> {
 async function saveBoundsJSON(pBoundsData: Record<string, any>): Promise<void> {
     const filePath = 'bounds.json';
     try {
-        await fs.writeFile(filePath, JSON.stringify(pBoundsData, null, 4));
+        await fs.writeFile(filePath, JSON.stringify(pBoundsData));
     } catch (pError) {
         logError(`[Error] Saving bounds JSON: ${pError}`);
+    }
+}
+
+/**
+ * Builds the icon points map from all processed vyi files.
+ */
+async function buildIconPointsJSON(): Promise<Record<string, any>> {
+    const pointsData: Record<string, any> = {};
+
+    for (const { filePath, type } of resourcesToProcess) {
+        if (type !== 'icon') continue;
+
+        try {
+            const fileBuffer = await fs.readFile(filePath);
+            const vyi = new VYI().parse(fileBuffer);
+            const atlasName = basename(filePath, '.vyi');
+            const atlasEntry: Record<string, any> = {};
+
+            for (const icon of vyi.getIcons()) {
+                const iconName = icon.getName();
+                const iconPoints = icon.getIconPointsExport();
+                const hasIconPoints = iconPoints && iconPoints.length > 0;
+
+                const iconEntry: any = {};
+                if (hasIconPoints) {
+                    const pointsMap: Record<string, any> = {};
+                    for (const pt of iconPoints) {
+                        pointsMap[pt.id] = {
+                            width: pt.width,
+                            height: pt.height,
+                            x: pt.x,
+                            y: pt.y
+                        };
+                    }
+                    iconEntry.points = pointsMap;
+                }
+
+                const statesEntry: Record<string, any> = {};
+                for (const state of icon.getStates()) {
+                    const stateName = state.getName();
+                    const statePoints = state.getIconPointsExport();
+                    if (statePoints && statePoints.length > 0) {
+                        const statePointsMap: Record<string, any> = {};
+                        for (const pt of statePoints) {
+                            statePointsMap[pt.id] = {
+                                width: pt.width,
+                                height: pt.height,
+                                x: pt.x,
+                                y: pt.y
+                            };
+                        }
+                        statesEntry[stateName] = {
+                            points: statePointsMap
+                        };
+                    }
+                }
+
+                if (Object.keys(statesEntry).length > 0) {
+                    iconEntry.states = statesEntry;
+                }
+
+                if (Object.keys(iconEntry).length > 0) {
+                    atlasEntry[iconName] = iconEntry;
+                }
+            }
+
+            if (Object.keys(atlasEntry).length > 0) {
+                pointsData[atlasName] = atlasEntry;
+            }
+        } catch (pError) {
+            logError(`[Error] Failed to parse icon points from ${filePath}: ${pError}`);
+        }
+    }
+
+    return pointsData;
+}
+
+/**
+ * Saves the icon points JSON to a file.
+ */
+async function saveIconPointsJSON(pPointsData: Record<string, any>): Promise<void> {
+    const filePath = 'icon-points.json';
+    try {
+        await fs.writeFile(filePath, JSON.stringify(pPointsData));
+    } catch (pError) {
+        logError(`[Error] Saving icon points JSON: ${pError}`);
+    }
+}
+
+/**
+ * Builds the sizes map from all processed vyi files.
+ */
+async function buildSizesJSON(): Promise<Record<string, any>> {
+    const sizesData: Record<string, any> = {};
+
+    for (const { filePath, type } of resourcesToProcess) {
+        if (type !== 'icon') continue;
+
+        try {
+            const fileBuffer = await fs.readFile(filePath);
+            const vyi = new VYI().parse(fileBuffer);
+            const atlasName = basename(filePath, '.vyi');
+            const atlasEntry: Record<string, { width: number; height: number }> = {};
+
+            for (const icon of vyi.getIcons()) {
+                atlasEntry[icon.getName()] = {
+                    width: icon.getWidth(),
+                    height: icon.getHeight()
+                };
+            }
+
+            if (Object.keys(atlasEntry).length > 0) {
+                sizesData[atlasName] = atlasEntry;
+            }
+        } catch (pError) {
+            logError(`[Error] Failed to parse sizes from ${filePath}: ${pError}`);
+        }
+    }
+
+    return sizesData;
+}
+
+/**
+ * Saves the sizes JSON to a file.
+ */
+async function saveSizesJSON(pSizesData: Record<string, any>): Promise<void> {
+    const filePath = 'sizes.json';
+    try {
+        await fs.writeFile(filePath, JSON.stringify(pSizesData));
+    } catch (pError) {
+        logError(`[Error] Saving sizes JSON: ${pError}`);
     }
 }
 
@@ -271,6 +407,8 @@ export async function processResources({ inDirectory, outDirectory, verbose, ign
         logAlert('No resources found!');
         await saveResourceJSON();
         await saveBoundsJSON({});
+        await saveIconPointsJSON({});
+        await saveSizesJSON({});
     }
 }
 
