@@ -9,15 +9,15 @@
     "bun": ">=1.1.0"
   },
   "scripts": {
-    "build": "kit build -v -i ./src/resources -o ./dist && bun run bun-build.ts",
-    "host": "bun run build && bun run bun-serve.ts"
+    "build": "kit build",
+    "watch": "kit build --watch",
+    "host": "kit host -b"
   },
   "keywords": [],
   "dependencies": {
     "@evitcastudio/kit": "latest"
   },
   "devDependencies": {
-    "@evitcastudio/copy-bun-plugin": "^1.0.4",
     "@types/bun": "latest"
   }
 }

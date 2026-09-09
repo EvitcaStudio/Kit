@@ -1,9 +1,10 @@
 import type { ProcessOptions } from './types';
-import { promises as fs } from 'fs';
-import { join, extname, basename } from 'path';
+import { promises as fs, watch as fsWatch, existsSync } from 'fs';
+import { join, extname, basename, resolve } from 'path';
 import chalk from 'chalk';
 import { v4 as uuidv4 } from 'uuid';
 import { VYI } from '../vendor/vyi';
+import { bundleApp } from './app-bundler';
 
 // Logging helpers
 const log = console.log;
@@ -23,7 +24,9 @@ let isVerbose: boolean | undefined = false;
 let ignoringSound: boolean | undefined = false;
 let resourceInDirectory = '';
 let resourceOutDirectory = '';
+let customManifestPath: string | undefined = undefined;
 const resourcesToProcess: { filePath: string; type: typeof RESOURCE_TYPES[number] }[] = [];
+const subdirectoriesToMirror: string[] = [];
 
 /**
  * Initializes the resource JSON structure.
@@ -83,9 +86,18 @@ async function processDirectory(pDirectoryPath: string): Promise<void> {
 
         for (const item of contents) {
             const itemPath = join(pDirectoryPath, item);
+            // Skip the output directory if it is inside the input directory
+            if (resolve(itemPath) === resourceOutDirectory) {
+                continue;
+            }
+
             const stats = await fs.stat(itemPath);
 
             if (stats.isDirectory()) {
+                // If top-level subdirectory inside inDirectory, track for mirroring
+                if (pDirectoryPath === resourceInDirectory) {
+                    subdirectoriesToMirror.push(item);
+                }
                 await processDirectory(itemPath);
             } else if (isValidExtension(extname(itemPath).slice(1))) {
                 prepareFileForProcessing(itemPath);
@@ -103,6 +115,29 @@ function isValidExtension(pExtension: string): boolean {
     return VALID_EXTENSIONS.includes(pExtension as typeof VALID_EXTENSIONS[number]);
 }
 
+/**
+ * Recursively copies a directory to destination, preserving subdirectories and files.
+ * Ignores engine resource files that are already handled by Vylocity obfuscation.
+ */
+async function mirrorDirectory(pSourceDir: string, pDestDir: string): Promise<void> {
+    const entries = await fs.readdir(pSourceDir, { withFileTypes: true });
+    await fs.mkdir(pDestDir, { recursive: true });
+
+    for (const entry of entries) {
+        const srcPath = join(pSourceDir, entry.name);
+        const destPath = join(pDestDir, entry.name);
+
+        if (entry.isDirectory()) {
+            await mirrorDirectory(srcPath, destPath);
+        } else {
+            const ext = extname(entry.name).slice(1);
+            // Only copy non-engine files (images, custom JSON, fonts, etc.)
+            if (!isValidExtension(ext)) {
+                await fs.copyFile(srcPath, destPath);
+            }
+        }
+    }
+}
 
 /**
  * Executes all file copy operations in parallel after preparation.
@@ -127,6 +162,13 @@ async function processAllFiles(): Promise<void> {
         // Execute all copy operations concurrently
         await Promise.all(copyOperations);
 
+        // Mirror subdirectories (images, fonts, emitters, particles, etc.)
+        for (const subDir of subdirectoriesToMirror) {
+            const srcPath = join(resourceInDirectory, subDir);
+            const destPath = join(resourceOutDirectory, 'resources', subDir);
+            await mirrorDirectory(srcPath, destPath);
+        }
+
         logVerbose(`[Kit CLI] All resources have been processed.`);
         await saveResourceJSON();
         const boundsData = await buildBoundsJSON();
@@ -144,8 +186,8 @@ async function processAllFiles(): Promise<void> {
 /**
  * Builds the bounds map from all processed vyi files.
  */
-async function buildBoundsJSON(): Promise<Record<string, any>> {
-    const boundsData: Record<string, any> = {};
+async function buildBoundsJSON(): Promise<Record<string, unknown>> {
+    const boundsData: Record<string, unknown> = {};
 
     for (const { filePath, type } of resourcesToProcess) {
         if (type !== 'icon') continue;
@@ -154,19 +196,19 @@ async function buildBoundsJSON(): Promise<Record<string, any>> {
             const fileBuffer = await fs.readFile(filePath);
             const vyi = new VYI().parse(fileBuffer);
             const atlasName = basename(filePath, '.vyi');
-            const atlasEntry: Record<string, any> = {};
+            const atlasEntry: Record<string, unknown> = {};
 
             for (const icon of vyi.getIcons()) {
                 const iconName = icon.getName();
                 const iconBounds = icon.getBoundsExport();
                 const hasIconBounds = Object.keys(iconBounds).length > 0;
 
-                const iconEntry: any = {};
+                const iconEntry: Record<string, unknown> = {};
                 if (hasIconBounds) {
                     iconEntry.bounds = iconBounds;
                 }
 
-                const statesEntry: Record<string, any> = {};
+                const statesEntry: Record<string, unknown> = {};
                 for (const state of icon.getStates()) {
                     const stateName = state.getName();
                     const stateBounds = state.getBoundsExport();
@@ -200,7 +242,7 @@ async function buildBoundsJSON(): Promise<Record<string, any>> {
 /**
  * Saves the bounds JSON to a file.
  */
-async function saveBoundsJSON(pBoundsData: Record<string, any>): Promise<void> {
+async function saveBoundsJSON(pBoundsData: Record<string, unknown>): Promise<void> {
     const filePath = 'bounds.json';
     try {
         await fs.writeFile(filePath, JSON.stringify(pBoundsData));
@@ -212,8 +254,8 @@ async function saveBoundsJSON(pBoundsData: Record<string, any>): Promise<void> {
 /**
  * Builds the icon points map from all processed vyi files.
  */
-async function buildIconPointsJSON(): Promise<Record<string, any>> {
-    const pointsData: Record<string, any> = {};
+async function buildIconPointsJSON(): Promise<Record<string, unknown>> {
+    const pointsData: Record<string, unknown> = {};
 
     for (const { filePath, type } of resourcesToProcess) {
         if (type !== 'icon') continue;
@@ -222,16 +264,16 @@ async function buildIconPointsJSON(): Promise<Record<string, any>> {
             const fileBuffer = await fs.readFile(filePath);
             const vyi = new VYI().parse(fileBuffer);
             const atlasName = basename(filePath, '.vyi');
-            const atlasEntry: Record<string, any> = {};
+            const atlasEntry: Record<string, unknown> = {};
 
             for (const icon of vyi.getIcons()) {
                 const iconName = icon.getName();
                 const iconPoints = icon.getIconPointsExport();
                 const hasIconPoints = iconPoints && iconPoints.length > 0;
 
-                const iconEntry: any = {};
+                const iconEntry: Record<string, unknown> = {};
                 if (hasIconPoints) {
-                    const pointsMap: Record<string, any> = {};
+                    const pointsMap: Record<string, unknown> = {};
                     for (const pt of iconPoints) {
                         pointsMap[pt.id] = {
                             width: pt.width,
@@ -243,12 +285,12 @@ async function buildIconPointsJSON(): Promise<Record<string, any>> {
                     iconEntry.points = pointsMap;
                 }
 
-                const statesEntry: Record<string, any> = {};
+                const statesEntry: Record<string, unknown> = {};
                 for (const state of icon.getStates()) {
                     const stateName = state.getName();
                     const statePoints = state.getIconPointsExport();
                     if (statePoints && statePoints.length > 0) {
-                        const statePointsMap: Record<string, any> = {};
+                        const statePointsMap: Record<string, unknown> = {};
                         for (const pt of statePoints) {
                             statePointsMap[pt.id] = {
                                 width: pt.width,
@@ -286,7 +328,7 @@ async function buildIconPointsJSON(): Promise<Record<string, any>> {
 /**
  * Saves the icon points JSON to a file.
  */
-async function saveIconPointsJSON(pPointsData: Record<string, any>): Promise<void> {
+async function saveIconPointsJSON(pPointsData: Record<string, unknown>): Promise<void> {
     const filePath = 'icon-points.json';
     try {
         await fs.writeFile(filePath, JSON.stringify(pPointsData));
@@ -298,8 +340,8 @@ async function saveIconPointsJSON(pPointsData: Record<string, any>): Promise<voi
 /**
  * Builds the sizes map from all processed vyi files.
  */
-async function buildSizesJSON(): Promise<Record<string, any>> {
-    const sizesData: Record<string, any> = {};
+async function buildSizesJSON(): Promise<Record<string, unknown>> {
+    const sizesData: Record<string, unknown> = {};
 
     for (const { filePath, type } of resourcesToProcess) {
         if (type !== 'icon') continue;
@@ -331,7 +373,7 @@ async function buildSizesJSON(): Promise<Record<string, any>> {
 /**
  * Saves the sizes JSON to a file.
  */
-async function saveSizesJSON(pSizesData: Record<string, any>): Promise<void> {
+async function saveSizesJSON(pSizesData: Record<string, unknown>): Promise<void> {
     const filePath = 'sizes.json';
     try {
         await fs.writeFile(filePath, JSON.stringify(pSizesData));
@@ -372,36 +414,39 @@ async function copyFile(pSource: string, pDestinationDir: string, pNewName: stri
  * Saves the resource JSON to a file.
  */
 async function saveResourceJSON(): Promise<void> {
-    const filePath = 'resource.json';
+    const jsonContent = JSON.stringify(resourceJSON, null, 4);
+    const targetPath = customManifestPath || 'resource.json';
+
     try {
-        await fs.writeFile(filePath, JSON.stringify(resourceJSON, null, 4));
+        await fs.writeFile(targetPath, jsonContent, 'utf8');
     } catch (pError) {
-        logError(`[Error] Saving resource JSON: ${pError}`);
+        logError(`[Error] Saving resource JSON to ${targetPath}: ${pError}`);
     }
 }
 
+let shouldBundleApp = false;
+let projectRootDirectory = '';
+let appBundleOptions: {
+    minify?: boolean;
+    obfuscate?: boolean;
+    sourcemap?: 'none' | 'linked' | 'inline' | 'external';
+    prod?: boolean;
+    verbose?: boolean;
+} = {};
+
 /**
- * Main entry point for building resources.
+ * Executes a single build pass over the input assets.
  */
-export async function processResources({ inDirectory, outDirectory, verbose, ignoreSound }: ProcessOptions): Promise<void> {
-    // Initialize state
-    resourceInDirectory = inDirectory;
-    resourceOutDirectory = outDirectory;
-    isVerbose = verbose;
-    ignoringSound = ignoreSound;
+async function runBuild(): Promise<void> {
     resourceJSON = initializeResourceJSON();
     resourcesToProcess.length = 0;
+    subdirectoriesToMirror.length = 0;
 
-    // Validate inputs
-    if (!resourceInDirectory || !resourceOutDirectory) {
-        logError('[Error] Input and output directories must be specified');
-        return;
+    if (existsSync(resourceInDirectory)) {
+        await processDirectory(resourceInDirectory);
     }
 
-    // Process resources
-    await processDirectory(resourceInDirectory);
-
-    if (resourcesToProcess.length > 0) {
+    if (resourcesToProcess.length > 0 || subdirectoriesToMirror.length > 0) {
         await processAllFiles();
     } else {
         logAlert('No resources found!');
@@ -409,6 +454,102 @@ export async function processResources({ inDirectory, outDirectory, verbose, ign
         await saveBoundsJSON({});
         await saveIconPointsJSON({});
         await saveSizesJSON({});
+    }
+
+    // If app bundling is requested or enabled by default, compile app and copy web assets
+    if (shouldBundleApp && projectRootDirectory) {
+        await bundleApp(projectRootDirectory, resourceOutDirectory, {
+            ...appBundleOptions,
+            verbose: Boolean(isVerbose)
+        });
+    }
+
+    logVerbose(`[Kit CLI] Resources built successfully.`);
+}
+
+/**
+ * Watches the input directory for changes and triggers incremental rebuilds.
+ */
+async function runWatch(): Promise<void> {
+    await runBuild();
+
+    console.log(chalk.cyan(`\n👀 Watching for changes in: ${chalk.bold(resourceInDirectory)}`));
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const triggerRebuild = (pFilename: string): void => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            console.log(chalk.dim(`\nFile changed: ${pFilename}, rebuilding...`));
+            await runBuild();
+        }, 150);
+    };
+
+    const watchers: { close(): void }[] = [];
+
+    if (existsSync(resourceInDirectory)) {
+        const resWatcher = fsWatch(resourceInDirectory, { recursive: true }, (_eventType, pFilename) => {
+            if (pFilename) triggerRebuild(pFilename);
+        });
+        watchers.push(resWatcher);
+    }
+
+    const srcDir = join(projectRootDirectory, 'src');
+    if (shouldBundleApp && existsSync(srcDir) && srcDir !== resourceInDirectory) {
+        const srcWatcher = fsWatch(srcDir, { recursive: true }, (_eventType, pFilename) => {
+            if (!pFilename) return;
+            // Ignore resources folder if inside src to prevent double triggers
+            if (pFilename.startsWith('resources')) return;
+            triggerRebuild(pFilename);
+        });
+        watchers.push(srcWatcher);
+    }
+
+    process.on('SIGINT', () => {
+        for (const w of watchers) w.close();
+        process.exit(0);
+    });
+}
+
+/**
+ * Main entry point for building resources.
+ */
+export async function processResources({ inDirectory, outDirectory, manifestPath, watch, verbose, ignoreSound, app, minify, obfuscate, sourcemap, prod }: ProcessOptions): Promise<void> {
+    projectRootDirectory = process.cwd();
+
+    // Smart defaults: ./src/resources -> ./dist
+    const resolvedIn = inDirectory || (existsSync(join(projectRootDirectory, 'src', 'resources')) ? 'src/resources' : '');
+    const resolvedOut = outDirectory || 'dist';
+
+    resourceInDirectory = resolvedIn ? resolve(resolvedIn) : '';
+    resourceOutDirectory = resolvedOut ? resolve(resolvedOut) : '';
+    customManifestPath = manifestPath;
+    isVerbose = verbose;
+    ignoringSound = ignoreSound;
+
+    appBundleOptions = {
+        minify,
+        obfuscate,
+        sourcemap,
+        prod
+    };
+
+    // Enable app bundling if explicitly requested or if app entrypoints exist and app is not false
+    const hasAppEntry = existsSync(join(projectRootDirectory, 'src', 'index.ts')) ||
+        existsSync(join(projectRootDirectory, 'src', 'client', 'index.ts')) ||
+        existsSync(join(projectRootDirectory, 'src', 'server', 'index.ts'));
+
+    shouldBundleApp = app !== undefined ? app : hasAppEntry;
+
+    // Validate inputs
+    if (!resourceInDirectory || !resourceOutDirectory) {
+        logError('[Error] Input and output directories must be specified');
+        return;
+    }
+
+    if (watch) {
+        await runWatch();
+    } else {
+        await runBuild();
     }
 }
 
@@ -423,3 +564,4 @@ function logError(pMessage: string): void {
 function logAlert(pMessage: string): void {
     log(alert(pMessage));
 }
+

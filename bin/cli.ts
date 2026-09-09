@@ -67,14 +67,25 @@ const formatHelp = (pCmd: Command): string => {
 
     // Examples
     const name = pCmd.name();
-    if (isRoot || name === 'init' || name === 'build') {
+    if (isRoot || name === 'init' || name === 'build' || name === 'create' || name === 'doctor') {
         output += `  ${chalk.white.bold('Examples:')}\n`;
         if (isRoot || name === 'init') {
             output += `    ${chalk.cyan('kit init')}\n`;
-            output += `    ${chalk.cyan('kit init my-game --single')}\n`;
+            output += `    ${chalk.cyan('kit init my-game --single --install')}\n`;
         }
         if (isRoot || name === 'build') {
-            output += `    ${chalk.cyan('kit build --in ./src --out ./dist')}\n`;
+            output += `    ${chalk.cyan('kit build --in ./src/resources --out ./dist')}\n`;
+            output += `    ${chalk.cyan('kit build --in ./src/resources --out ./dist --watch')}\n`;
+        }
+        if (isRoot || name === 'create') {
+            output += `    ${chalk.cyan('kit create plugin Inventory')}\n`;
+        }
+        if (isRoot || name === 'doctor') {
+            output += `    ${chalk.cyan('kit doctor')}\n`;
+        }
+        if (isRoot || name === 'host') {
+            output += `    ${chalk.cyan('kit host')}\n`;
+            output += `    ${chalk.cyan('kit host -p 8080 -b')}\n`;
         }
         if (isRoot) {
             output += `    ${chalk.cyan('kit build --help')}\n`;
@@ -91,7 +102,7 @@ const formatHelp = (pCmd: Command): string => {
 };
 
 program
-  .name('cli') // commander uses name in usage
+  .name('kit')
   .version(`${packageJSON.version}`)
   .description(packageJSON['cli-description'])
   .option('-v, --verbose', 'Enable verbose mode for debugging', false);
@@ -105,6 +116,8 @@ const initCommand = program
   .description('Initialize a new Kit project')
   .option('-s, --single', 'Quick-start a single player project')
   .option('-m, --multi', 'Quick-start a multiplayer project')
+  .option('-f, --force', 'Force overwrite if destination already exists', false)
+  .option('-i, --install', 'Automatically install dependencies using Bun', false)
   .action(async (pName, pCmdOptions) => {
       if (pName === 'help') {
           console.log(initCommand.helpInformation());
@@ -115,6 +128,8 @@ const initCommand = program
           projectName: pName,
           single: pCmdOptions.single,
           multi: pCmdOptions.multi,
+          force: pCmdOptions.force,
+          install: pCmdOptions.install,
           verbose: program.opts().verbose
       });
   });
@@ -125,10 +140,18 @@ initCommand.helpInformation = () => formatHelp(initCommand);
 // Build Command
 const buildCommand = program
   .command('build [help]')
-  .description('Build resources from the specified directory')
-  .option('-i, --in <path>', 'Input directory (required)')
-  .option('-o, --out <path>', 'Output directory (required)')
+  .description('Build resources and bundle game application')
+  .option('-i, --in <path>', 'Input directory (defaults to ./src/resources)')
+  .option('-o, --out <path>', 'Output directory (defaults to ./dist)')
+  .option('-m, --manifest <path>', 'Custom manifest file path')
+  .option('-w, --watch', 'Watch files for changes and rebuild automatically', false)
   .option('-is, --ignore-sound', 'Ignore sound files', false)
+  .option('--app', 'Bundle game code and static assets (enabled by default when project entrypoints exist)')
+  .option('--no-app', 'Disable game code bundling and only process resources')
+  .option('-p, --prod', 'Production build: enables minification, identifier obfuscation, and strips sourcemaps', false)
+  .option('--minify', 'Minify bundled JavaScript syntax, whitespace, and identifiers', false)
+  .option('--obfuscate', 'Mangle and obfuscate variable and property identifiers', false)
+  .option('--sourcemap <mode>', 'Sourcemap generation mode (none, linked, inline, external)')
   .action((pHelp, pCmdOptions) => {
       if (pHelp === 'help') {
           console.log(buildCommand.helpInformation());
@@ -137,16 +160,17 @@ const buildCommand = program
 
       const verbose = program.opts().verbose;
 
-      if (!pCmdOptions.in || !pCmdOptions.out) {
-          console.error(chalk.red('\n  Error: --in and --out are required flags for the build command.'));
-          console.log(buildCommand.helpInformation());
-          process.exit(1);
-      }
-
       const processOptions: ProcessOptions = {
           inDirectory: pCmdOptions.in,
           outDirectory: pCmdOptions.out,
+          manifestPath: pCmdOptions.manifest,
+          watch: pCmdOptions.watch || false,
           ignoreSound: pCmdOptions.ignoreSound || false,
+          app: pCmdOptions.app,
+          minify: pCmdOptions.minify || false,
+          obfuscate: pCmdOptions.obfuscate || false,
+          sourcemap: pCmdOptions.sourcemap,
+          prod: pCmdOptions.prod || false,
           verbose: verbose || false,
       };
 
@@ -155,6 +179,69 @@ const buildCommand = program
 
 // Apply custom help to build
 buildCommand.helpInformation = () => formatHelp(buildCommand);
+
+// Create Command
+const createCommand = program
+  .command('create [type] [name]')
+  .description('Generate boilerplate files (e.g. plugin)')
+  .action(async (pType, pName) => {
+      if (pType === 'help' || !pType || !pName) {
+          console.log(createCommand.helpInformation());
+          return;
+      }
+
+      await KitCLI.create({
+          type: pType,
+          name: pName,
+          verbose: program.opts().verbose
+      });
+  });
+
+// Apply custom help to create
+createCommand.helpInformation = () => formatHelp(createCommand);
+
+// Doctor Command
+const doctorCommand = program
+  .command('doctor')
+  .description('Inspect environment and game project diagnostics')
+  .action(async () => {
+      const allPassed = await KitCLI.doctor({
+          verbose: program.opts().verbose
+      });
+
+      if (!allPassed) {
+          process.exitCode = 1;
+      }
+  });
+
+// Apply custom help to doctor
+doctorCommand.helpInformation = () => formatHelp(doctorCommand);
+
+// Host Command
+const hostCommand = program
+  .command('host')
+  .description('Host the game application locally')
+  .option('-p, --port <number>', 'Port to run host server on (default: 8090)', '8090')
+  .option('-d, --dir <path>', 'Directory to serve (default: ./dist)')
+  .option('-b, --build', 'Build the project before hosting', false)
+  .action(async (pCmdOptions) => {
+      const verbose = program.opts().verbose;
+      if (pCmdOptions.build) {
+          await KitCLI.processResources({ verbose });
+      }
+      const result = await KitCLI.host({
+          port: Number(pCmdOptions.port) || 8090,
+          directory: pCmdOptions.dir,
+          verbose
+      });
+
+      if (!result.success) {
+          process.exitCode = 1;
+      }
+  });
+
+// Apply custom help to host
+hostCommand.helpInformation = () => formatHelp(hostCommand);
 
 // Explicit help command
 program
@@ -180,3 +267,4 @@ if (!process.argv.slice(2).length) {
 }
 
 program.parse(process.argv);
+

@@ -14,6 +14,8 @@ export interface InitOptions {
     projectName?: string;
     single?: boolean;
     multi?: boolean;
+    force?: boolean;
+    install?: boolean;
     verbose?: boolean;
 }
 
@@ -139,9 +141,11 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
 
     let projectName = pOptions.projectName;
     let gameType: 'single' | 'multi' | 'both' = 'single';
+    let shouldInstall = Boolean(pOptions.install);
+    const isInteractive = !pOptions.single && !pOptions.multi && !projectName;
 
     // Interactive Walkthrough
-    if (!pOptions.single && !pOptions.multi && !projectName) {
+    if (isInteractive) {
         const name = await text({
             message: 'What is the name of your project?',
             placeholder: 'my-amazing-project',
@@ -171,6 +175,15 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
             process.exit(0);
         }
         gameType = type as 'single' | 'multi' | 'both';
+
+        const installChoice = await confirm({
+            message: 'Install dependencies with Bun now?',
+            initialValue: true,
+        });
+
+        if (!isCancel(installChoice)) {
+            shouldInstall = Boolean(installChoice);
+        }
     } else {
         // Handle flags
         if (pOptions.single) gameType = 'single';
@@ -182,14 +195,19 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
     const projectDir = path.join(process.cwd(), projectName);
 
     if (fs.existsSync(projectDir)) {
-        const overwrite = await confirm({
-            message: `Directory ${chalk.cyan(projectName)} already exists. Overwrite?`,
-            initialValue: false,
-        });
+        if (isInteractive) {
+            const overwrite = await confirm({
+                message: `Directory ${chalk.cyan(projectName)} already exists. Overwrite?`,
+                initialValue: false,
+            });
 
-        if (isCancel(overwrite) || !overwrite) {
-            cancel('Installation aborted.');
-            process.exit(0);
+            if (isCancel(overwrite) || !overwrite) {
+                cancel('Installation aborted.');
+                process.exit(0);
+            }
+        } else if (!pOptions.force) {
+            console.error(chalk.red(`\nError: Destination directory '${projectName}' already exists. Use --force (-f) to overwrite.`));
+            process.exit(1);
         }
     }
 
@@ -200,8 +218,6 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
         const projectPath = path.join(process.cwd(), projectName);
         
         if (fs.existsSync(projectPath)) {
-            // This case should ideally be handled by the confirm prompt above,
-            // but good to have a fallback for non-interactive mode or race conditions.
             fs.rmSync(projectPath, { recursive: true, force: true });
         }
 
@@ -212,14 +228,10 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
         if (gameType === 'both') templateType = 'multi'; // Use multi for both for now
 
         // Resolve template path
-        // When running from lib/bundle/cli/cli.js, templates are in ./kit-game-templates/
         const templatesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'kit-game-templates', templateType);
-
         const author = getGitUser();
 
         if (!fs.existsSync(templatesDir)) {
-            // Fallback for local development (src/cli/init.ts)
-            // Go up to root then templates/pType
             const localTemplatesDir = path.join(process.cwd(), 'kit-game-templates', templateType);
             if (!fs.existsSync(localTemplatesDir)) {
                 console.error(chalk.red(`Error: Templates not found at ${templatesDir} or ${localTemplatesDir}`));
@@ -244,15 +256,31 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
 
         s.stop(`Project ${chalk.green(projectName)} created!`);
 
+        // Automatically install dependencies if requested
+        if (shouldInstall) {
+            const installSpinner = spinner();
+            installSpinner.start('Installing project dependencies with Bun...');
+            const installResult = spawnSync('bun', ['install'], { cwd: projectPath, stdio: 'ignore', shell: true });
+            if (installResult.status === 0) {
+                installSpinner.stop(chalk.green('Dependencies installed successfully!'));
+            } else {
+                installSpinner.stop(chalk.yellow('Dependency installation finished with warnings.'));
+            }
+        }
+
         console.log(`${chalk.cyan('│')}`);
         console.log(`${chalk.cyan('│')}  ${chalk.white.bold('Next steps:')}`);
         console.log(`${chalk.cyan('│')}  ${chalk.dim('1.')} cd ${chalk.cyan(projectName)}`);
-        console.log(`${chalk.cyan('│')}  ${chalk.dim('2.')} bun install`);
-        console.log(`${chalk.cyan('│')}  ${chalk.dim('3.')} bun run build`);
+        if (!shouldInstall) {
+            console.log(`${chalk.cyan('│')}  ${chalk.dim('2.')} bun install`);
+            console.log(`${chalk.cyan('│')}  ${chalk.dim('3.')} bun run build`);
+        } else {
+            console.log(`${chalk.cyan('│')}  ${chalk.dim('2.')} bun run build`);
+        }
         console.log(`${chalk.cyan('│')}`);
 
         outro(chalk.green.bold('Happy coding!'));
-    } catch (pError: any) {
+    } catch (pError: unknown) {
         s.stop(chalk.red('Scaffolding failed.'));
         
         // Cleanup partially created directory
