@@ -115,9 +115,24 @@ function isValidExtension(pExtension: string): boolean {
     return VALID_EXTENSIONS.includes(pExtension as typeof VALID_EXTENSIONS[number]);
 }
 
+// Engine resource formats handled by Vylocity obfuscation
+const ENGINE_EXTENSIONS = ['vyint', 'vyi', 'vym', 'vymac'] as const;
+
+/**
+ * Checks if a file extension is a Vylocity engine binary/definition format.
+ * @param pExtension - The file extension to test.
+ * @returns True if the extension is an engine format.
+ */
+function isEngineExtension(pExtension: string): boolean {
+    return (ENGINE_EXTENSIONS as readonly string[]).includes(pExtension);
+}
+
 /**
  * Recursively copies a directory to destination, preserving subdirectories and files.
- * Ignores engine resource files that are already handled by Vylocity obfuscation.
+ * Ignores engine resource files (vyint, vyi, vym, vymac) that are handled by Vylocity obfuscation,
+ * while ensuring media and custom assets (sounds, images, fonts, json) retain their structure.
+ * @param pSourceDir - The source directory to copy.
+ * @param pDestDir - The target destination directory.
  */
 async function mirrorDirectory(pSourceDir: string, pDestDir: string): Promise<void> {
     const entries = await fs.readdir(pSourceDir, { withFileTypes: true });
@@ -131,8 +146,8 @@ async function mirrorDirectory(pSourceDir: string, pDestDir: string): Promise<vo
             await mirrorDirectory(srcPath, destPath);
         } else {
             const ext = extname(entry.name).slice(1);
-            // Only copy non-engine files (images, custom JSON, fonts, etc.)
-            if (!isValidExtension(ext)) {
+            // Copy all assets except internal Vylocity engine binary formats
+            if (!isEngineExtension(ext)) {
                 await fs.copyFile(srcPath, destPath);
             }
         }
@@ -473,7 +488,7 @@ async function runBuild(): Promise<void> {
 async function runWatch(): Promise<void> {
     await runBuild();
 
-    console.log(chalk.cyan(`\n👀 Watching for changes in: ${chalk.bold(resourceInDirectory)}`));
+    console.log(chalk.cyan(`\nWatching for changes in: ${chalk.bold(resourceInDirectory)}`));
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     const triggerRebuild = (pFilename: string): void => {

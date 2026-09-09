@@ -90,7 +90,7 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
             return { success: false, message };
         }
 
-        console.log(chalk.cyan(`\n🎮 Starting Multiplayer Server from ${chalk.bold(distDir)}...\n`));
+        console.log(chalk.cyan(`\nStarting Multiplayer Server from ${chalk.bold(distDir)}...\n`));
 
         let serverSettingsPort = port;
         const settingsPath = join(distDir, 'settings.json');
@@ -154,7 +154,7 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
         }
     });
 
-    console.log(chalk.cyan('\n🎮 Kit Game Host Server\n'));
+    console.log(chalk.cyan('\nKit Game Host Server\n'));
     console.log(`  ${chalk.bold('Local:')}    ${chalk.green(`http://localhost:${server.port}`)}`);
     if (lanIp !== 'localhost') {
         console.log(`  ${chalk.bold('Network:')}  ${chalk.green(`http://${lanIp}:${server.port}`)}`);

@@ -197,14 +197,17 @@ describe('Kit CLI', () => {
     });
 
     test('should automatically mirror custom asset subdirectories into output resources folder', async () => {
-        // Create custom subdirectories like images, fonts, emitters
+        // Create custom subdirectories like images, fonts, sounds
         const imagesDir = join(inDir, 'images');
         const fontsDir = join(inDir, 'fonts');
+        const soundsDir = join(inDir, 'sounds/effects');
         await ensureDirectoryExists(imagesDir);
         await ensureDirectoryExists(fontsDir);
+        await ensureDirectoryExists(soundsDir);
 
         await writeFile(join(imagesDir, 'background.png'), 'fake-png-content');
         await writeFile(join(fontsDir, 'custom-font.woff2'), 'fake-font-content');
+        await writeFile(join(soundsDir, 'sfx.wav'), 'fake-wav-content');
 
         await KitCLI.processResources({
             inDirectory: inDir,
@@ -215,9 +218,11 @@ describe('Kit CLI', () => {
 
         const copiedImage = await readFile(join(outDir, 'resources/images/background.png'), 'utf8');
         const copiedFont = await readFile(join(outDir, 'resources/fonts/custom-font.woff2'), 'utf8');
+        const copiedSound = await readFile(join(outDir, 'resources/sounds/effects/sfx.wav'), 'utf8');
 
         expect(copiedImage).toBe('fake-png-content');
         expect(copiedFont).toBe('fake-font-content');
+        expect(copiedSound).toBe('fake-wav-content');
     });
 
     test('should run doctor diagnostics successfully in project environment', async () => {

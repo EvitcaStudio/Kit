@@ -1,6 +1,6 @@
 {
   "name": "@evitcastudio/kit",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "author": "doubleactii 56242467+doubleactii@users.noreply.github.com (https://evitcastudio.com)",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -43,7 +43,7 @@
     "build-all": "bun run build-types && bun run build && bun run build-docs"
   },
   "bin": {
-    "kit": "lib/bundle/cli/cli.js"
+    "kit": "lib/cli-runner.cjs"
   },
   "devDependencies": {
     "@eslint/create-config": "1.4.0",

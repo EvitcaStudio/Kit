@@ -86,6 +86,15 @@ async function copyStaticWebFiles(pSourceDir: string, pDestDir: string, pBaseDir
                 const targetPath = join(pDestDir, relativePath);
                 await fs.mkdir(dirname(targetPath), { recursive: true });
                 await fs.copyFile(fullPath, targetPath);
+
+                // If the asset is located in a nested directory, also provide a copy at destination root
+                // to support projects where root HTML references sub-folder styles directly
+                if (['.css', '.ico'].includes(ext)) {
+                    const rootTargetPath = join(pDestDir, entry.name);
+                    if (targetPath !== rootTargetPath && !existsSync(rootTargetPath)) {
+                        await fs.copyFile(fullPath, rootTargetPath);
+                    }
+                }
             }
         }
     }

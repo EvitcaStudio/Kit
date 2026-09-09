@@ -59,9 +59,9 @@ const cliPath = './lib/bundle/cli/cli.js';
 const cliFile = Bun.file(cliPath);
 if (await cliFile.exists()) {
     const content = await cliFile.text();
-    const shebang = '#!/usr/bin/env node\n';
+    const shebang = '#!/usr/bin/env bun\n';
     if (!content.startsWith(shebang)) {
-        const cleanContent = content.replace(/^#!\/usr\/bin\/env node\r?\n/, '');
+        const cleanContent = content.replace(/^#!\/usr\/bin\/env (node|bun)\r?\n/, '');
         await Bun.write(cliPath, shebang + cleanContent);
         logMessage('info', 'Shebang prepended to CLI bundle.');
     } else {
