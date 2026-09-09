@@ -1,7 +1,8 @@
 import type { ProcessOptions } from './types';
-import { promises as fs, watch as fsWatch, existsSync } from 'fs';
-import { join, extname, basename, resolve } from 'path';
+import { promises as fs, existsSync } from 'fs';
+import { join, extname, basename, resolve, relative } from 'path';
 import chalk from 'chalk';
+import { watch as chokidarWatch } from 'chokidar';
 import { v4 as uuidv4 } from 'uuid';
 import { VYI } from '../vendor/vyi';
 import { bundleApp } from './app-bundler';
@@ -148,7 +149,8 @@ async function mirrorDirectory(pSourceDir: string, pDestDir: string): Promise<vo
             const ext = extname(entry.name).slice(1);
             // Copy all assets except internal Vylocity engine binary formats
             if (!isEngineExtension(ext)) {
-                await fs.copyFile(srcPath, destPath);
+                const data = await fs.readFile(srcPath);
+                await fs.writeFile(destPath, data);
             }
         }
     }
@@ -419,7 +421,11 @@ async function clearResourceTypeDirectories(pBaseDirectory: string): Promise<voi
 async function copyFile(pSource: string, pDestinationDir: string, pNewName: string): Promise<void> {
     try {
         await fs.mkdir(pDestinationDir, { recursive: true });
-        await fs.copyFile(pSource, join(pDestinationDir, pNewName));
+        // Use readFile + writeFile instead of fs.copyFile to avoid macOS APFS
+        // clone operations, which emit phantom FSEvents on the source file and
+        // cause external editors (e.g. Viewer) to falsely detect modifications.
+        const data = await fs.readFile(pSource);
+        await fs.writeFile(join(pDestinationDir, pNewName), data);
     } catch (pError) {
         logError(`[Error] Copying file ${pSource}: ${pError}`);
     }
@@ -488,39 +494,156 @@ async function runBuild(): Promise<void> {
 async function runWatch(): Promise<void> {
     await runBuild();
 
-    console.log(chalk.cyan(`\nWatching for changes in: ${chalk.bold(resourceInDirectory)}`));
-
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    const triggerRebuild = (pFilename: string): void => {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(async () => {
-            console.log(chalk.dim(`\nFile changed: ${pFilename}, rebuilding...`));
-            await runBuild();
-        }, 150);
-    };
-
-    const watchers: { close(): void }[] = [];
-
+    const pathsToWatch: string[] = [];
     if (existsSync(resourceInDirectory)) {
-        const resWatcher = fsWatch(resourceInDirectory, { recursive: true }, (_eventType, pFilename) => {
-            if (pFilename) triggerRebuild(pFilename);
-        });
-        watchers.push(resWatcher);
+        pathsToWatch.push(resourceInDirectory);
     }
 
     const srcDir = join(projectRootDirectory, 'src');
     if (shouldBundleApp && existsSync(srcDir) && srcDir !== resourceInDirectory) {
-        const srcWatcher = fsWatch(srcDir, { recursive: true }, (_eventType, pFilename) => {
-            if (!pFilename) return;
-            // Ignore resources folder if inside src to prevent double triggers
-            if (pFilename.startsWith('resources')) return;
-            triggerRebuild(pFilename);
-        });
-        watchers.push(srcWatcher);
+        pathsToWatch.push(srcDir);
     }
 
-    process.on('SIGINT', () => {
-        for (const w of watchers) w.close();
+    const displayPaths = pathsToWatch
+        .map(p => chalk.bold(relative(projectRootDirectory, p) || p))
+        .join(', ');
+    console.log(chalk.cyan(`\nWatching for changes in: ${displayPaths}`));
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let isRebuilding = false;
+    let queuedChange: string | null = null;
+
+    const triggerRebuild = (pFilename: string): void => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            if (isRebuilding) {
+                queuedChange = pFilename;
+                return;
+            }
+            isRebuilding = true;
+            try {
+                console.log(chalk.dim(`\nFile changed: ${pFilename}, rebuilding...`));
+                await runBuild();
+            } finally {
+                isRebuilding = false;
+                if (queuedChange) {
+                    const next = queuedChange;
+                    queuedChange = null;
+                    triggerRebuild(next);
+                }
+            }
+        }, 150);
+    };
+
+    const normalizedOutDir = resourceOutDirectory ? resourceOutDirectory.replace(/\\/g, '/') : '';
+
+    const isIgnored = (pPath: string): boolean => {
+        const normalized = pPath.replace(/\\/g, '/');
+
+        // Ignore output directory
+        if (normalizedOutDir && (normalized === normalizedOutDir || normalized.startsWith(`${normalizedOutDir}/`))) {
+            return true;
+        }
+
+        // Ignore VCS and dependency folders
+        if (/(^|[/\\])(\.git|node_modules|\.DS_Store|Thumbs\.db)($|[/\\])/.test(normalized)) {
+            return true;
+        }
+
+        // Ignore vendor directory (precompiled/static vendor assets)
+        if (/(^|[/\\])vendor([/\\]|$)/.test(normalized)) {
+            return true;
+        }
+
+        // Ignore sourcemaps
+        if (normalized.endsWith('.map')) {
+            return true;
+        }
+
+        // Ignore generated manifest metadata files in project root
+        if (
+            normalized.endsWith('resource.json') ||
+            normalized.endsWith('bounds.json') ||
+            normalized.endsWith('icon-points.json') ||
+            normalized.endsWith('sizes.json')
+        ) {
+            return true;
+        }
+
+        return false;
+    };
+
+    // Track known file modification times and sizes to eliminate phantom change events from copy/read operations
+    const fileStats = new Map<string, { mtime: number; size: number }>();
+
+    const recordFileStat = async (pFilePath: string): Promise<void> => {
+        try {
+            const stats = await fs.stat(pFilePath);
+            if (stats.isFile()) {
+                fileStats.set(resolve(pFilePath), { mtime: stats.mtimeMs, size: stats.size });
+            }
+        } catch {
+            // Ignored
+        }
+    };
+
+    const primeDirectoryStats = async (pDirPath: string): Promise<void> => {
+        try {
+            const entries = await fs.readdir(pDirPath, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = join(pDirPath, entry.name);
+                if (isIgnored(fullPath)) continue;
+                if (entry.isDirectory()) {
+                    await primeDirectoryStats(fullPath);
+                } else if (entry.isFile()) {
+                    await recordFileStat(fullPath);
+                }
+            }
+        } catch {
+            // Ignored
+        }
+    };
+
+    for (const p of pathsToWatch) {
+        await primeDirectoryStats(p);
+    }
+
+    const watcher = chokidarWatch(pathsToWatch, {
+        ignored: isIgnored,
+        ignoreInitial: true,
+        awaitWriteFinish: {
+            stabilityThreshold: 100,
+            pollInterval: 50
+        }
+    });
+
+    watcher.on('all', async (event, filePath) => {
+        if (event === 'addDir' || event === 'unlinkDir') return;
+
+        const absPath = resolve(filePath);
+        if (event === 'unlink') {
+            fileStats.delete(absPath);
+            const relativePath = relative(projectRootDirectory, filePath).replace(/\\/g, '/');
+            triggerRebuild(relativePath);
+            return;
+        }
+
+        // Verify mtime or size actually changed to eliminate phantom OS events
+        const stats = await fs.stat(absPath).catch(() => null);
+        if (!stats) return;
+
+        const prev = fileStats.get(absPath);
+        if (prev && prev.mtime === stats.mtimeMs && prev.size === stats.size) {
+            return;
+        }
+
+        fileStats.set(absPath, { mtime: stats.mtimeMs, size: stats.size });
+        const relativePath = relative(projectRootDirectory, filePath).replace(/\\/g, '/');
+        triggerRebuild(relativePath);
+    });
+
+    process.on('SIGINT', async () => {
+        await watcher.close();
         process.exit(0);
     });
 }

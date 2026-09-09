@@ -77,3 +77,29 @@ const templatesTarget = './lib/bundle/cli/kit-game-templates';
 await Bun.spawn(['shx', 'rm', '-rf', templatesTarget]).exited;
 await Bun.spawn(['shx', 'cp', '-r', templatesSrc, templatesDest]).exited;
 logMessage('info', 'Game templates copied to CLI bundle directory.');
+
+// Ensure lib/cli-runner.cjs exists
+const runnerContent = [
+    '#!/usr/bin/env node',
+    "const { spawnSync } = require('child_process');",
+    "const path = require('path');",
+    '',
+    '// Target the compiled Bun bundle',
+    "const cliScript = path.join(__dirname, 'bundle', 'cli', 'cli.js');",
+    '',
+    '// If currently running under Bun, import and execute directly',
+    "if (typeof Bun !== 'undefined') {",
+    '    import(cliScript);',
+    '} else {',
+    '    // Running under Node.js -> delegate to Bun runtime',
+    "    const result = spawnSync('bun', [cliScript, ...process.argv.slice(2)], {",
+    "        stdio: 'inherit',",
+    "        shell: process.platform === 'win32'",
+    '    });',
+    '    process.exit(result.status ?? 0);',
+    '}',
+    ''
+].join('\n');
+await Bun.write('./lib/cli-runner.cjs', runnerContent);
+await Bun.spawn(['chmod', '+x', './lib/cli-runner.cjs']).exited;
+logMessage('info', 'CLI runner proxy written to lib/cli-runner.cjs.');

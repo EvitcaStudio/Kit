@@ -18,7 +18,13 @@
   },
   "scripts": {
     "build": "kit build",
+    "build:prod": "kit build --prod",
     "watch": "kit build --watch",
-    "host": "kit host -b"
+    "dev": "kit host -b",
+    "start": "kit host",
+    "host": "kit host -b",
+    "host:prod": "kit host -b --prod",
+    "doctor": "kit doctor",
+    "create:plugin": "kit create plugin"
   }
 }

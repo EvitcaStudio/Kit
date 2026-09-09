@@ -149,7 +149,11 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
             const startStamp = Date.now();
             const clientResult = await Bun.build({
                 entrypoints: [join(srcDir, 'index.ts')],
-                naming: 'index.js',
+                naming: {
+                    entry: 'index.[ext]',
+                    chunk: '[name]-[hash].[ext]',
+                    asset: '[name].[ext]'
+                },
                 outdir: pOutDir,
                 target: 'browser',
                 banner,
@@ -196,7 +200,11 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                 const clientStart = Date.now();
                 const clientResult = await Bun.build({
                     entrypoints: [clientEntry],
-                    naming: 'index.js',
+                    naming: {
+                        entry: 'index.[ext]',
+                        chunk: '[name]-[hash].[ext]',
+                        asset: '[name].[ext]'
+                    },
                     outdir: pOutDir,
                     target: 'browser',
                     banner,
@@ -228,7 +236,11 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                 const serverStart = Date.now();
                 const serverResult = await Bun.build({
                     entrypoints: [serverEntry],
-                    naming: 'server.js',
+                    naming: {
+                        entry: 'server.[ext]',
+                        chunk: '[name]-[hash].[ext]',
+                        asset: '[name].[ext]'
+                    },
                     outdir: pOutDir,
                     target: 'node',
                     banner,
