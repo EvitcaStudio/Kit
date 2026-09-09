@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync, execSync } from 'node:child_process';
 import os from 'node:os';
 import packageJSON from '../../package.json';
+import { theme } from './theme';
 
 /**
  * Options for the init command.
@@ -39,6 +40,7 @@ function getGitUser(): string {
 }
 
 function checkBun(): boolean {
+    if (typeof Bun !== 'undefined') return true;
     const result = spawnSync('bun', ['--version'], { stdio: 'ignore', shell: true });
     return !result.error && result.status === 0;
 }
@@ -111,11 +113,11 @@ function copyTemplate(pSrc: string, pDest: string, pProjectName: string, pVersio
  * @param pOptions - Options for initialization.
  */
 export async function processInit(pOptions: InitOptions): Promise<void> {
-    intro(chalk.cyan(`Kit CLI v${packageJSON.version}`));
+    intro(theme.brand(`Kit CLI v${packageJSON.version}`));
 
     // Environment Check
     if (!checkBun()) {
-        note(`Kit requires the Bun runtime to build and run projects.\nYou can download it manually at ${chalk.cyan('https://bun.sh/')}`, 'Bun Not Found');
+        note(`Kit requires the Bun runtime to build and run projects.\nYou can download it manually at ${theme.brand('https://bun.sh/')}`, 'Bun Not Found');
 
         const install = await confirm({
             message: 'Would you like to install Bun automatically now?',
@@ -123,7 +125,7 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
         });
 
         if (isCancel(install) || !install) {
-            cancel(`Please install Bun manually to use Kit: ${chalk.cyan('https://bun.sh/')}\nNote: Kit projects cannot build or run without Bun.`);
+            cancel(`Please install Bun manually to use Kit: ${theme.brand('https://bun.sh/')}\nNote: Kit projects cannot build or run without Bun.`);
             process.exit(1);
         }
 
@@ -133,7 +135,7 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
         
         if (!success) {
             sInstall.stop(chalk.red('Automatic installation failed.'));
-            note(`Please install Bun manually: ${chalk.cyan('https://bun.sh/')}`, 'Manual Installation Required');
+            note(`Please install Bun manually: ${theme.brand('https://bun.sh/')}`, 'Manual Installation Required');
             process.exit(1);
         }
         sInstall.stop();
@@ -197,7 +199,7 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
     if (fs.existsSync(projectDir)) {
         if (isInteractive) {
             const overwrite = await confirm({
-                message: `Directory ${chalk.cyan(projectName)} already exists. Overwrite?`,
+                message: `Directory ${theme.brand(projectName)} already exists. Overwrite?`,
                 initialValue: false,
             });
 
@@ -212,7 +214,7 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
     }
 
     const s = spinner();
-    s.start(`Scaffolding ${chalk.cyan(projectName)}...`);
+    s.start(`Scaffolding ${theme.brand(projectName)}...`);
 
     try {
         const projectPath = path.join(process.cwd(), projectName);
@@ -262,26 +264,26 @@ export async function processInit(pOptions: InitOptions): Promise<void> {
             installSpinner.start('Installing project dependencies with Bun...');
             const installResult = spawnSync('bun', ['install'], { cwd: projectPath, stdio: 'ignore', shell: true });
             if (installResult.status === 0) {
-                installSpinner.stop(chalk.green('Dependencies installed successfully!'));
+                installSpinner.stop(theme.success('Dependencies installed successfully!'));
             } else {
-                installSpinner.stop(chalk.yellow('Dependency installation finished with warnings.'));
+                installSpinner.stop(theme.warning('Dependency installation finished with warnings.'));
             }
         }
 
-        console.log(`${chalk.cyan('│')}`);
-        console.log(`${chalk.cyan('│')}  ${chalk.white.bold('Next steps:')}`);
-        console.log(`${chalk.cyan('│')}  ${chalk.dim('1.')} cd ${chalk.cyan(projectName)}`);
+        console.log(`${theme.brand('│')}`);
+        console.log(`${theme.brand('│')}  ${theme.title('Next steps:')}`);
+        console.log(`${theme.brand('│')}  ${theme.stepNumber('1.')} cd ${theme.brandBold(projectName)}`);
         if (!shouldInstall) {
-            console.log(`${chalk.cyan('│')}  ${chalk.dim('2.')} bun install`);
-            console.log(`${chalk.cyan('│')}  ${chalk.dim('3.')} bun run build`);
+            console.log(`${theme.brand('│')}  ${theme.stepNumber('2.')} bun install`);
+            console.log(`${theme.brand('│')}  ${theme.stepNumber('3.')} bun run build`);
         } else {
-            console.log(`${chalk.cyan('│')}  ${chalk.dim('2.')} bun run build`);
+            console.log(`${theme.brand('│')}  ${theme.stepNumber('2.')} bun run build`);
         }
-        console.log(`${chalk.cyan('│')}`);
+        console.log(`${theme.brand('│')}`);
 
-        outro(chalk.green.bold('Happy coding!'));
+        outro(theme.brandBold('Happy coding!'));
     } catch (pError: unknown) {
-        s.stop(chalk.red('Scaffolding failed.'));
+        s.stop(theme.error('Scaffolding failed.'));
         
         // Cleanup partially created directory
         if (projectName) {

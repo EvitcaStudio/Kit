@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { KitCLI } from '../src/cli/main';
 import chalk from 'chalk';
 import packageJSON from '../package.json';
+import { theme } from '../src/cli/theme';
 
 const program = new Command();
 
@@ -17,18 +18,18 @@ const formatHelp = (pCmd: Command): string => {
     const desc = pCmd.description() || packageJSON['cli-description'];
     
     // Header
-    let output = `\n  ${chalk.cyan('Kit CLI')} ${chalk.dim('-')} ${chalk.white(desc)}\n`;
-    output += `  ${chalk.gray('Version')} ${chalk.green(packageJSON.version)}\n\n`;
+    let output = `\n  ${theme.brandBold('Kit CLI')} ${theme.muted('─')} ${theme.title(desc)}\n`;
+    output += `  ${theme.secondary('Version')} ${theme.brandBold(`v${packageJSON.version}`)}\n\n`;
     
     // Usage
-    const usage = pCmd.usage() || (isRoot ? `${chalk.dim('<command>')} ${chalk.dim('[options]')}` : `${chalk.dim('[options]')}`);
-    output += `  ${chalk.white.bold('Usage:')} ${chalk.cyan('kit')} ${!isRoot ? chalk.cyan(pCmd.name() + ' ') : ''}${usage}\n\n`;
+    const usage = pCmd.usage() || (isRoot ? `${theme.secondary('<command>')} ${theme.muted('[options]')}` : `${theme.muted('[options]')}`);
+    output += `  ${theme.title('Usage:')} ${theme.brandBold('kit')} ${!isRoot ? theme.brand(pCmd.name() + ' ') : ''}${usage}\n\n`;
 
     // Commands (only for root)
     if (isRoot) {
-        output += `  ${chalk.white.bold('Commands:')}\n`;
+        output += `  ${theme.title('Commands:')}\n`;
         pCmd.commands.filter(cmd => cmd.name() !== 'help').forEach(cmd => {
-            output += `    ${chalk.green(cmd.name().padEnd(12))} ${chalk.dim(cmd.description())}\n`;
+            output += `    ${theme.brandBold(cmd.name().padEnd(14))} ${theme.secondary(cmd.description())}\n`;
         });
         output += '\n';
     }
@@ -43,9 +44,9 @@ const formatHelp = (pCmd: Command): string => {
     });
 
     if (options.length > 0) {
-        output += `  ${chalk.white.bold(isRoot ? 'Options:' : 'Command Options:')}\n`;
+        output += `  ${theme.title(isRoot ? 'Options:' : 'Command Options:')}\n`;
         options.forEach(opt => {
-            output += `    ${chalk.yellow(opt.flags.padEnd(20))} ${chalk.dim(opt.description)}\n`;
+            output += `    ${theme.warningMuted(opt.flags.padEnd(24))} ${theme.secondary(opt.description)}\n`;
         });
         output += '\n';
     }
@@ -57,9 +58,9 @@ const formatHelp = (pCmd: Command): string => {
             return true;
         });
         if (globalOptions.length > 0) {
-            output += `  ${chalk.white.bold('Global Options:')}\n`;
+            output += `  ${theme.title('Global Options:')}\n`;
             globalOptions.forEach(opt => {
-                output += `    ${chalk.yellow(opt.flags.padEnd(20))} ${chalk.dim(opt.description)}\n`;
+                output += `    ${theme.warningMuted(opt.flags.padEnd(24))} ${theme.secondary(opt.description)}\n`;
             });
             output += '\n';
         }
@@ -68,34 +69,34 @@ const formatHelp = (pCmd: Command): string => {
     // Examples
     const name = pCmd.name();
     if (isRoot || name === 'init' || name === 'build' || name === 'create' || name === 'doctor') {
-        output += `  ${chalk.white.bold('Examples:')}\n`;
+        output += `  ${theme.title('Examples:')}\n`;
         if (isRoot || name === 'init') {
-            output += `    ${chalk.cyan('kit init')}\n`;
-            output += `    ${chalk.cyan('kit init my-game --single --install')}\n`;
+            output += `    ${theme.brand('kit init')}\n`;
+            output += `    ${theme.brand('kit init my-game --single --install')}\n`;
         }
         if (isRoot || name === 'build') {
-            output += `    ${chalk.cyan('kit build --in ./src/resources --out ./dist')}\n`;
-            output += `    ${chalk.cyan('kit build --in ./src/resources --out ./dist --watch')}\n`;
+            output += `    ${theme.brand('kit build --in ./src/resources --out ./dist')}\n`;
+            output += `    ${theme.brand('kit build --in ./src/resources --out ./dist --watch')}\n`;
         }
         if (isRoot || name === 'create') {
-            output += `    ${chalk.cyan('kit create plugin Inventory')}\n`;
+            output += `    ${theme.brand('kit create plugin Inventory')}\n`;
         }
         if (isRoot || name === 'doctor') {
-            output += `    ${chalk.cyan('kit doctor')}\n`;
+            output += `    ${theme.brand('kit doctor')}\n`;
         }
         if (isRoot || name === 'host') {
-            output += `    ${chalk.cyan('kit host')}\n`;
-            output += `    ${chalk.cyan('kit host -p 8080 -b')}\n`;
+            output += `    ${theme.brand('kit host')}\n`;
+            output += `    ${theme.brand('kit host -p 8080 -b')}\n`;
         }
         if (isRoot) {
-            output += `    ${chalk.cyan('kit build --help')}\n`;
+            output += `    ${theme.brand('kit build --help')}\n`;
         }
         output += '\n';
     }
 
     // Getting Help hint
     if (isRoot) {
-        output += `  ${chalk.white('Tip:')} ${chalk.dim('Use ')}${chalk.cyan('kit <command> --help')}${chalk.dim(' or ')}${chalk.cyan('kit help <command>')}${chalk.dim(' to see specific options for any command.')}\n`;
+        output += `  ${theme.accent('Tip:')} ${theme.secondary('Use ')}${theme.brandBold('kit <command> --help')}${theme.secondary(' to view detailed options for any command.')}\n`;
     }
 
     return output;

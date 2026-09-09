@@ -2,6 +2,7 @@ import { promises as fs, existsSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
 import chalk from 'chalk';
 import Bun from 'bun';
+import { theme } from './theme';
 
 export type ProjectArchitecture = 'single' | 'multi' | 'none';
 
@@ -149,6 +150,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
             const startStamp = Date.now();
             const clientResult = await Bun.build({
                 entrypoints: [join(srcDir, 'index.ts')],
+                root: pProjectRoot,
                 naming: {
                     entry: 'index.[ext]',
                     chunk: '[name]-[hash].[ext]',
@@ -162,7 +164,21 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                     identifiers: shouldObfuscate,
                     syntax: true,
                     whitespace: true
-                } : false
+                } : false,
+                plugins: [
+                    {
+                        name: 'kit-project-resolver',
+                        setup(build) {
+                            build.onResolve({ filter: /^resource\.json$/ }, () => {
+                                const resourcePath = join(pProjectRoot, 'resource.json');
+                                if (existsSync(resourcePath)) {
+                                    return { path: resourcePath };
+                                }
+                                return undefined;
+                            });
+                        }
+                    }
+                ]
             });
 
             if (!clientResult.success) {
@@ -184,7 +200,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
 
             const elapsed = Date.now() - startStamp;
             if (isVerbose) {
-                console.log(chalk.hex('#ffa552')(`[Kit CLI] Singleplayer Client Build took: ${elapsed}ms`));
+                console.log(theme.info(`[Kit CLI] Singleplayer Client Build took: ${elapsed}ms`));
             }
 
             return { architecture: 'single', clientBuildTime: elapsed, success: true };
@@ -200,6 +216,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                 const clientStart = Date.now();
                 const clientResult = await Bun.build({
                     entrypoints: [clientEntry],
+                    root: pProjectRoot,
                     naming: {
                         entry: 'index.[ext]',
                         chunk: '[name]-[hash].[ext]',
@@ -213,7 +230,21 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                         identifiers: shouldObfuscate,
                         syntax: true,
                         whitespace: true
-                    } : false
+                    } : false,
+                    plugins: [
+                        {
+                            name: 'kit-project-resolver',
+                            setup(build) {
+                                build.onResolve({ filter: /^resource\.json$/ }, () => {
+                                    const resourcePath = join(pProjectRoot, 'resource.json');
+                                    if (existsSync(resourcePath)) {
+                                        return { path: resourcePath };
+                                    }
+                                    return undefined;
+                                });
+                            }
+                        }
+                    ]
                 });
 
                 if (!clientResult.success) {
@@ -236,6 +267,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                 const serverStart = Date.now();
                 const serverResult = await Bun.build({
                     entrypoints: [serverEntry],
+                    root: pProjectRoot,
                     naming: {
                         entry: 'server.[ext]',
                         chunk: '[name]-[hash].[ext]',
@@ -272,10 +304,10 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
 
             if (isVerbose) {
                 if (clientElapsed) {
-                    console.log(chalk.hex('#ffa552')(`[Kit CLI] Multiplayer Client Build took: ${clientElapsed}ms`));
+                    console.log(theme.info(`[Kit CLI] Multiplayer Client Build took: ${clientElapsed}ms`));
                 }
                 if (serverElapsed) {
-                    console.log(chalk.hex('#ffa552')(`[Kit CLI] Multiplayer Server Build took: ${serverElapsed}ms`));
+                    console.log(theme.info(`[Kit CLI] Multiplayer Server Build took: ${serverElapsed}ms`));
                 }
             }
 
@@ -288,8 +320,13 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
         }
 
         return { architecture: 'none', success: true };
-    } catch (pError) {
-        console.error(chalk.hex('#c42847')(`[Kit CLI Build Error] ${pError}`));
+    } catch (pError: any) {
+        console.error(theme.error(`[Kit CLI Build Error] ${pError}`));
+        if (pError?.logs) {
+            console.error(pError.logs);
+        } else if (pError?.errors) {
+            console.error(pError.errors);
+        }
         return { architecture, success: false };
     }
 }

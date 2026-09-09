@@ -3,6 +3,7 @@ import { join, resolve } from 'path';
 import { networkInterfaces } from 'os';
 import chalk from 'chalk';
 import { detectArchitecture } from './app-bundler';
+import { theme } from './theme';
 
 /**
  * Options for hosting the project.
@@ -77,7 +78,7 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
 
     if (!existsSync(distDir)) {
         const message = `Target directory "${distDir}" does not exist. Run "kit build" or use "kit host -b" first.`;
-        console.error(chalk.red(`\n[Kit Host] ${message}\n`));
+        console.error(theme.error(`\n[Kit Host] ${message}\n`));
         return { success: false, message };
     }
 
@@ -86,11 +87,11 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
         const serverJsPath = join(distDir, 'server.js');
         if (!existsSync(serverJsPath)) {
             const message = `Cannot host multiplayer project: "${serverJsPath}" was not found. Please compile the server first using "kit build".`;
-            console.error(chalk.red(`\n[Kit Host] ${message}\n`));
+            console.error(theme.error(`\n[Kit Host] ${message}\n`));
             return { success: false, message };
         }
 
-        console.log(chalk.cyan(`\nStarting Multiplayer Server from ${chalk.bold(distDir)}...\n`));
+        console.log(`\n  ${theme.brandBold('Kit Multiplayer Server')} ${theme.muted('─')} ${theme.secondary(distDir)}\n`);
 
         let serverSettingsPort = port;
         const settingsPath = join(distDir, 'settings.json');
@@ -110,7 +111,13 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
             stdin: 'inherit'
         });
 
-        console.log(chalk.green(`✓ Multiplayer server process spawned (configured port: ${serverSettingsPort})`));
+        console.log(`  ${theme.successIcon('✓')} ${theme.title('Multiplayer server process spawned')} ${theme.secondary(`(configured port: ${serverSettingsPort})`)}`);
+        console.log(`  ${theme.title('Local:')}    ${theme.url(`http://localhost:${serverSettingsPort}`)}`);
+        const lanIp = getNetworkAddress();
+        if (lanIp !== 'localhost') {
+            console.log(`  ${theme.title('Network:')}  ${theme.url(`http://${lanIp}:${serverSettingsPort}`)}`);
+        }
+        console.log(theme.muted('\n  Press Ctrl+C to stop the server\n'));
 
         process.on('SIGINT', () => {
             proc.kill();
@@ -130,7 +137,7 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
     const indexPath = join(distDir, 'index.html');
     if (!existsSync(indexPath)) {
         const message = `Missing entrypoint: "${indexPath}" was not found in dist. Run "kit build" or use "kit host -b" to compile.`;
-        console.error(chalk.red(`\n[Kit Host] ${message}\n`));
+        console.error(theme.error(`\n[Kit Host] ${message}\n`));
         return { success: false, message };
     }
 
@@ -145,7 +152,7 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
 
             if (!await file.exists()) {
                 if (pOptions.verbose) {
-                    console.warn(chalk.yellow(`[Kit Host] 404 Not Found: ${target}`));
+                    console.warn(theme.warning(`[Kit Host] 404 Not Found: ${target}`));
                 }
                 return new Response('Not Found', { status: 404 });
             }
@@ -154,16 +161,16 @@ export async function processHost(pOptions: HostOptions = {}): Promise<HostResul
         }
     });
 
-    console.log(chalk.cyan('\nKit Game Host Server\n'));
-    console.log(`  ${chalk.bold('Local:')}    ${chalk.green(`http://localhost:${server.port}`)}`);
+    console.log(`\n  ${theme.brandBold('Kit Game Host Server')}\n`);
+    console.log(`  ${theme.title('Local:')}    ${theme.url(`http://localhost:${server.port}`)}`);
     if (lanIp !== 'localhost') {
-        console.log(`  ${chalk.bold('Network:')}  ${chalk.green(`http://${lanIp}:${server.port}`)}`);
+        console.log(`  ${theme.title('Network:')}  ${theme.url(`http://${lanIp}:${server.port}`)}`);
     }
-    console.log(chalk.dim(`\nServing files from: ${distDir}`));
-    console.log(chalk.dim('Press Ctrl+C to stop the server\n'));
+    console.log(theme.secondary(`\n  Serving files from: ${distDir}`));
+    console.log(theme.muted('  Press Ctrl+C to stop the server\n'));
 
     process.on('SIGINT', () => {
-        console.log(chalk.yellow('\nShutting down host server...'));
+        console.log(theme.warning('\nShutting down host server...'));
         server.stop();
         process.exit(0);
     });

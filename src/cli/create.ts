@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 import chalk from 'chalk';
+import { theme } from './theme';
 
 export interface CreateOptions {
     type: string;
@@ -64,13 +65,13 @@ export async function processCreate(pOptions: CreateOptions): Promise<void> {
     const { type, name, verbose } = pOptions;
 
     if (!type || !name) {
-        console.error(chalk.red('\nError: Both type and name are required. Usage: kit create <type> <name>'));
+        console.error(theme.error('\nError: Both type and name are required. Usage: kit create <type> <name>'));
         process.exit(1);
     }
 
     const normalizedType = type.toLowerCase();
     if (normalizedType !== 'plugin') {
-        console.error(chalk.red(`\nError: Unknown create type '${type}'. Supported types: 'plugin'`));
+        console.error(theme.error(`\nError: Unknown create type '${type}'. Supported types: 'plugin'`));
         process.exit(1);
     }
 
@@ -86,20 +87,20 @@ export async function processCreate(pOptions: CreateOptions): Promise<void> {
 
         const fileExists = await fs.stat(targetPath).then(() => true).catch(() => false);
         if (fileExists) {
-            console.error(chalk.red(`\nError: File already exists at ${targetPath}`));
+            console.error(theme.error(`\nError: File already exists at ${targetPath}`));
             process.exit(1);
         }
 
         const sourceCode = generatePluginSource(className, className);
         await fs.writeFile(targetPath, sourceCode, 'utf8');
 
-        console.log(`\n  ${chalk.green('✓')} Created plugin ${chalk.cyan(className)} at ${chalk.dim(targetPath)}\n`);
+        console.log(`\n  ${theme.successIcon('✓')} Created plugin ${theme.brandBold(className)} at ${theme.secondary(targetPath)}\n`);
         if (verbose) {
-            console.log(chalk.dim(sourceCode));
+            console.log(theme.secondary(sourceCode));
         }
     } catch (pError) {
         const message = pError instanceof Error ? pError.message : String(pError);
-        console.error(chalk.red(`\nError creating plugin: ${message}`));
+        console.error(theme.error(`\nError creating plugin: ${message}`));
         process.exit(1);
     }
 }

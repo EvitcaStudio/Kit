@@ -7,11 +7,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { VYI } from '../vendor/vyi';
 import { bundleApp } from './app-bundler';
 
+import { theme } from './theme';
+
 // Logging helpers
 const log = console.log;
-const info = chalk.hex('#ffa552');
-const error = chalk.hex('#c42847');
-const alert = chalk.hex('#EFF2C0');
+const info = theme.info;
+const error = theme.error;
+const alert = theme.alert;
 
 // Resource types and valid file extensions
 const RESOURCE_TYPES = ['interface', 'icon', 'map', 'sound', 'macros'];
@@ -407,10 +409,12 @@ async function clearResourceTypeDirectories(pBaseDirectory: string): Promise<voi
     try {
         const directoryExists = await fs.stat(pBaseDirectory).then(stat => stat.isDirectory()).catch(() => false);
         if (directoryExists) {
-            await fs.rm(pBaseDirectory, { recursive: true });
+            await fs.rm(pBaseDirectory, { recursive: true, force: true });
         }
-    } catch (pError) {
-        log(`${error(`[Error]`)} clearing resource directory: ${pError}`);
+    } catch (pError: any) {
+        if (pError?.code !== 'ENOENT') {
+            log(`${error(`[Error]`)} clearing resource directory: ${pError}`);
+        }
     }
 }
 
@@ -505,9 +509,9 @@ async function runWatch(): Promise<void> {
     }
 
     const displayPaths = pathsToWatch
-        .map(p => chalk.bold(relative(projectRootDirectory, p) || p))
+        .map(p => theme.highlight(relative(projectRootDirectory, p) || p))
         .join(', ');
-    console.log(chalk.cyan(`\nWatching for changes in: ${displayPaths}`));
+    console.log(`\n  ${theme.brandBold('Watching for changes in:')} ${displayPaths}`);
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let isRebuilding = false;
@@ -522,7 +526,7 @@ async function runWatch(): Promise<void> {
             }
             isRebuilding = true;
             try {
-                console.log(chalk.dim(`\nFile changed: ${pFilename}, rebuilding...`));
+                console.log(`\n  ${theme.accent('›')} ${theme.title('File changed:')} ${theme.highlight(pFilename)} ${theme.secondary('(rebuilding...)')}`);
                 await runBuild();
             } finally {
                 isRebuilding = false;
