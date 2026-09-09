@@ -47,7 +47,7 @@ await Promise.all([
         outdir: './lib/bundle/cli',
         naming: 'cli.js',
         banner: banner,
-        target: 'node'
+        target: 'bun'
     })
 ]);
 
