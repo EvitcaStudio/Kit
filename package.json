@@ -10,6 +10,10 @@
     ".": {
       "import": "./lib/index.js",
       "types": "./lib/index.d.ts"
+    },
+    "./camera": {
+      "import": "./lib/plugins/camera/index.js",
+      "types": "./lib/plugins/camera/index.d.ts"
     }
   },
   "description": "A single-player/multiplayer framework for the Vylocity Game Engine.",
@@ -60,6 +64,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.1.0",
+    "@evitcastudio/lens": "^4.3.0",
     "chalk": "^5.4.0",
     "chokidar": "^5.0.0",
     "commander": "^12.1.0",

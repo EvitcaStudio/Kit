@@ -1,221 +1,237 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="."><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@evitcastudio/kit</title><meta name="description" content="Documentation for @evitcastudio/kit"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><div class="table-cell" id="tsd-search"><div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div><div class="field"><div id="tsd-toolbar-links"></div></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@evitcastudio/kit</a></div><div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h1>@evitcastudio/kit</h1></div><div class="tsd-panel tsd-typography"><a id="kit" class="tsd-anchor"></a><h1 class="tsd-anchor-link">Kit<a href="#kit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1><p><strong>Kit</strong> is a lightweight, extensible 2D framework for game development in the <a href="https://www.vylocity.com/">Vylocity Game Engine</a>. Designed to be simple and modular, Kit empowers developers to build complex projects quickly through a robust plugin-driven architecture.</p>
-<a id="installation" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Installation<a href="#installation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><pre><code class="bash"><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> </span><span class="hl-3">-g</span><span class="hl-1"> </span><span class="hl-2">@evitcastudio/kit</span>
+<!DOCTYPE html><html class="default" lang="en" data-base="."><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@evitcastudio/kit</title><meta name="description" content="Documentation for @evitcastudio/kit"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><div class="table-cell" id="tsd-search"><div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div><div class="field"><div id="tsd-toolbar-links"></div></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@evitcastudio/kit</a></div><div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h1>@evitcastudio/kit</h1></div><div class="tsd-panel tsd-typography"><p align="center">
+  <img src="media/evitcastudio_round_branding.png" width="128" height="128" alt="Evitca Studio Logo" />
+</p>
+<h1 align="center">@evitcastudio/kit</h1>
+<p align="center">
+  A lightweight, extensible framework and developer toolkit for the Vylocity Game Engine.
+</p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/@evitcastudio/kit"><img src="https://img.shields.io/npm/v/@evitcastudio/kit.svg?color=10b981" alt="npm version" /></a>
+  <a href="https://github.com/EvitcaStudio/Kit/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <a href="https://github.com/EvitcaStudio/Kit"><img src="https://img.shields.io/badge/TypeScript-Ready-3178c6.svg" alt="TypeScript" /></a>
+</p>
+<hr>
+<a id="features" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><ul>
+<li><strong>Modular Plugin Architecture</strong>: Centralized service locator (<code>Kit.registerPlugin</code>, <code>Kit.getPlugin</code>) with lifecycle hooks and a decoupled typed event bus (<code>Kit.on</code>, <code>Kit.off</code>).</li>
+<li><strong>Official Plugins Included</strong>:
+<ul>
+<li><strong><code>Camera</code> (Lens)</strong>: 5 specialized camera types (<code>Follow</code>, <code>Pan</code>, <code>Spectate</code>, <code>Influence</code>, <code>Transition</code>), 29 shake presets, smooth zoom, zero-pop transitions, and native 2D canvas debug overlays.</li>
+<li><strong><code>Network</code></strong>: Structured client-server packet communication with registered names and automatic indexing for bandwidth optimization.</li>
+</ul>
+</li>
+<li><strong>Developer CLI (<code>kit</code>)</strong>:
+<ul>
+<li><strong><code>kit init</code></strong>: Interactive scaffolding for Singleplayer and Multiplayer game templates.</li>
+<li><strong><code>kit build</code></strong>: Zero-config compilation, asset hashing (<code>.vyr</code>), metadata manifest generation, and production minification/obfuscation.</li>
+<li><strong><code>kit host</code></strong>: Built-in local HTTP and game server hosting with hot-reloading and LAN network URLs.</li>
+<li><strong><code>kit create</code></strong>: Instant boilerplate generator for typed plugins.</li>
+<li><strong><code>kit doctor</code></strong>: Comprehensive environment and project health diagnostics.</li>
+</ul>
+</li>
+<li><strong>Smart Asset Pipeline</strong>: Fast hashing, automatic passthrough for subdirectories, and automatic metadata manifest generation (<code>resource.json</code>, <code>bounds.json</code>, <code>sizes.json</code>, <code>icon-points.json</code>).</li>
+<li><strong>Zero-Config TypeScript</strong>: Powered by Bun for blazing fast bundling, incremental watch mode, and complete type safety.</li>
+</ul>
+<hr>
+<a id="installation" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Installation<a href="#installation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><pre><code class="bash"><span class="hl-0"># Global CLI installation (recommended)</span><br/><span class="hl-1">bun</span><span class="hl-2"> </span><span class="hl-3">install</span><span class="hl-2"> </span><span class="hl-4">-g</span><span class="hl-2"> </span><span class="hl-3">@evitcastudio/kit</span><br/><br/><span class="hl-0"># Or as a project dependency</span><br/><span class="hl-1">bun</span><span class="hl-2"> </span><span class="hl-3">add</span><span class="hl-2"> </span><span class="hl-3">@evitcastudio/kit</span>
 </code><button type="button">Copy</button></pre>
 
-<blockquote>
-<p><strong>Note:</strong> The <code>-g</code> flag ensures the <code>kit</code> CLI tool is globally available in your PATH.</p>
-</blockquote>
-<a id="cli-reference--usage" class="tsd-anchor"></a><h2 class="tsd-anchor-link">CLI Reference &amp; Usage<a href="#cli-reference--usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>Kit includes a CLI tool (<code>kit</code>) for scaffolding projects, building game assets, generating plugin boilerplate, and diagnosing your environment.</p>
+<hr>
+<a id="quickstart" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Quickstart<a href="#quickstart" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><pre><code class="bash"><span class="hl-0"># 1. Initialize a new project</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">init</span><span class="hl-2"> </span><span class="hl-3">my-game</span><span class="hl-2"> </span><span class="hl-4">--single</span><span class="hl-2"> </span><span class="hl-4">--install</span><br/><br/><span class="hl-0"># 2. Build game and assets</span><br/><span class="hl-1">cd</span><span class="hl-2"> </span><span class="hl-3">my-game</span><span class="hl-2"> &amp;&amp; </span><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">build</span><br/><br/><span class="hl-0"># 3. Host locally</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">host</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Your game will immediately be accessible at <code>http://localhost:8090</code> (or <code>http://localhost:30000</code> for multiplayer).</p>
+<hr>
+<a id="cli-reference--usage" class="tsd-anchor"></a><h2 class="tsd-anchor-link">CLI Reference &amp; Usage<a href="#cli-reference--usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>Kit includes the <code>kit</code> CLI for scaffolding, asset compilation, boilerplate generation, and local testing.</p>
 <a id="global-options" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Global Options<a href="#global-options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
 <li><code>-v, --verbose</code>: Enables verbose output and detailed debugging logs.</li>
-<li><code>-h, --help</code>: Displays help and usage information for any command.</li>
+<li><code>-h, --help</code>: Displays help and usage information.</li>
 <li><code>-V, --version</code>: Displays the installed Kit CLI version.</li>
 </ul>
 <hr>
-<a id="kit-init-name" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit init [name]</code><a href="#kit-init-name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Initializes a new game project for the Vylocity Game Engine. If run without arguments or flags, an interactive prompt will guide you through project setup.</p>
-<pre><code class="bash"><span class="hl-4"># Interactive setup</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">init</span><br/><br/><span class="hl-4"># Quick start with flags</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">init</span><span class="hl-1"> </span><span class="hl-2">my-game</span><span class="hl-1"> </span><span class="hl-3">--single</span><span class="hl-1"> </span><span class="hl-3">--install</span>
+<a id="kit-init-name" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit init [name]</code><a href="#kit-init-name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Initializes a new game project. Run without arguments for an interactive setup prompt.</p>
+<pre><code class="bash"><span class="hl-0"># Interactive setup</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">init</span><br/><br/><span class="hl-0"># Quick start with flags</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">init</span><span class="hl-2"> </span><span class="hl-3">my-game</span><span class="hl-2"> </span><span class="hl-4">--single</span><span class="hl-2"> </span><span class="hl-4">--install</span>
 </code><button type="button">Copy</button></pre>
 
-<a id="flags--options" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Flags &amp; Options:<a href="#flags--options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><table>
+<table>
 <thead>
 <tr>
-<th style="text-align:left">Flag / Option</th>
-<th style="text-align:left">Type</th>
-<th style="text-align:left">Default</th>
+<th style="text-align:left">Option</th>
 <th style="text-align:left">Description</th>
+<th style="text-align:left">Default</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left"><code>[name]</code></td>
-<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Project folder name.</td>
 <td style="text-align:left"><code>kit-project</code></td>
-<td style="text-align:left">The name of the project folder to create.</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-s, --single</code></td>
-<td style="text-align:left"><code>boolean</code></td>
+<td style="text-align:left">Scaffolds a single-player game template.</td>
 <td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Quick-starts a single-player game template.</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-m, --multi</code></td>
-<td style="text-align:left"><code>boolean</code></td>
+<td style="text-align:left">Scaffolds a multiplayer game template.</td>
 <td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Quick-starts a multiplayer game template (pass both <code>-s</code> and <code>-m</code> for both).</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-f, --force</code></td>
-<td style="text-align:left"><code>boolean</code></td>
+<td style="text-align:left">Overwrites destination folder if it already exists.</td>
 <td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Overwrites the destination folder if it already exists without aborting.</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-i, --install</code></td>
-<td style="text-align:left"><code>boolean</code></td>
+<td style="text-align:left">Automatically runs <code>bun install</code> after scaffolding.</td>
 <td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Automatically runs <code>bun install</code> inside the new project directory after creation.</td>
 </tr>
 </tbody>
 </table>
 <hr>
-<a id="kit-build" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit build</code><a href="#kit-build" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Builds resources and compiles game application code. Automatically detects whether your project is <strong>Singleplayer</strong> or <strong>Multiplayer</strong>, compiles TypeScript entrypoints to <code>dist/</code>, copies static web files (<code>.html</code>, <code>.css</code>, <code>.ico</code>, vendor directories), hashes raw assets into unique identifiers (<code>.vyr</code>), mirrors custom subdirectories, and exports metadata manifests (<code>resource.json</code>, <code>bounds.json</code>, <code>icon-points.json</code>, and <code>sizes.json</code>).</p>
-<pre><code class="bash"><span class="hl-4"># Zero-config build (auto-detects project architecture, builds ./src to ./dist)</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">build</span><br/><br/><span class="hl-4"># Production ready build (minified, obfuscated identifiers, stripped sourcemaps)</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">build</span><span class="hl-1"> </span><span class="hl-3">-p</span><br/><br/><span class="hl-4"># Watch mode: auto-rebuilds on source or resource changes</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">build</span><span class="hl-1"> </span><span class="hl-3">--watch</span><br/><br/><span class="hl-4"># Build only raw resources with custom directories</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">build</span><span class="hl-1"> </span><span class="hl-3">-i</span><span class="hl-1"> </span><span class="hl-2">./src/resources</span><span class="hl-1"> </span><span class="hl-3">-o</span><span class="hl-1"> </span><span class="hl-2">./dist</span><span class="hl-1"> </span><span class="hl-3">--no-app</span><br/><br/><span class="hl-4"># Save the resource manifest to a custom location</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">build</span><span class="hl-1"> </span><span class="hl-3">--manifest</span><span class="hl-1"> </span><span class="hl-2">./dist/resource.json</span>
+<a id="kit-build" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit build</code><a href="#kit-build" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Compiles TypeScript application code to <code>dist/</code>, hashes raw assets into unique identifiers (<code>.vyr</code>), mirrors asset subdirectories, and generates metadata manifests.</p>
+<pre><code class="bash"><span class="hl-0"># Zero-config build (auto-detects project architecture)</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">build</span><br/><br/><span class="hl-0"># Watch mode (incremental rebuilds on source or resource changes)</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">build</span><span class="hl-2"> </span><span class="hl-4">--watch</span><br/><br/><span class="hl-0"># Production build (minified, obfuscated identifiers, stripped sourcemaps)</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">build</span><span class="hl-2"> </span><span class="hl-4">-p</span>
 </code><button type="button">Copy</button></pre>
 
-<a id="flags--options-1" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Flags &amp; Options:<a href="#flags--options-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><table>
+<table>
 <thead>
 <tr>
-<th style="text-align:left">Flag / Option</th>
-<th style="text-align:left">Type</th>
-<th style="text-align:left">Required</th>
-<th style="text-align:left">Default</th>
+<th style="text-align:left">Option</th>
 <th style="text-align:left">Description</th>
+<th style="text-align:left">Default</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left"><code>-i, --in &lt;path&gt;</code></td>
-<td style="text-align:left"><code>string</code></td>
-<td style="text-align:left">No</td>
+<td style="text-align:left">Input resource directory containing raw game assets.</td>
 <td style="text-align:left"><code>./src/resources</code></td>
-<td style="text-align:left">Input directory containing raw game assets (<code>.vyi</code>, <code>.vym</code>, <code>.vyint</code>, audio, etc.).</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-o, --out &lt;path&gt;</code></td>
-<td style="text-align:left"><code>string</code></td>
-<td style="text-align:left">No</td>
+<td style="text-align:left">Output directory for processed assets and bundled code.</td>
 <td style="text-align:left"><code>./dist</code></td>
-<td style="text-align:left">Destination directory where processed <code>resources/</code> and bundled app files will be written.</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-m, --manifest &lt;path&gt;</code></td>
-<td style="text-align:left"><code>string</code></td>
-<td style="text-align:left">No</td>
+<td style="text-align:left">Custom destination path for <code>resource.json</code>.</td>
 <td style="text-align:left"><code>./resource.json</code></td>
-<td style="text-align:left">Path where the resource lookup JSON should be saved. If omitted, defaults to <code>./resource.json</code> in the current working directory.</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-w, --watch</code></td>
-<td style="text-align:left"><code>boolean</code></td>
-<td style="text-align:left">No</td>
+<td style="text-align:left">Watches source and resource folders for auto-rebuilding.</td>
 <td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Watches the source and resource directories for changes and triggers automatic incremental rebuilds.</td>
-</tr>
-<tr>
-<td style="text-align:left"><code>-is, --ignore-sound</code></td>
-<td style="text-align:left"><code>boolean</code></td>
-<td style="text-align:left">No</td>
-<td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Skips processing and copying sound and music files (<code>.mp3</code>, <code>.ogg</code>, <code>.wav</code>, etc.).</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>-p, --prod</code></td>
-<td style="text-align:left"><code>boolean</code></td>
-<td style="text-align:left">No</td>
+<td style="text-align:left">Production mode (minification, mangled identifiers, no maps).</td>
 <td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Production mode: enables full minification, identifier obfuscation/mangling, and strips sourcemaps.</td>
 </tr>
 <tr>
-<td style="text-align:left"><code>--minify</code></td>
-<td style="text-align:left"><code>boolean</code></td>
-<td style="text-align:left">No</td>
+<td style="text-align:left"><code>--minify</code> / <code>--obfuscate</code></td>
+<td style="text-align:left">Granular syntax minification or identifier mangling.</td>
 <td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Minifies bundled JavaScript syntax, whitespace, and variable names.</td>
-</tr>
-<tr>
-<td style="text-align:left"><code>--obfuscate</code></td>
-<td style="text-align:left"><code>boolean</code></td>
-<td style="text-align:left">No</td>
-<td style="text-align:left"><code>false</code></td>
-<td style="text-align:left">Mangles and obfuscates identifiers across bundled output.</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>--sourcemap &lt;mode&gt;</code></td>
-<td style="text-align:left"><code>string</code></td>
-<td style="text-align:left">No</td>
-<td style="text-align:left"><code>linked</code> (<code>none</code> in prod)</td>
 <td style="text-align:left">Sourcemap mode (<code>none</code>, <code>linked</code>, <code>inline</code>, <code>external</code>).</td>
+<td style="text-align:left"><code>linked</code></td>
 </tr>
 <tr>
 <td style="text-align:left"><code>--app</code> / <code>--no-app</code></td>
-<td style="text-align:left"><code>boolean</code></td>
-<td style="text-align:left">No</td>
-<td style="text-align:left"><code>true</code> (auto)</td>
-<td style="text-align:left">Toggles application code bundling. Enabled automatically if <code>src/index.ts</code> or <code>src/client/index.ts</code> exists.</td>
+<td style="text-align:left">Toggles application code bundling.</td>
+<td style="text-align:left"><code>true</code></td>
 </tr>
 </tbody>
 </table>
-<a id="what-is-the-resource-manifest-resourcejson" class="tsd-anchor"></a><h4 class="tsd-anchor-link">What is the Resource Manifest (<code>resource.json</code>)?<a href="#what-is-the-resource-manifest-resourcejson" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A manifest is an index or lookup table. <code>kit build</code> obfuscates asset names into unique identifiers (<code>uuid.vyr</code>) as a security benefit to protect and hide original asset filenames in production. It generates <code>resource.json</code> mapping your original human-readable asset names to their engine identifiers:</p>
-<pre><code class="json"><span class="hl-1">{</span><br/><span class="hl-1">    </span><span class="hl-5">&quot;icon&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">        {</span><br/><span class="hl-1">            </span><span class="hl-5">&quot;fileName&quot;</span><span class="hl-1">: </span><span class="hl-2">&quot;player.vyi&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">            </span><span class="hl-5">&quot;resourceIdentifier&quot;</span><span class="hl-1">: </span><span class="hl-2">&quot;3cf72322-6b92-4ea5-bbca-b96fae1fe440.vyr&quot;</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">    ],</span><br/><span class="hl-1">    </span><span class="hl-5">&quot;map&quot;</span><span class="hl-1">: [ </span><span class="hl-6">...</span><span class="hl-1"> ],</span><br/><span class="hl-1">    </span><span class="hl-5">&quot;sound&quot;</span><span class="hl-1">: [ </span><span class="hl-6">...</span><span class="hl-1"> ]</span><br/><span class="hl-1">}</span>
-</code><button type="button">Copy</button></pre>
-
-<a id="custom-asset-subdirectories-automatic-pass-through" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Custom Asset Subdirectories (Automatic Pass-Through)<a href="#custom-asset-subdirectories-automatic-pass-through" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Any subdirectories inside your resource folder (e.g. <code>src/resources/images</code>, <code>src/resources/fonts</code>, <code>src/resources/emitters</code>, <code>src/resources/particles</code>, etc.) are automatically mirrored to <code>&lt;out&gt;/resources/&lt;folder&gt;/</code>. Non-engine files remain in their original form.</p>
-<hr>
-<a id="kit-create--" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit create &lt;type&gt; &lt;name&gt;</code><a href="#kit-create--" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Scaffolds boilerplate files inside an existing Kit project following standard architectural conventions.</p>
-<pre><code class="bash"><span class="hl-4"># Generate a typed plugin</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">create</span><span class="hl-1"> </span><span class="hl-2">plugin</span><span class="hl-1"> </span><span class="hl-2">Inventory</span>
-</code><button type="button">Copy</button></pre>
-
-<a id="types" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Types:<a href="#types" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
-<li><code>plugin</code>: Creates a new TypeScript file at <code>src/plugins/&lt;name&gt;.ts</code> that subclasses <code>KitPlugin</code> with typed lifecycle hooks (<code>onRegistered()</code>) ready to extend.</li>
+<a id="generated-metadata-manifests" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Generated Metadata Manifests<a href="#generated-metadata-manifests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><p>During build, Kit produces optimized metadata indices in your project:</p>
+<ul>
+<li><strong><code>resource.json</code></strong>: Maps original human-readable asset filenames to obfuscated engine identifiers (<code>uuid.vyr</code>).</li>
+<li><strong><code>bounds.json</code> &amp; <code>sizes.json</code></strong>: Pre-calculated collision boundaries and dimensions for icons and tiles.</li>
+<li><strong><code>icon-points.json</code></strong>: Defined anchor points and equipment attachment coordinates for sprites.</li>
 </ul>
 <hr>
-<a id="kit-host" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit host</code><a href="#kit-host" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Hosts the game project locally for development and testing.</p>
-<pre><code class="bash"><span class="hl-4"># Host the dist folder on port 8090</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">host</span><br/><br/><span class="hl-4"># Build before hosting and specify custom port</span><br/><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">host</span><span class="hl-1"> </span><span class="hl-3">-b</span><span class="hl-1"> </span><span class="hl-3">-p</span><span class="hl-1"> </span><span class="hl-7">8080</span>
+<a id="kit-host" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit host</code><a href="#kit-host" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Hosts your compiled game project locally for browser or multiplayer testing.</p>
+<pre><code class="bash"><span class="hl-0"># Host dist folder on default port 8090</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">host</span><br/><br/><span class="hl-0"># Build before hosting and specify custom port</span><br/><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">host</span><span class="hl-2"> </span><span class="hl-4">-b</span><span class="hl-2"> </span><span class="hl-4">-p</span><span class="hl-2"> </span><span class="hl-5">8080</span>
 </code><button type="button">Copy</button></pre>
 
-<a id="options" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Options:<a href="#options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
-<li><code>-p, --port &lt;number&gt;</code>: Port to bind the server to (default: <code>8090</code>).</li>
-<li><code>-d, --dir &lt;path&gt;</code>: Directory containing built files to serve (default: <code>./dist</code>).</li>
-<li><code>-b, --build</code>: Trigger a <code>kit build</code> before starting the server.</li>
-</ul>
-<a id="behavior" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Behavior:<a href="#behavior" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
-<li><strong>Singleplayer / Client Projects:</strong> Spawns a lightweight local HTTP server powered by Bun that serves <code>dist/index.html</code> and static assets with local and network LAN URLs.</li>
-<li><strong>Multiplayer Projects:</strong> Automatically launches the backend node server (<code>dist/server.js</code>) with configured settings (<code>dist/settings.json</code>).</li>
-</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Option</th>
+<th style="text-align:left">Description</th>
+<th style="text-align:left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>-p, --port &lt;number&gt;</code></td>
+<td style="text-align:left">Port to bind the server to.</td>
+<td style="text-align:left"><code>8090</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>-d, --dir &lt;path&gt;</code></td>
+<td style="text-align:left">Directory of built files to serve.</td>
+<td style="text-align:left"><code>./dist</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>-b, --build</code></td>
+<td style="text-align:left">Runs <code>kit build</code> prior to starting server.</td>
+<td style="text-align:left"><code>false</code></td>
+</tr>
+</tbody>
+</table>
 <hr>
-<a id="kit-doctor" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit doctor</code><a href="#kit-doctor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Inspects your local environment and current project health.</p>
-<pre><code class="bash"><span class="hl-0">kit</span><span class="hl-1"> </span><span class="hl-2">doctor</span>
+<a id="kit-create--" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit create &lt;type&gt; &lt;name&gt;</code><a href="#kit-create--" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Scaffolds typed boilerplate into an existing Kit project.</p>
+<pre><code class="bash"><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">create</span><span class="hl-2"> </span><span class="hl-3">plugin</span><span class="hl-2"> </span><span class="hl-3">Inventory</span>
 </code><button type="button">Copy</button></pre>
 
-<a id="what-it-checks" class="tsd-anchor"></a><h4 class="tsd-anchor-link">What it checks:<a href="#what-it-checks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
-<li><strong>Bun Runtime:</strong> Verifies that Bun is installed and detects the version.</li>
-<li><strong>Git Installation:</strong> Verifies that Git is accessible in your <code>PATH</code>.</li>
-<li><strong>Project Structure:</strong> If executed within a game project, checks <code>package.json</code>, <code>@evitcastudio/kit</code> framework dependencies, and asset folders (<code>src/resources</code>).</li>
-<li><strong>Project Architecture:</strong> Detects whether the project is <strong>Singleplayer</strong> (<code>src/index.ts</code>), <strong>Multiplayer</strong> (<code>src/client</code> &amp; <code>src/server</code>), or <strong>Dedicated Server</strong>.</li>
-<li><strong>Build Pipeline:</strong> Verifies that a valid build pipeline is configured (either native <code>kit build</code> in <code>package.json</code> or legacy <code>bun-build.ts</code>).</li>
-</ul>
+<p>Generates <code>src/plugins/inventory.ts</code> subclassing <code>KitPlugin</code> with lifecycle hooks ready to extend.</p>
 <hr>
-<a id="runtime-resource-loading" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Runtime Resource Loading<a href="#runtime-resource-loading" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><blockquote>
-<p><strong>Note:</strong> This process is preconfigured for you if you used <code>kit init</code>.</p>
-</blockquote>
-<p><code>Kit.setResources()</code> should be called <strong>before</strong> <code>VYLO.load()</code>.</p>
-<pre><code class="typescript"><span class="hl-8">import</span><span class="hl-1"> </span><span class="hl-9">resourceJSON</span><span class="hl-1"> </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-2">&#39;resource.json&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">// Initialize the engine with mapped resources</span><br/><span class="hl-8">await</span><span class="hl-1"> </span><span class="hl-9">Kit</span><span class="hl-1">.</span><span class="hl-0">setResources</span><span class="hl-1">(</span><span class="hl-9">resourceJSON</span><span class="hl-1">);</span>
+<a id="kit-doctor" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><code>kit doctor</code><a href="#kit-doctor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Inspects your local environment and project health (Bun runtime, Git availability, <code>package.json</code>, project architecture, and build pipeline).</p>
+<pre><code class="bash"><span class="hl-1">kit</span><span class="hl-2"> </span><span class="hl-3">doctor</span>
 </code><button type="button">Copy</button></pre>
 
-<a id="local-development--testing" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Local Development &amp; Testing<a href="#local-development--testing" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>Once your project is scaffolded and dependencies are installed and the project has been built, you can run your game locally.</p>
-<a id="running-the-game" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Running the Game<a href="#running-the-game" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><pre><code class="bash"><span class="hl-4"># For Single-Player or Multiplayer games</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">host</span>
+<hr>
+<a id="runtime-resource-loading" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Runtime Resource Loading<a href="#runtime-resource-loading" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p><code>Kit.setResources()</code> loads the generated <code>resource.json</code> manifest into the Vylocity engine prior to calling <code>VYLO.load()</code>:</p>
+<pre><code class="typescript"><span class="hl-6">import</span><span class="hl-2"> </span><span class="hl-7">resourceJSON</span><span class="hl-2"> </span><span class="hl-6">from</span><span class="hl-2"> </span><span class="hl-3">&#39;resource.json&#39;</span><span class="hl-2">;</span><br/><br/><span class="hl-0">// Initialize engine with mapped resource identifiers</span><br/><span class="hl-6">await</span><span class="hl-2"> </span><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">setResources</span><span class="hl-2">(</span><span class="hl-7">resourceJSON</span><span class="hl-2">);</span><br/><span class="hl-6">await</span><span class="hl-2"> </span><span class="hl-8">VYLO</span><span class="hl-2">.</span><span class="hl-1">load</span><span class="hl-2">();</span>
 </code><button type="button">Copy</button></pre>
 
-<a id="accessing-the-game" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Accessing the Game<a href="#accessing-the-game" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>The server will be available at the following locations after being hosted:</p>
-<blockquote>
-<p><strong>Singleplayer</strong><br>
-<a href="http://localhost:8090">http://localhost:8090</a> defined in <code>./bun-serve.ts</code></p>
-</blockquote>
-<blockquote>
-<p><strong>Multiplayer or Singleplayer &amp; Multiplayer</strong><br>
-<a href="http://localhost:30000">http://localhost:30000</a> defined in <code>./src/server/settings.json</code></p>
-</blockquote>
-<a id="plugin-architecture" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Plugin Architecture<a href="#plugin-architecture" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><pre><code class="ts"><span class="hl-8">import</span><span class="hl-1"> { </span><span class="hl-9">Plugin</span><span class="hl-1"> } </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-2">&#39;custom-plugin&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">// Register a single plugin</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-10">plugin</span><span class="hl-1"> = </span><span class="hl-9">Kit</span><span class="hl-1">.</span><span class="hl-0">registerPlugin</span><span class="hl-1">(</span><span class="hl-9">Plugin</span><span class="hl-1">);</span>
+<hr>
+<a id="plugins-1" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Plugins<a href="#plugins-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>Kit features a modular plugin architecture. Plugins register via <code>Kit.registerPlugin()</code>, are retrievable globally through <code>Kit.getPlugin(name)</code>, and communicate across decoupled systems using Kit's typed event bus.</p>
+<pre><code class="typescript"><span class="hl-6">import</span><span class="hl-2"> { </span><span class="hl-7">Kit</span><span class="hl-2"> } </span><span class="hl-6">from</span><span class="hl-2"> </span><span class="hl-3">&#39;@evitcastudio/kit&#39;</span><span class="hl-2">;</span><br/><span class="hl-6">import</span><span class="hl-2"> { </span><span class="hl-7">CustomPlugin</span><span class="hl-2"> } </span><span class="hl-6">from</span><span class="hl-2"> </span><span class="hl-3">&#39;custom-plugin&#39;</span><span class="hl-2">;</span><br/><br/><span class="hl-0">// Register with Kit</span><br/><span class="hl-4">const</span><span class="hl-2"> </span><span class="hl-8">plugin</span><span class="hl-2"> = </span><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">registerPlugin</span><span class="hl-2">(</span><span class="hl-7">CustomPlugin</span><span class="hl-2">);</span><br/><br/><span class="hl-0">// Retrieve anywhere by plugin name</span><br/><span class="hl-4">const</span><span class="hl-2"> </span><span class="hl-8">plugin</span><span class="hl-2"> = </span><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">getPlugin</span><span class="hl-2">&lt;</span><span class="hl-9">CustomPlugin</span><span class="hl-2">&gt;(</span><span class="hl-3">&#39;CustomPlugin&#39;</span><span class="hl-2">);</span>
 </code><button type="button">Copy</button></pre>
 
-<pre><code class="ts"><span class="hl-4">// Register multiple plugins</span><br/><span class="hl-8">import</span><span class="hl-1"> { </span><span class="hl-9">Plugin1</span><span class="hl-1"> } </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-2">&#39;custom-plugin1&#39;</span><span class="hl-1">;</span><br/><span class="hl-8">import</span><span class="hl-1"> { </span><span class="hl-9">Plugin2</span><span class="hl-1"> } </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-2">&#39;custom-plugin2&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-10">plugins</span><span class="hl-1"> = </span><span class="hl-9">Kit</span><span class="hl-1">.</span><span class="hl-0">registerPlugins</span><span class="hl-1">([</span><span class="hl-9">Plugin1</span><span class="hl-1">, </span><span class="hl-9">Plugin2</span><span class="hl-1">]);</span><br/><br/><span class="hl-4">// After being registered, kit can find the plugin by name.</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-10">plugin1</span><span class="hl-1"> = </span><span class="hl-9">Kit</span><span class="hl-1">.</span><span class="hl-0">getPlugin</span><span class="hl-1">(</span><span class="hl-2">&#39;plugin1-name&#39;</span><span class="hl-1">);</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-10">plugin2</span><span class="hl-1"> = </span><span class="hl-9">Kit</span><span class="hl-1">.</span><span class="hl-0">getPlugin</span><span class="hl-1">(</span><span class="hl-2">&#39;plugin2-name&#39;</span><span class="hl-1">);</span>
+<hr>
+<a id="official-plugins" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Official Plugins<a href="#official-plugins" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><a id="1-camera-plugin-camera--evitcastudiolens" class="tsd-anchor"></a><h4 class="tsd-anchor-link">1. Camera Plugin (<code>Camera</code> / <code>@evitcastudio/lens</code>)<a href="#1-camera-plugin-camera--evitcastudiolens" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><p>High-performance 2D camera system powered by <a href="https://github.com/EvitcaStudio/Lens"><code>@evitcastudio/lens</code></a>. Supports 5 specialized camera types, 29 shake presets, smooth zoom, zero-pop transitions, native canvas debug overlays, and automatic event dispatching.</p>
+<a id="setup--quickstart" class="tsd-anchor"></a><h5 class="tsd-anchor-link">Setup &amp; Quickstart<a href="#setup--quickstart" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h5><pre><code class="typescript"><span class="hl-6">import</span><span class="hl-2"> { </span><span class="hl-7">Kit</span><span class="hl-2">, </span><span class="hl-7">Camera</span><span class="hl-2"> } </span><span class="hl-6">from</span><span class="hl-2"> </span><span class="hl-3">&#39;@evitcastudio/kit&#39;</span><span class="hl-2">;</span><br/><br/><span class="hl-0">// 1. Register with Kit (indexes under name &#39;Camera&#39;)</span><br/><span class="hl-4">const</span><span class="hl-2"> </span><span class="hl-8">camera</span><span class="hl-2"> = </span><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">registerPlugin</span><span class="hl-2">(</span><span class="hl-7">Camera</span><span class="hl-2">);</span><br/><br/><span class="hl-0">// 2. Track player entity with smooth lerping &amp; deadzone</span><br/><span class="hl-7">camera</span><span class="hl-2">.</span><span class="hl-1">createFollowCamera</span><span class="hl-2">(</span><span class="hl-3">&#39;main&#39;</span><span class="hl-2">, </span><span class="hl-7">playerMob</span><span class="hl-2">, {</span><br/><span class="hl-2">    </span><span class="hl-7">lerp:</span><span class="hl-2"> </span><span class="hl-5">0.1</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">deadzone:</span><span class="hl-2"> { </span><span class="hl-7">width:</span><span class="hl-2"> </span><span class="hl-5">64</span><span class="hl-2">, </span><span class="hl-7">height:</span><span class="hl-2"> </span><span class="hl-5">64</span><span class="hl-2"> }</span><br/><span class="hl-2">});</span>
 </code><button type="button">Copy</button></pre>
 
-<a id="listening-for-plugin-events" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Listening for plugin events<a href="#listening-for-plugin-events" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Plugins emit events, this is how they pass relevant data to other plugins or the main thread.
-By listening to these events you can act on this data.</p>
-<pre><code class="js"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-0">listener</span><span class="hl-1"> = (</span><span class="hl-9">pEvent</span><span class="hl-1">: </span><span class="hl-11">EmitterEvent</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-3">const</span><span class="hl-1"> { </span><span class="hl-10">data</span><span class="hl-1">, </span><span class="hl-10">timestamp</span><span class="hl-1"> } = </span><span class="hl-9">pEvent</span><span class="hl-1">;</span><br/><span class="hl-1">    </span><span class="hl-4">// Here you can use the data that the event sent down.</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-4">// Choose to listen to specific event from a plugin</span><br/><span class="hl-9">Kit</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;plugin-name&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;event-name&#39;</span><span class="hl-1">, </span><span class="hl-9">listener</span><span class="hl-1">);</span><br/><br/><span class="hl-4">// You can also stop listening for an event</span><br/><span class="hl-9">Kit</span><span class="hl-1">.</span><span class="hl-0">off</span><span class="hl-1">(</span><span class="hl-2">&#39;plugin-name&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;event-name&#39;</span><span class="hl-1">, </span><span class="hl-9">listener</span><span class="hl-1">);</span>
+<a id="seamless-transitions" class="tsd-anchor"></a><h5 class="tsd-anchor-link">Seamless Transitions<a href="#seamless-transitions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h5><p>Blend smoothly between cameras or targets with Hermite spline interpolation and spring-damping (zero visual pop):</p>
+<pre><code class="typescript"><span class="hl-6">await</span><span class="hl-2"> </span><span class="hl-7">camera</span><span class="hl-2">.</span><span class="hl-1">switchTo</span><span class="hl-2">(</span><span class="hl-7">bossCamera</span><span class="hl-2">, {</span><br/><span class="hl-2">    </span><span class="hl-7">duration:</span><span class="hl-2"> </span><span class="hl-5">800</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">smoothing:</span><span class="hl-2"> </span><span class="hl-3">&#39;smoothDamp&#39;</span><span class="hl-2">, </span><span class="hl-0">// or &#39;cubicSpline&#39;</span><br/><span class="hl-2">    </span><span class="hl-7">springTension:</span><span class="hl-2"> </span><span class="hl-5">170</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">springFriction:</span><span class="hl-2"> </span><span class="hl-5">26</span><br/><span class="hl-2">});</span>
 </code><button type="button">Copy</button></pre>
 
-<p>For more information check out the <a href="https://github.com/EvitcaStudio/Kit/wiki">wiki</a></p>
-</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#kit"><span>Kit</span></a><ul><li><a href="#installation"><span>Installation</span></a></li><li><a href="#cli-reference--usage"><span>CLI <wbr/>Reference &amp; <wbr/>Usage</span></a></li><li><ul><li><a href="#global-options"><span>Global <wbr/>Options</span></a></li><li><a href="#kit-init-name"><span>kit init [name]</span></a></li><li><ul><li><a href="#flags--options"><span>Flags &amp; <wbr/>Options:</span></a></li></ul></li><li><a href="#kit-build"><span>kit build</span></a></li><li><ul><li><a href="#flags--options-1"><span>Flags &amp; <wbr/>Options:</span></a></li><li><a href="#what-is-the-resource-manifest-resourcejson"><span>What is the <wbr/>Resource <wbr/>Manifest (resource.json)?</span></a></li><li><a href="#custom-asset-subdirectories-automatic-pass-through"><span>Custom <wbr/>Asset <wbr/>Subdirectories (<wbr/>Automatic <wbr/>Pass-<wbr/>Through)</span></a></li></ul></li><li><a href="#kit-create--"><span>kit create &lt;type&gt; &lt;name&gt;</span></a></li><li><ul><li><a href="#types"><span>Types:</span></a></li></ul></li><li><a href="#kit-host"><span>kit host</span></a></li><li><ul><li><a href="#options"><span>Options:</span></a></li><li><a href="#behavior"><span>Behavior:</span></a></li></ul></li><li><a href="#kit-doctor"><span>kit doctor</span></a></li><li><ul><li><a href="#what-it-checks"><span>What it checks:</span></a></li></ul></li></ul></li><li><a href="#runtime-resource-loading"><span>Runtime <wbr/>Resource <wbr/>Loading</span></a></li><li><a href="#local-development--testing"><span>Local <wbr/>Development &amp; <wbr/>Testing</span></a></li><li><ul><li><a href="#running-the-game"><span>Running the <wbr/>Game</span></a></li><li><a href="#accessing-the-game"><span>Accessing the <wbr/>Game</span></a></li></ul></li><li><a href="#plugin-architecture"><span>Plugin <wbr/>Architecture</span></a></li><li><ul><li><a href="#listening-for-plugin-events"><span>Listening for plugin events</span></a></li></ul></li></ul></div></details></div><div class="site-menu"><nav class="tsd-navigation"><a href="modules.html">@evitcastudio/kit</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>
+<a id="screen-shake--zoom" class="tsd-anchor"></a><h5 class="tsd-anchor-link">Screen Shake &amp; Zoom<a href="#screen-shake--zoom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h5><pre><code class="typescript"><span class="hl-0">// Trigger built-in presets or infinite ambient shakes</span><br/><span class="hl-7">camera</span><span class="hl-2">.</span><span class="hl-1">shakePreset</span><span class="hl-2">(</span><span class="hl-3">&#39;explosion-large&#39;</span><span class="hl-2">);</span><br/><span class="hl-7">camera</span><span class="hl-2">.</span><span class="hl-1">shakePreset</span><span class="hl-2">(</span><span class="hl-3">&#39;rumble&#39;</span><span class="hl-2">, </span><span class="hl-4">undefined</span><span class="hl-2">, </span><span class="hl-4">true</span><span class="hl-2">);</span><br/><br/><span class="hl-0">// Smooth zoom animations with 30+ easing equations</span><br/><span class="hl-7">camera</span><span class="hl-2">.</span><span class="hl-1">zoom</span><span class="hl-2">(</span><span class="hl-5">2</span><span class="hl-2">, </span><span class="hl-5">500</span><span class="hl-2">, </span><span class="hl-3">&#39;easeOutCubic&#39;</span><span class="hl-2">);</span><br/><span class="hl-7">camera</span><span class="hl-2">.</span><span class="hl-1">zoom</span><span class="hl-2">(</span><span class="hl-5">1</span><span class="hl-2">, </span><span class="hl-5">400</span><span class="hl-2">, </span><span class="hl-3">&#39;easeInOutQuad&#39;</span><span class="hl-2">); </span><span class="hl-0">// Reset</span>
+</code><button type="button">Copy</button></pre>
+
+<a id="camera-event-bus" class="tsd-anchor"></a><h5 class="tsd-anchor-link">Camera Event Bus<a href="#camera-event-bus" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h5><p>All camera lifecycle events automatically dispatch to Kit's global event bus (<code>Kit.on</code>), allowing audio, gamepad vibration, or UI systems to decouple from camera logic:</p>
+<pre><code class="typescript"><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">on</span><span class="hl-2">(</span><span class="hl-3">&#39;Camera&#39;</span><span class="hl-2">, </span><span class="hl-3">&#39;shake-start&#39;</span><span class="hl-2">, (</span><span class="hl-7">event</span><span class="hl-2">) </span><span class="hl-4">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-7">console</span><span class="hl-2">.</span><span class="hl-1">log</span><span class="hl-2">(</span><span class="hl-3">&#39;Camera shaking:&#39;</span><span class="hl-2">, </span><span class="hl-7">event</span><span class="hl-2">.</span><span class="hl-7">data</span><span class="hl-2">.</span><span class="hl-7">preset</span><span class="hl-2">);</span><br/><span class="hl-2">});</span><br/><br/><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">on</span><span class="hl-2">(</span><span class="hl-3">&#39;Camera&#39;</span><span class="hl-2">, </span><span class="hl-3">&#39;transition-start&#39;</span><span class="hl-2">, () </span><span class="hl-4">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-0">// e.g. animate cinematic bars</span><br/><span class="hl-2">});</span>
+</code><button type="button">Copy</button></pre>
+
+<a id="native-debug-overlay--gizmos" class="tsd-anchor"></a><h5 class="tsd-anchor-link">Native Debug Overlay &amp; Gizmos<a href="#native-debug-overlay--gizmos" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h5><p>Built-in 2D canvas overlay for debugging cameras, bounds, target vectors, and crosshairs:</p>
+<pre><code class="typescript"><span class="hl-7">camera</span><span class="hl-2">.</span><span class="hl-1">setDebugMode</span><span class="hl-2">({</span><br/><span class="hl-2">    </span><span class="hl-7">enabled:</span><span class="hl-2"> </span><span class="hl-4">true</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">showCameraMarkers:</span><span class="hl-2"> </span><span class="hl-4">true</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">showTargetLines:</span><span class="hl-2"> </span><span class="hl-4">true</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">showBounds:</span><span class="hl-2"> </span><span class="hl-4">true</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">showCenterCrosshair:</span><span class="hl-2"> </span><span class="hl-4">true</span><span class="hl-2">,</span><br/><span class="hl-2">    </span><span class="hl-7">bounds:</span><span class="hl-2"> { </span><span class="hl-7">minX:</span><span class="hl-2"> </span><span class="hl-5">0</span><span class="hl-2">, </span><span class="hl-7">maxX:</span><span class="hl-2"> </span><span class="hl-5">2000</span><span class="hl-2">, </span><span class="hl-7">minY:</span><span class="hl-2"> </span><span class="hl-5">0</span><span class="hl-2">, </span><span class="hl-7">maxY:</span><span class="hl-2"> </span><span class="hl-5">2000</span><span class="hl-2"> }</span><br/><span class="hl-2">});</span>
+</code><button type="button">Copy</button></pre>
+
+<hr>
+<a id="2-network-plugin-network" class="tsd-anchor"></a><h4 class="tsd-anchor-link">2. Network Plugin (<code>Network</code>)<a href="#2-network-plugin-network" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Handles client-server packet communication with registered packet names, automatic indexing, and minimal bandwidth usage.</p>
+<pre><code class="typescript"><span class="hl-6">import</span><span class="hl-2"> { </span><span class="hl-7">Kit</span><span class="hl-2">, </span><span class="hl-7">Network</span><span class="hl-2"> } </span><span class="hl-6">from</span><span class="hl-2"> </span><span class="hl-3">&#39;@evitcastudio/kit&#39;</span><span class="hl-2">;</span><br/><br/><span class="hl-4">const</span><span class="hl-2"> </span><span class="hl-8">network</span><span class="hl-2"> = </span><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">registerPlugin</span><span class="hl-2">(</span><span class="hl-7">Network</span><span class="hl-2">);</span><br/><br/><span class="hl-0">// Client-side: register server packet definitions &amp; listen</span><br/><span class="hl-7">network</span><span class="hl-2">.</span><span class="hl-1">registerPackets</span><span class="hl-2">([</span><span class="hl-3">&#39;CHAT_MESSAGE&#39;</span><span class="hl-2">, </span><span class="hl-3">&#39;PLAYER_HEAL&#39;</span><span class="hl-2">] </span><span class="hl-6">as</span><span class="hl-2"> </span><span class="hl-4">const</span><span class="hl-2">);</span><br/><br/><span class="hl-7">network</span><span class="hl-2">.</span><span class="hl-1">on</span><span class="hl-2">(</span><span class="hl-3">&#39;CHAT_MESSAGE&#39;</span><span class="hl-2">, (</span><span class="hl-7">client</span><span class="hl-2">, </span><span class="hl-7">senderName</span><span class="hl-2">, </span><span class="hl-7">message</span><span class="hl-2">) </span><span class="hl-4">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-7">console</span><span class="hl-2">.</span><span class="hl-1">log</span><span class="hl-2">(</span><span class="hl-3">`[</span><span class="hl-4">${</span><span class="hl-7">senderName</span><span class="hl-4">}</span><span class="hl-3">]: </span><span class="hl-4">${</span><span class="hl-7">message</span><span class="hl-4">}</span><span class="hl-3">`</span><span class="hl-2">);</span><br/><span class="hl-2">});</span>
+</code><button type="button">Copy</button></pre>
+
+<hr>
+<a id="plugin-events" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Plugin Events<a href="#plugin-events" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Plugins can emit and listen to events across the entire application:</p>
+<pre><code class="typescript"><span class="hl-0">// Listen for an event from any plugin</span><br/><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">on</span><span class="hl-2">(</span><span class="hl-3">&#39;plugin-name&#39;</span><span class="hl-2">, </span><span class="hl-3">&#39;event-name&#39;</span><span class="hl-2">, (</span><span class="hl-7">event</span><span class="hl-2">) </span><span class="hl-4">=&gt;</span><span class="hl-2"> {</span><br/><span class="hl-2">    </span><span class="hl-7">console</span><span class="hl-2">.</span><span class="hl-1">log</span><span class="hl-2">(</span><span class="hl-7">event</span><span class="hl-2">.</span><span class="hl-7">data</span><span class="hl-2">, </span><span class="hl-7">event</span><span class="hl-2">.</span><span class="hl-7">timestamp</span><span class="hl-2">);</span><br/><span class="hl-2">});</span><br/><br/><span class="hl-0">// Remove listener</span><br/><span class="hl-7">Kit</span><span class="hl-2">.</span><span class="hl-1">off</span><span class="hl-2">(</span><span class="hl-3">&#39;plugin-name&#39;</span><span class="hl-2">, </span><span class="hl-3">&#39;event-name&#39;</span><span class="hl-2">, </span><span class="hl-7">listener</span><span class="hl-2">);</span>
+</code><button type="button">Copy</button></pre>
+
+<hr>
+<a id="license" class="tsd-anchor"></a><h2 class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>MIT © <a href="https://evitcastudio.com">Evitca Studio</a> &amp; <a href="https://github.com/doubleactii">doubleactii</a></p>
+</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#features"><span>Features</span></a><a href="#installation"><span>Installation</span></a><a href="#quickstart"><span>Quickstart</span></a><a href="#cli-reference--usage"><span>CLI <wbr/>Reference &amp; <wbr/>Usage</span></a><ul><li><a href="#global-options"><span>Global <wbr/>Options</span></a></li><li><a href="#kit-init-name"><span>kit init [name]</span></a></li><li><a href="#kit-build"><span>kit build</span></a></li><li><ul><li><a href="#generated-metadata-manifests"><span>Generated <wbr/>Metadata <wbr/>Manifests</span></a></li></ul></li><li><a href="#kit-host"><span>kit host</span></a></li><li><a href="#kit-create--"><span>kit create &lt;type&gt; &lt;name&gt;</span></a></li><li><a href="#kit-doctor"><span>kit doctor</span></a></li></ul><a href="#runtime-resource-loading"><span>Runtime <wbr/>Resource <wbr/>Loading</span></a><a href="#plugins-1"><span>Plugins</span></a><ul><li><a href="#official-plugins"><span>Official <wbr/>Plugins</span></a></li><li><ul><li><a href="#1-camera-plugin-camera--evitcastudiolens"><span>1. <wbr/>Camera <wbr/>Plugin (<wbr/>Camera / @evitcastudio/lens)</span></a></li><li><ul><li><a href="#setup--quickstart"><span>Setup &amp; <wbr/>Quickstart</span></a></li><li><a href="#seamless-transitions"><span>Seamless <wbr/>Transitions</span></a></li><li><a href="#screen-shake--zoom"><span>Screen <wbr/>Shake &amp; <wbr/>Zoom</span></a></li><li><a href="#camera-event-bus"><span>Camera <wbr/>Event <wbr/>Bus</span></a></li><li><a href="#native-debug-overlay--gizmos"><span>Native <wbr/>Debug <wbr/>Overlay &amp; <wbr/>Gizmos</span></a></li></ul></li><li><a href="#2-network-plugin-network"><span>2. <wbr/>Network <wbr/>Plugin (<wbr/>Network)</span></a></li></ul></li><li><a href="#plugin-events"><span>Plugin <wbr/>Events</span></a></li></ul><a href="#license"><span>License</span></a></div></details></div><div class="site-menu"><nav class="tsd-navigation"><a href="modules.html">@evitcastudio/kit</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>

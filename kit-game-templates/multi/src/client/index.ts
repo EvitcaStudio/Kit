@@ -1,6 +1,6 @@
 import { Kit } from '@evitcastudio/kit';
 import type { Network } from '@evitcastudio/kit';
-import '../map-types';
+import '../map-types.js';
 import './c-network';
 import resourceJSON from 'resource.json';
 

@@ -4,6 +4,7 @@ category: Documents
 
 children:
     - ./network/NETWORK.md
+    - ./camera/CAMERA.md
 ---
 
 # Plugins

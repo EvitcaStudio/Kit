@@ -1,5 +1,5 @@
 import { promises as fs, existsSync } from 'node:fs';
-import { join, dirname, extname } from 'node:path';
+import { join, dirname, extname, resolve } from 'node:path';
 import chalk from 'chalk';
 import Bun from 'bun';
 import { theme } from './theme';
@@ -170,7 +170,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                         name: 'kit-project-resolver',
                         setup(build) {
                             build.onResolve({ filter: /^resource\.json$/ }, () => {
-                                const resourcePath = join(pProjectRoot, 'resource.json');
+                                const resourcePath = resolve(pProjectRoot, 'resource.json');
                                 if (existsSync(resourcePath)) {
                                     return { path: resourcePath };
                                 }
@@ -236,7 +236,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                             name: 'kit-project-resolver',
                             setup(build) {
                                 build.onResolve({ filter: /^resource\.json$/ }, () => {
-                                    const resourcePath = join(pProjectRoot, 'resource.json');
+                                    const resourcePath = resolve(pProjectRoot, 'resource.json');
                                     if (existsSync(resourcePath)) {
                                         return { path: resourcePath };
                                     }
@@ -281,7 +281,21 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
                         identifiers: shouldObfuscate,
                         syntax: true,
                         whitespace: true
-                    } : false
+                    } : false,
+                    plugins: [
+                        {
+                            name: 'kit-project-resolver',
+                            setup(build) {
+                                build.onResolve({ filter: /^resource\.json$/ }, () => {
+                                    const resourcePath = resolve(pProjectRoot, 'resource.json');
+                                    if (existsSync(resourcePath)) {
+                                        return { path: resourcePath };
+                                    }
+                                    return undefined;
+                                });
+                            }
+                        }
+                    ]
                 });
 
                 if (!serverResult.success) {

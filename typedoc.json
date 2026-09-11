@@ -1,4 +1,4 @@
 {
-    "entryPoints": ["src/index.ts", "src/plugins/network/index.ts"],
+    "entryPoints": ["src/index.ts", "src/plugins/network/index.ts", "src/plugins/camera/index.ts"],
     "projectDocuments": ["src/plugins/PluginHome.md"]
 }
