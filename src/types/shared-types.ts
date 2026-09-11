@@ -28,7 +28,7 @@ interface KitPluginLike {
     [key: string]: unknown;
 }
 
-type KitPluginConstructor<T = KitPluginLike> = new (...args: unknown[]) => T;
+type KitPluginConstructor<T = KitPluginLike> = new (...args: any[]) => T;
 declare global {
     /**
      * The Vylocity engine.

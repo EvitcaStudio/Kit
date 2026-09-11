@@ -38,7 +38,7 @@ export class Kit {
       * @deprecated Use `registerPlugin` instead.
       * @param pPlugins - An array of plugins to initialize.
       */
-     static init<T = KitPluginLike>(pPlugins: KitPluginConstructor<T>[]): void {
+     static init<T>(pPlugins: KitPluginConstructor<T>[]): void {
          pPlugins.forEach(pPlugin => {
              this.registerPlugin(pPlugin);
          });
@@ -48,9 +48,9 @@ export class Kit {
       * Register a plugin with the Kit class.
       * @param pPlugin - The plugin to register.
       */
-     static registerPlugin<T = KitPluginLike>(pPlugin: KitPluginConstructor<T>): T;
-     static registerPlugin<T = KitPluginLike>(pPlugin: KitPluginConstructor<T>[]): T[];
-     static registerPlugin<T = KitPluginLike>(pPlugin: KitPluginConstructor<T> | KitPluginConstructor<T>[]): T | T[] {
+     static registerPlugin<T>(pPlugin: KitPluginConstructor<T>): T;
+     static registerPlugin<T>(pPlugin: KitPluginConstructor<T>[]): T[];
+     static registerPlugin<T>(pPlugin: KitPluginConstructor<T> | KitPluginConstructor<T>[]): T | T[] {
          if (Array.isArray(pPlugin)) {
              const plugins: T[] = [];
              pPlugin.forEach(pPlugin => {
@@ -96,7 +96,7 @@ export class Kit {
       * Gets a plugin by name.
       * @param pName - String name of the plugin to retrieve.
       */
-     static getPlugin<T = KitPlugin>(pName: string): T | undefined {
+     static getPlugin<T = KitPluginLike>(pName: string): T | undefined {
          const plugin = Kit.plugins[pName];
          if (!plugin) {
              return undefined;

@@ -7,6 +7,12 @@ describe('Kit Framework', () => {
     // Reset Kit for each test
     beforeEach(() => {
         kit = Kit;
+        // @ts-ignore
+        kit.plugins = {};
+        // @ts-ignore
+        kit.events = {};
+        // @ts-ignore
+        kit.emitters = new Map();
     });
 
     test('should listen for an event and remove the listener', () => {
@@ -50,5 +56,15 @@ describe('Kit Framework', () => {
         const retrieved = Kit.getPlugin<CustomPlugin>('CustomTest');
         expect(retrieved).toBe(instance);
         expect(retrieved?.customMethod()).toBe(42);
+    });
+
+    test('should register CameraPlugin constructor with optional constructor parameters', () => {
+        globalThis.requestAnimationFrame = globalThis.requestAnimationFrame || ((cb: FrameRequestCallback) => setTimeout(() => cb(performance.now()), 16) as unknown as number);
+        globalThis.cancelAnimationFrame = globalThis.cancelAnimationFrame || ((id: number) => clearTimeout(id));
+
+        const { CameraPlugin } = require('../src/plugins/camera');
+        const camera = Kit.registerPlugin(CameraPlugin);
+        expect(camera).toBeDefined();
+        expect(camera.name).toBe('Camera');
     });
 });
