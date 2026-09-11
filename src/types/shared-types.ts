@@ -1,4 +1,3 @@
-import type { KitPlugin } from '../plugins/kit-plugin';
 import type { VyloType } from './vylo.d.ts';
 /**
  * The EmitterEvent type is used to define the shape of the data that is passed to the event listeners.
@@ -22,7 +21,14 @@ type ResourceData = {
 
 type Listener = (pData: EmitterEvent) => void;
 
-type KitPluginConstructor<T extends KitPlugin> = new () => T;
+interface KitPluginLike {
+    name: string;
+    onRegistered?(): void;
+    _register?(pEmitter: unknown): void;
+    [key: string]: unknown;
+}
+
+type KitPluginConstructor<T = KitPluginLike> = new (...args: unknown[]) => T;
 declare global {
     /**
      * The Vylocity engine.
@@ -31,4 +37,4 @@ declare global {
     var VYLO: VyloType;
 }
 
-export type { EmitterEvent, ResourceData, Listener, KitPluginConstructor };
+export type { EmitterEvent, ResourceData, Listener, KitPluginLike, KitPluginConstructor };

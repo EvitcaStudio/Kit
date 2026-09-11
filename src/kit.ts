@@ -1,5 +1,5 @@
 import type { KitPlugin } from './plugins/kit-plugin';
-import type { EmitterEvent, ResourceData, Listener, KitPluginConstructor } from './types/shared-types';
+import type { EmitterEvent, ResourceData, Listener, KitPluginConstructor, KitPluginLike } from './types/shared-types';
 import { EventEmitter } from './events/event-system';
 
 const extensionToPath: Record<string, string> = {
@@ -19,50 +19,51 @@ export class Kit {
     /**
      * A record of all plugins registered with the Kit class.
      */
-    private static plugins: Record<string, KitPlugin> = {};
-    /**
-     * A set of all plugin emitters.
-     */
-    private static emitters = new Map<string, EventEmitter>();
-    /**
-     * A record of all event listeners.
-     */
-    private static events: Record<string, Array<Listener>> = {};
+     private static plugins: Record<string, KitPluginLike> = {};
+     /**
+      * A set of all plugin emitters.
+      */
+     private static emitters = new Map<string, EventEmitter>();
+     /**
+      * A record of all event listeners.
+      */
+     private static events: Record<string, Array<Listener>> = {};
 
-    private constructor() {
-        throw new Error('[Kit] is not to be instantiated.');
-    }
+     private constructor() {
+         throw new Error('[Kit] is not to be instantiated.');
+     }
 
-    /**
-     * Initialize the Kit class with plugins.
-     * @deprecated Use `registerPlugin` instead.
-     * @param pPlugins - An array of plugins to initialize.
-     */
-    static init<T extends KitPlugin>(pPlugins: KitPluginConstructor<T>[]): void {
-        pPlugins.forEach(pPlugin => {
-            this.registerPlugin(pPlugin);
-        });
-    }
+     /**
+      * Initialize the Kit class with plugins.
+      * @deprecated Use `registerPlugin` instead.
+      * @param pPlugins - An array of plugins to initialize.
+      */
+     static init<T = KitPluginLike>(pPlugins: KitPluginConstructor<T>[]): void {
+         pPlugins.forEach(pPlugin => {
+             this.registerPlugin(pPlugin);
+         });
+     }
 
-    /**
-     * Register a plugin with the Kit class.
-     * @param pPlugin - The plugin to register.
-     */
-    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>): T;
-    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T>[]): T[];
-    static registerPlugin<T extends KitPlugin>(pPlugin: KitPluginConstructor<T> | KitPluginConstructor<T>[]): T | T[] {
-        if (Array.isArray(pPlugin)) {
-            const plugins: T[] = [];
-            pPlugin.forEach(pPlugin => {
-                const plugin = this.registerPlugin(pPlugin);
-                if (plugin && !Array.isArray(plugin)) {
-                    plugins.push(plugin);
-                }
-            });
-            return plugins;
-        } else {
+     /**
+      * Register a plugin with the Kit class.
+      * @param pPlugin - The plugin to register.
+      */
+     static registerPlugin<T = KitPluginLike>(pPlugin: KitPluginConstructor<T>): T;
+     static registerPlugin<T = KitPluginLike>(pPlugin: KitPluginConstructor<T>[]): T[];
+     static registerPlugin<T = KitPluginLike>(pPlugin: KitPluginConstructor<T> | KitPluginConstructor<T>[]): T | T[] {
+         if (Array.isArray(pPlugin)) {
+             const plugins: T[] = [];
+             pPlugin.forEach(pPlugin => {
+                 const plugin = this.registerPlugin(pPlugin);
+                 if (plugin && !Array.isArray(plugin)) {
+                     plugins.push(plugin);
+                 }
+             });
+             return plugins;
+         } else {
             const plugin = new pPlugin();
-            const pluginName = plugin.name;
+            const pluginRecord = plugin as unknown as KitPluginLike;
+            const pluginName = pluginRecord?.name;
 
             if (!pluginName || typeof pluginName !== 'string' || !/^[a-zA-Z0-9-_]+$/.test(pluginName)) {
                 throw new Error(`[Kit] Invalid plugin name: '${pluginName}'. The name must be a non-empty string containing only alphanumeric characters, dashes, or underscores.`);
@@ -76,28 +77,32 @@ export class Kit {
                 Kit.emit(pEvent);
             }
 
-            const emitter = new EventEmitter(listener, plugin);
+            const emitter = new EventEmitter(listener, pluginRecord);
 
             Kit.emitters.set(pluginName, emitter);
-            Kit.plugins[pluginName] = plugin;
+            Kit.plugins[pluginName] = pluginRecord;
 
-            plugin._register(emitter);
-            plugin.onRegistered();
-            return plugin;
-        }
-    }
+            if (typeof pluginRecord._register === 'function') {
+                pluginRecord._register(emitter);
+            }
+             if (typeof pluginRecord.onRegistered === 'function') {
+                 pluginRecord.onRegistered();
+             }
+             return plugin;
+         }
+     }
 
-    /**
-     * Gets a plugin by name.
-     * @param pName - String name of the plugin to retrieve.
-     */
-    static getPlugin<T extends KitPlugin>(pName: string): T | undefined {
-        const plugin = Kit.plugins[pName];
-        if (!plugin) {
-            return undefined;
-        }
-        return plugin as T;
-    }
+     /**
+      * Gets a plugin by name.
+      * @param pName - String name of the plugin to retrieve.
+      */
+     static getPlugin<T = KitPlugin>(pName: string): T | undefined {
+         const plugin = Kit.plugins[pName];
+         if (!plugin) {
+             return undefined;
+         }
+         return plugin as unknown as T;
+     }
 
     /**
      * Lists all registered plugins.

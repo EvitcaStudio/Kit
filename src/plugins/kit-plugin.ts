@@ -9,7 +9,7 @@ export abstract class KitPlugin {
     /**
      * The emitter that belongs to this plugin.
      */
-    private _emitter: EventEmitter | null = null;
+    protected _emitter: EventEmitter | null = null;
 
     /**
      * Register this plugin with the event system.

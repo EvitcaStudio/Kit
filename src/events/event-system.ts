@@ -1,11 +1,10 @@
-import type { EmitterEvent, Listener } from '../types/shared-types';
-import type { KitPlugin } from '../plugins/kit-plugin';
+import type { EmitterEvent, Listener, KitPluginLike } from '../types/shared-types';
 
 export class EventEmitter {
     private listener: Listener;
-    private plugin: KitPlugin;
+    private plugin: KitPluginLike;
 
-    constructor(pListener: Listener, pPlugin: KitPlugin) {
+    constructor(pListener: Listener, pPlugin: KitPluginLike) {
         this.listener = pListener;
         this.plugin = pPlugin;
     }
