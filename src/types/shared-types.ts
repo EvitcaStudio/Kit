@@ -28,7 +28,8 @@ interface KitPluginLike {
     [key: string]: unknown;
 }
 
-type KitPluginConstructor<T = KitPluginLike> = new (...args: any[]) => T;
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+type KitPluginConstructor<T = any, Args extends any[] = any[]> = new (...args: Args) => T;
 declare global {
     /**
      * The Vylocity engine.

@@ -1,4 +1,3 @@
-import type { KitPlugin } from './plugins/kit-plugin';
 import type { EmitterEvent, ResourceData, Listener, KitPluginConstructor, KitPluginLike } from './types/shared-types';
 import { EventEmitter } from './events/event-system';
 
@@ -38,7 +37,8 @@ export class Kit {
       * @deprecated Use `registerPlugin` instead.
       * @param pPlugins - An array of plugins to initialize.
       */
-     static init<T>(pPlugins: KitPluginConstructor<T>[]): void {
+     /* eslint-disable @typescript-eslint/no-explicit-any */
+     static init<T = any>(pPlugins: (KitPluginConstructor<T, any[]> | T)[]): void {
          pPlugins.forEach(pPlugin => {
              this.registerPlugin(pPlugin);
          });
@@ -46,45 +46,65 @@ export class Kit {
 
      /**
       * Register a plugin with the Kit class.
-      * @param pPlugin - The plugin to register.
+      * Accepts a plugin constructor (with optional constructor arguments), an instantiated plugin instance, or an array of plugins.
+      * @param pPlugin - The plugin constructor, plugin instance, or array of plugins to register.
+      * @param args - Optional arguments passed to the plugin constructor when instantiating.
       */
-     static registerPlugin<T>(pPlugin: KitPluginConstructor<T>): T;
-     static registerPlugin<T>(pPlugin: KitPluginConstructor<T>[]): T[];
-     static registerPlugin<T>(pPlugin: KitPluginConstructor<T> | KitPluginConstructor<T>[]): T | T[] {
+     static registerPlugin<T, C extends KitPluginConstructor<T, any[]>>(
+         pPlugin: C,
+         ...args: ConstructorParameters<C>
+     ): T;
+     static registerPlugin<T extends object>(
+         pPlugin: T
+     ): T;
+     static registerPlugin<T>(
+         pPlugin: (KitPluginConstructor<T, any[]> | T)[]
+     ): T[];
+     static registerPlugin<T>(
+         pPlugin: KitPluginConstructor<T, any[]> | T
+     ): T;
+     static registerPlugin<T, Args extends any[] = any[]>(
+         pPlugin: KitPluginConstructor<T, Args> | T | (KitPluginConstructor<T, any[]> | T)[],
+         ...args: Args
+     ): T | T[] {
+     /* eslint-enable @typescript-eslint/no-explicit-any */
          if (Array.isArray(pPlugin)) {
              const plugins: T[] = [];
-             pPlugin.forEach(pPlugin => {
-                 const plugin = this.registerPlugin(pPlugin);
+             pPlugin.forEach(p => {
+                 const plugin = this.registerPlugin(p);
                  if (plugin && !Array.isArray(plugin)) {
                      plugins.push(plugin);
                  }
              });
              return plugins;
          } else {
-            const plugin = new pPlugin();
-            const pluginRecord = plugin as unknown as KitPluginLike;
-            const pluginName = pluginRecord?.name;
+             const plugin = typeof pPlugin === 'function'
+                 ? new (pPlugin as KitPluginConstructor<T, Args>)(...args)
+                 : pPlugin;
 
-            if (!pluginName || typeof pluginName !== 'string' || !/^[a-zA-Z0-9-_]+$/.test(pluginName)) {
-                throw new Error(`[Kit] Invalid plugin name: '${pluginName}'. The name must be a non-empty string containing only alphanumeric characters, dashes, or underscores.`);
-            }
+             const pluginRecord = plugin as unknown as KitPluginLike;
+             const pluginName = pluginRecord?.name;
 
-            if (Kit.plugins[pluginName]) {
-                throw new Error(`[Kit] plugin with name '${pluginName}' is already registered.`);
-            }
+             if (!pluginName || typeof pluginName !== 'string' || !/^[a-zA-Z0-9-_]+$/.test(pluginName)) {
+                 throw new Error(`[Kit] Invalid plugin name: '${pluginName}'. The name must be a non-empty string containing only alphanumeric characters, dashes, or underscores.`);
+             }
 
-            const listener = function(pEvent: EmitterEvent) {
-                Kit.emit(pEvent);
-            }
+             if (Kit.plugins[pluginName]) {
+                 throw new Error(`[Kit] plugin with name '${pluginName}' is already registered.`);
+             }
 
-            const emitter = new EventEmitter(listener, pluginRecord);
+             const listener = function(pEvent: EmitterEvent) {
+                 Kit.emit(pEvent);
+             }
 
-            Kit.emitters.set(pluginName, emitter);
-            Kit.plugins[pluginName] = pluginRecord;
+             const emitter = new EventEmitter(listener, pluginRecord);
 
-            if (typeof pluginRecord._register === 'function') {
-                pluginRecord._register(emitter);
-            }
+             Kit.emitters.set(pluginName, emitter);
+             Kit.plugins[pluginName] = pluginRecord;
+
+             if (typeof pluginRecord._register === 'function') {
+                 pluginRecord._register(emitter);
+             }
              if (typeof pluginRecord.onRegistered === 'function') {
                  pluginRecord.onRegistered();
              }
