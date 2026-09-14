@@ -1,5 +1,6 @@
 import { Kit } from '@evitcastudio/kit';
 import type { Network } from '@evitcastudio/kit';
+import type {} from '@evitcastudio/kit/types/vylo';
 import './vendor/vylocity-game-engine/vylo.server.js';
 import '../map-types.js';
 import './s-network.js';

@@ -5494,6 +5494,22 @@ declare global {
 		 */
 		onTouchMove?(pDiob: Diob | 0, pX: number, pY: number, pEvent?: TouchEvent): void;
 
+		/**
+		 * CLIENT-ONLY. Called every frame when the screen renders.
+		 *
+		 * @env Client
+		 * @event
+		 * @param {DOMHighResTimeStamp} pTime - High-resolution timestamp of the current frame in milliseconds from `performance.now()`.
+		 *
+		 * @example
+		 * ```ts
+		 * VYLO.Client.onScreenRender = (time) => {
+		 *     // Update per-frame logic or custom canvas rendering
+		 * };
+		 * ```
+		 */
+		onScreenRender?(pTime: DOMHighResTimeStamp): void;
+
 		[key: string]: any
 
 	}

@@ -1,5 +1,6 @@
 import { Kit } from '@evitcastudio/kit';
 import type { Network } from '@evitcastudio/kit';
+import type {} from '@evitcastudio/kit/types/vylo';
 import '../map-types.js';
 import './c-network';
 import resourceJSON from 'resource.json';

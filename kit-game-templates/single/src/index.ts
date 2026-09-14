@@ -1,4 +1,5 @@
 import { Kit } from '@evitcastudio/kit';
+import type {} from '@evitcastudio/kit/types/vylo';
 import resourceJSON from 'resource.json';
 import './map-types';
 
