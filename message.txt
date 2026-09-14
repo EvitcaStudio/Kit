@@ -1,0 +1,285 @@
+`sound.getSource()` ADD DOC PAGE
+`Sound/playbackRate` ADD DOC PAGE
+`sound.setPlaybackRate()` ADD DOC PAGE
+`World/requireAccount` ADD DOC PAGE
+`Math.lerp(pA, pB, pT)` ADD DOC PAGE
+`Math.normalize(pVal, pMin, pMax)` ADD DOC PAGE
+`diob.sprite` ADD DOC PAGE
+`Resource.getResources(pType)` ADD DOC PAGE
+`Client/onTouchStart(pD, pX, pY, pEvent)` ADD DOC PAGE
+`Client/onTouchEnd(pD, pX, pY, pForce, pEvent)` ADD DOC PAGE
+`Client/onTouchMove(pD, pX, pY, pEvent)` ADD DOC PAGE
+`Diob/onTouchStart(pClient, pX, pY, pEvent)` ADD DOC PAGE
+`Diob/onTouchEnd(pClient, pX, pY, pForce, pEvent)` ADD DOC PAGE
+`Diob/onTouchMove(pClient, pX, pY, pEvent)` ADD DOC PAGE
+`Sound.getPanner()` ADD DOC PAGE
+`Client/volume` client-only ADD DOC PAGE
+`Icon.createSprite(pAtlas, pIcon, pState, pFrame)` ADD DOC PAGE
+`Icon.createGraphics()` ADD DOC PAGE
+`Client.refreshInterface(pPlane)` ADD DOC PAGE
+`Math.remap(pVal, pLow1, pHigh1, pLow2, pHigh2)` ADD DOC PAGE
+`World/preventAutoHost` ADD DOC PAGE
+`World.hostServer(pPort)`
+`Diob.getScreenPos` CLIENT-ONLY
+Resource.setResource(pType, pName, pPath, pRemote, pShare) pShare added for server
+World/onPost(pPost, pFrom, pHeaders, pCallback) pCallback added
+Diob/preventInterest
+ownAnim appearMask
+pLocal to getResourcePath
+Map.createMapFromText(pName, pText, pFunc)
+World/allowServerTransitions
+Type.setType(pType, pVars, pInherits)
+Client.removeInterfaceElement(., ., pSave)
+Client.xEdgeLimit changed to units instead of tiles
+Client.yEdgeLimit changed to units instead of tiles
+Sound
+Sound.newSound(pName, pData, pDataType)
+World.openSteamAPI()
+World.getServerAddress()
+Diob.isCullable
+Diob.map
+Diob/onClientSync(pClient)
+Diob/x
+Diob/y
+Diob/tint
+mapView preventAutoScale 'fit'
+Util.getDirNum(pDir)
+moveSettings.stepCard
+Client/preventScreenCulling
+Client/checkLocalStorage()
+Client/isGuest()
+Icon, Icon.isIcon, Icon.addState, Icon.insertState, Icon.removeState, Icon.removeStateAt, Icon.isState, Icon.texture, Icon.atlasTexture, Icon.atlas, Icon.atlasName, Icon.iconName, Icon.iconState, Icon.width, Icon.height, Icon.frameDelay, Icon.parent, Icon.imageData, Icon.addFrame, Icon.insertFrame, Icon.removeFrame, Icon.removeFrameAt, Icon.isFrame, Icon.remove, Icon.destroy, Icon.getDataURL, Icon.getRawData, Icon.setRawData, Icon.setDataFromURL, Icon.setDataFromFile, Icon.setDataFromResource, Icon.clone, Icon.getStateNames, Icon.newState, Icon.newFrame
+IconAtlas, IconAtlas.name, IconAtlas.texture, IconAtlas.addIcon, IconAtlas.insertIcon, IconAtlas.newIcon, IconAtlas.removeIcon, IconAtlas.removeIconAt, IconAtlas.destroy, IconAtlas.clone, IconAtlas.getIconNames
+VYLO.getIcon
+VYLO.getIconAtlas
+World.maxPostSize //5e6
+World.maxUploadFilesize //5e6
+World.getIcon
+World.getIconAtlas
+VYLO.newIcon
+World.newIcon
+VYLO.newIconFromURL
+World.newIconFromURL
+World.sendWebRequest(pURL, pData)
+Client.renderApp
+Diob.onOverlayed
+Diob.onUnoverlayed
+Object.baseType
+Object.parentType
+Object.typeOb
+Object.tickerOb
+ObjectType
+ObjectType.destroy()
+ObjectType.addInherit(pType)
+ObjectType.setVars(pVars)
+ObjectType.setVar(pVar, pVal)
+ObjectType.getVar(pVar)
+ObjectType.delVar(pVar)
+ObjectType.setFunc(pName, pFunc, pOverride)
+ObjectType.getFunc(pName, pOwn)
+ObjectType.setStaticVar(pVar, pVal)
+ObjectType.getStaticVar(pVar)
+ObjectType.inherits
+ObjectType.staticVars
+Diob.isDiob
+Diob.isOverlay
+Diob.textSprite
+Movable.isMovable
+Movable.stepSize
+Mob.isMob
+Overlay.parent
+Tile.isTile
+Tile.getTileByDir(pDir)
+Region.isRegion
+Client.accountName
+Client.macroAtlas
+Client.getInterfacePane
+Client.getInterface
+Client.uploadFile(pURL, pOptions)
+Client/onFileUpload(pFiles)
+Client.xView
+Client.yView
+Client.mapView
+Particle.isParticle
+Interface.isInterface
+Interface.client
+Interface.pane
+Interface.onPaneChange(pOld)
+WebBox
+WebBox.isWebBox
+WebBox.dom
+WebBox.domID
+WebBox.style
+WebBox.display
+WebBox.boxShadow
+WebBox.boxSizing
+WebBox.clip
+WebBox.cursor
+WebBox.maxHeight
+WebBox.minHeight
+WebBox.maxWidth
+WebBox.minWidth
+WebBox.padding
+WebBox.padding.setStyle(pStyle, pOverride)
+WebBox.padding.top
+WebBox.padding.right
+WebBox.padding.left
+WebBox.padding.bottom
+WebBox.margin
+WebBox.margin.setStyle(pStyle, pOverride)
+WebBox.margin.top
+WebBox.margin.right
+WebBox.margin.left
+WebBox.margin.bottom
+WebBox.overflow
+WebBox.overflow.setStyle(pStyle, pOverride)
+WebBox.overflow.both
+WebBox.overflow.x
+WebBox.overflow.y
+WebBox.float
+WebBox.transform
+WebBox.composite
+WebBox.background
+WebBox.background.setStyle(pStyle, pOverride)
+WebBox.background.color
+WebBox.background.image
+WebBox.background.repeat
+WebBox.background.blendMode
+WebBox.background.attachment
+WebBox.background.position
+WebBox.background.clip
+WebBox.background.origin
+WebBox.background.size
+WebBox.border
+WebBox.border.setStyle(pStyle, pOverride)
+WebBox.border.color
+WebBox.border.image
+WebBox.border.imageOutput
+WebBox.border.imageRepeat
+WebBox.border.imageSource
+WebBox.border.imageSlice
+WebBox.border.imageWidth
+WebBox.border.bottom
+WebBox.border.bottomColor
+WebBox.border.bottomLeftRadius
+WebBox.border.bottomRightRadius
+WebBox.border.bottomStyle
+WebBox.border.bottomWidth
+WebBox.border.top
+WebBox.border.topColor
+WebBox.border.topLeftRadius
+WebBox.border.topRightRadius
+WebBox.border.topStyle
+WebBox.border.topWidth
+WebBox.border.right
+WebBox.border.rightColor
+WebBox.border.rightStyle
+WebBox.border.rightWidth
+WebBox.border.left
+WebBox.border.leftColor
+WebBox.border.leftStyle
+WebBox.border.leftWidth
+WebBox.border.collapse
+WebBox.border.radius
+WebBox.border.spacing
+WebBox.border.style
+WebBox.border.width
+WebBox.outline
+WebBox.outline.setStyle(pStyle, pOverride)
+WebBox.outline.color
+WebBox.outline.offset
+WebBox.outline.style
+WebBox.outline.width
+WebBox.accentColor
+WebBox.textStyle
+WebBox.textStyle.setStyle(pStyle, pOverride)
+WebBox.textStyle.caretColor
+WebBox.textStyle.color
+WebBox.textStyle.letterSpacing
+WebBox.textStyle.lineHeight
+WebBox.textStyle.quotes
+WebBox.textStyle.tabSize
+WebBox.textStyle.align
+WebBox.textStyle.alignLast
+WebBox.textStyle.verticalAlign
+WebBox.textStyle.decoration
+WebBox.textStyle.decorationColor
+WebBox.textStyle.decorationLine
+WebBox.textStyle.decorationStyle
+WebBox.textStyle.indent
+WebBox.textStyle.overflow
+WebBox.textStyle.shadow
+WebBox.textStyle.transform
+WebBox.textStyle.isSelectable
+WebBox.textStyle.whiteSpace
+WebBox.textStyle.wordBreak
+WebBox.textStyle.wordSpacing
+WebBox.textStyle.wordWrap
+WebBox.textStyle.fontSize
+WebBox.textStyle.fontStyle
+WebBox.textStyle.fontVariant
+WebBox.textStyle.fontWeight
+WebBox.textStyle.fontSizeAdjust
+WebBox.textStyle.fontStretch
+WebBox.children
+WebBox.addChild(pEl)
+WebBox.removeChild(pEl)
+WebBox.removeChildAt(pStart, pEnd)
+WebBox.getChildren(pType, pChild)
+WebBox.styleClass
+WebBox.addStyleClass(pClass)
+WebBox.removeStyleClass(pClass)
+TextInput
+TextInput.isTextInput
+TextInput.isMultiline
+TextInput.isPasswordInput
+TextInput.isCommandInput
+TextInput.maxLength
+TextInput.placeholder
+TextInput.tabIndex
+MapView
+MapView.isMapView
+MapView.setZoom(pX, pY)
+MapView.zoom
+MapView.setMaxZoom(pX, pY)
+MapView.maxZoom
+MapView.setMinZoom(pX, pY)
+MapView.minZoom
+MapView.autoZoomMulti
+InterfacePane
+InterfacePane.name
+InterfacePane.isInterfacePane
+InterfacePane.show(pEl, pForce)
+InterfacePane.hide(pEl)
+InterfacePane.isShown
+InterfacePane.addChild(pEl)
+InterfacePane.removeChild(pEl, pSave)
+InterfacePane.getChild(pName)
+InterfacePane.getChildren(pType, pChild)
+InterfacePane.onShow(pClient)
+InterfacePane.onHide(pClient)
+InterfacePane.onAddChild(pChild)
+InterfacePane.onRemoveChild(pChild)
+File.writeResource(pFile, pData)
+Sound.isSound
+MapObject
+MapObject.isMapObject
+MapObject.getDistFrom(pD)
+MapObject.getDistCenterFrom(pD)
+MapObject.getDistEdgeFrom(pD)
+MapObject.getAngleFrom(pD)
+MapObject.getAngleCenterFrom(pD)
+MapObject.getDirFrom(pD, pCard)
+MapObject.getDirCenterFrom(pD, pCard)
+Map
+Map.isMap
+Map.name
+Map.mapName
+Map.xMax
+Map.yMax
+Map.width
+Map.height
+Map.setSizeByCoords(pX, pY, pTile)
+Map.getDiobs(pType, pChild, pAdd)
+Map.getDiobsByTag(pTag)
+Map.getTiles(pX, pY, pW, pH)

@@ -243,9 +243,9 @@ declare global {
 		 */
 		autoZoomMulti?: number;
 		/**
-		 * When true, prevents the map view from automatically scaling with the window.
+		 * When true, prevents the map view from automatically scaling with the window. Can also be set to `'fit'` to fit the viewport.
 		 */
-		preventAutoScale?: boolean;
+		preventAutoScale?: boolean | 'fit';
 		/**
 		 * When true, prevents automatic resize recalculations on window resize.
 		 */
@@ -1011,6 +1011,135 @@ declare global {
          */
 		sendDiob(pD: Diob, pVar?: string | string[]): void
 
+		/**
+		 * If true, requires connected players to have a valid Vylocity account rather than guest accounts.
+		 *
+		 * @env Client | Server
+		 */
+		requireAccount?: boolean
+
+		/**
+		 * If true, prevents the server from automatically initiating/hosting the server socket on startup.
+		 *
+		 * @env Server
+		 */
+		preventAutoHost?: boolean
+
+		/**
+		 * If true, enables server-side position and property transitions to be processed and synced.
+		 *
+		 * @env Server
+		 */
+		allowServerTransitions?: boolean
+
+		/**
+		 * Manually starts hosting the server on the specified port. Overrides `World.mainPort` if provided.
+		 *
+		 * @env Server
+		 * @param {number} [pPort] - Port number to listen on.
+		 */
+		hostServer(pPort?: number): void
+
+		/**
+		 * Initializes the Steamworks API wrapper if running in the desktop executable environment. Returns true on success.
+		 *
+		 * @env Client
+		 * @returns {boolean} Whether Steam API initialization succeeded.
+		 */
+		openSteamAPI(): boolean
+
+		/**
+		 * Returns the address of the connected server or 'localhost'.
+		 *
+		 * @env Client | Server
+		 * @returns {string} Server address string.
+		 */
+		getServerAddress(): string
+
+		/**
+		 * Sends an asynchronous HTTP fetch request using the fetch API and returns the response Promise.
+		 *
+		 * @env Client | Server
+		 * @param {string} pURL - Request destination URL.
+		 * @param {any} [pData] - Request options/payload object.
+		 * @returns {Promise<any>} Response promise.
+		 */
+		sendWebRequest(pURL: string, pData?: any): Promise<any>
+
+		/**
+		 * Maximum allowable payload size in bytes for POST requests to the `/api?post` endpoint. Defaults to `5000000` (5MB).
+		 *
+		 * @env Client | Server
+		 */
+		maxPostSize: number
+
+		/**
+		 * Maximum allowable file upload size in bytes for requests to the `/api?upload` endpoint. Defaults to `5000000` (5MB).
+		 *
+		 * @env Client | Server
+		 */
+		maxUploadFilesize: number
+
+		/**
+		 * Event invoked when a POST request is received at `/api?post`.
+		 *
+		 * @env Server
+		 * @param {Buffer | any} pPost - Received body data chunk buffer.
+		 * @param {string} pFrom - Client IP address string.
+		 * @param {Record<string, string>} pHeaders - HTTP request headers.
+		 * @param {(pResult?: any) => void} [pCallback] - Optional callback to send response.
+		 * @returns {any} Optional return value sent directly as response if not using callback.
+		 */
+		onPost?(pPost: Buffer | any, pFrom: string, pHeaders: Record<string, string>, pCallback?: (pResult?: any) => void): any
+
+		/**
+		 * Returns the Icon object corresponding to the specified atlas, icon name, state, and frame.
+		 *
+		 * @env Client | Server
+		 * @param {string} pAtlas - Icon atlas name.
+		 * @param {string} [pIcon] - Icon name.
+		 * @param {string} [pState] - Icon state name.
+		 * @param {number} [pFrame] - Optional frame index.
+		 * @returns {Icon | any} The matching icon instance.
+		 */
+		getIcon(pAtlas: string, pIcon?: string, pState?: string, pFrame?: number): Icon | any
+
+		/**
+		 * Returns or creates the IconAtlas instance for the specified atlas name.
+		 *
+		 * @env Client | Server
+		 * @param {string} pAtlas - Icon atlas name.
+		 * @returns {IconAtlas} Icon atlas instance.
+		 */
+		getIconAtlas(pAtlas: string): IconAtlas
+
+		/**
+		 * Creates a new Icon instance in the specified atlas.
+		 *
+		 * @env Client | Server
+		 * @param {string} pAtlas - Target atlas name.
+		 * @param {string} pIcon - Icon name.
+		 * @param {string} [pState] - Initial state name.
+		 * @param {number} [pW] - Width in pixels.
+		 * @param {number} [pH] - Height in pixels.
+		 * @param {number} [pDelay] - Frame delay in milliseconds.
+		 * @param {any} [pData] - Texture or image data.
+		 * @returns {Icon | any} Newly created Icon.
+		 */
+		newIcon(pAtlas: string, pIcon: string, pState?: string, pW?: number, pH?: number, pDelay?: number, pData?: any): Icon | any
+
+		/**
+		 * Creates a new Icon loaded directly from an image URL.
+		 *
+		 * @env Client | Server
+		 * @param {string} pData - Image URL or data URL.
+		 * @param {number} [pW] - Width in pixels.
+		 * @param {number} [pH] - Height in pixels.
+		 * @param {number} [pDelay] - Frame delay in milliseconds.
+		 * @returns {Icon | any} Newly created Icon.
+		 */
+		newIconFromURL(pData: string, pW?: number, pH?: number, pDelay?: number): Icon | any
+
 	}
 
 
@@ -1024,6 +1153,41 @@ declare global {
 		 * @env Client | Server
 		 */
 		inTicker: object
+
+		/**
+		 * The ticker object instance attached to this object (`_vy_tickerOb`).
+		 *
+		 * @env Client | Server
+		 */
+		tickerOb: any;
+
+		/**
+		 * The root base type string in this object's type hierarchy (e.g. `'Diob'`, `'Mob'`, `'Tile'`, `'Client'`).
+		 *
+		 * @env Client | Server
+		 */
+		readonly baseType: string;
+
+		/**
+		 * The immediate parent type string this object type inherits from.
+		 *
+		 * @env Client | Server
+		 */
+		readonly parentType: string;
+
+		/**
+		 * The leaf type string of this object (the most derived type).
+		 *
+		 * @env Client | Server
+		 */
+		readonly ownType: string;
+
+		/**
+		 * Reference to the internal ObjectType descriptor structure representing this object's type (`_vy_parentT`).
+		 *
+		 * @env Client | Server
+		 */
+		readonly typeOb: ObjectType;
 
         /**
          * Sets the `pVal` value of the `pVar` static variable belonging to the type `pType`. Static variables are variables that belong to all Objects of this type collectively and are different than normal variables, usually static variables can only be set once, but VyScript static variables may be changed if that is what the developer wants.
@@ -1042,6 +1206,142 @@ declare global {
          * @returns {any} Returns the static variable value belonging to the type `pType`.
          */
 		getStaticVariable<T = any>(pVar: string): T
+
+	}
+
+
+
+	/**
+	 * Represents the runtime type metadata and prototype descriptor for an Object type in the Vylocity type system.
+	 */
+	interface ObjectType {
+
+		/**
+		 * Read-only boolean flag indicating this is an ObjectType descriptor.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isObjectType?: boolean;
+
+		/**
+		 * The leaf type string of this ObjectType (the short type name without parent paths).
+		 *
+		 * @env Client | Server
+		 */
+		readonly ownType: string;
+
+		/**
+		 * Array of type strings that this ObjectType inherits from.
+		 *
+		 * @env Client | Server
+		 */
+		readonly inherits: string[];
+
+		/**
+		 * Record of static variables defined on this ObjectType.
+		 *
+		 * @env Client | Server
+		 */
+		readonly staticVars: Record<string, any>;
+
+		/**
+		 * Destroys this ObjectType and unregisters it from the engine's type registry.
+		 *
+		 * @env Client | Server
+		 */
+		destroy(): void;
+
+		/**
+		 * Adds a type path `pType` to this ObjectType's inheritance list.
+		 *
+		 * @env Client | Server
+		 * @param {string} pType - Type path to inherit.
+		 * @returns {ObjectType} The inherited ObjectType descriptor.
+		 */
+		addInherit(pType: string): ObjectType;
+
+		/**
+		 * Removes an inherited type path `pInherit` from this ObjectType.
+		 *
+		 * @env Client | Server
+		 * @param {string} pInherit - Type path to remove.
+		 */
+		removeInherit(pInherit: string): void;
+
+		/**
+		 * Sets multiple variables on this ObjectType definition simultaneously.
+		 *
+		 * @env Client | Server
+		 * @param {Record<string, any>} pVars - Object containing key-value pairs to set.
+		 */
+		setVars(pVars: Record<string, any>): void;
+
+		/**
+		 * Sets a variable `pVar` on this ObjectType definition to `pVal`.
+		 *
+		 * @env Client | Server
+		 * @param {string} pVar - Variable name to define.
+		 * @param {any} pVal - Value to assign.
+		 */
+		setVar(pVar: string, pVal: any): void;
+
+		/**
+		 * Retrieves the value of a variable `pVar` defined on this ObjectType.
+		 *
+		 * @env Client | Server
+		 * @param {string} pVar - Variable name to look up.
+		 * @param {boolean} [pOwn] - If `true`, only inspect variables defined directly on this type, ignoring parents.
+		 * @returns {any} The variable value.
+		 */
+		getVar(pVar: string, pOwn?: boolean): any;
+
+		/**
+		 * Deletes a variable `pVar` from this ObjectType and propagates the deletion to child types.
+		 *
+		 * @env Client | Server
+		 * @param {string} pVar - Variable name to remove.
+		 */
+		delVar(pVar: string): void;
+
+		/**
+		 * Sets or overrides a member function `pName` on this ObjectType.
+		 *
+		 * @env Client | Server
+		 * @param {string} pName - Function name.
+		 * @param {Function} pFunc - Function implementation.
+		 * @param {boolean} [pOverride] - Whether this function completely overrides parent implementations.
+		 */
+		setFunc(pName: string, pFunc: Function, pOverride?: boolean): void;
+
+		/**
+		 * Retrieves the member function `pName` defined on this ObjectType.
+		 *
+		 * @env Client | Server
+		 * @param {string} pName - Function name.
+		 * @param {boolean} [pOwn] - If `true`, only returns function if directly defined on this type.
+		 * @returns {Function} The function.
+		 */
+		getFunc(pName: string, pOwn?: boolean): Function;
+
+		/**
+		 * Sets a static variable `pVar` belonging to this ObjectType to `pVal`.
+		 *
+		 * @env Client | Server
+		 * @param {string} pVar - Static variable name.
+		 * @param {any} pVal - Static value.
+		 */
+		setStaticVar(pVar: string, pVal: any): void;
+
+		/**
+		 * Retrieves the static variable `pVar` belonging to this ObjectType.
+		 *
+		 * @env Client | Server
+		 * @param {string} pVar - Static variable name.
+		 * @returns {any} The static value.
+		 */
+		getStaticVar(pVar: string): any;
+
+		[key: string]: any;
 
 	}
 
@@ -2239,7 +2539,254 @@ declare global {
 		 * ```
 		 */
 		mouseOpacity: MouseOpacity | 0 | 1 | 2;
+
+		/**
+		 * Read-only boolean flag indicating this object is a Diob.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isDiob: boolean;
+
+		/**
+		 * Indicates whether this diob is functioning as an overlay.
+		 * Returns the parent Diob if an overlay of another Diob, or a boolean/null.
+		 *
+		 * @env Client | Server
+		 */
+		isOverlay: boolean | Diob | null;
+
+		/**
+		 * CLIENT-ONLY. Accesses the underlying PixiJS Sprite instance used to render this diob's icon (`_vy_pixS`).
+		 *
+		 * @env Client
+		 */
+		sprite: any;
+
+		/**
+		 * CLIENT-ONLY. Accesses the underlying PixiJS Text instance used to render this diob's text label (`_vy_pixT`).
+		 *
+		 * @env Client
+		 */
+		textSprite: any;
+
+		/**
+		 * Color tint applied to this diob's visual sprite (e.g. `0xFFFFFF` for untinted, or a hexadecimal color number).
+		 *
+		 * @env Client | Server
+		 *
+		 * @example
+		 * ```ts
+		 * diob.tint = 0xff0000; // Red tint
+		 * ```
+		 */
+		tint: number;
+
+		/**
+		 * CLIENT-ONLY. Controls whether this diob is subject to screen frustum culling.
+		 * When `true` (default), the diob is removed from the active screen display list when outside the viewport.
+		 *
+		 * @env Client
+		 */
+		isCullable: boolean;
+
+		/**
+		 * Controls whether this diob is exempt from spatial interest grid tracking and culling on the server.
+		 *
+		 * @env Server
+		 */
+		preventInterest?: boolean;
+
+		/**
+		 * Calculates the screen viewport position of this diob in pixels.
+		 *
+		 * @env Client
+		 * @param {Partial<Point2D>} [pO] - Optional point object to populate with `x` and `y`.
+		 * @returns {Point2D} The screen coordinates `{ x, y }` in viewport pixels.
+		 *
+		 * @example
+		 * ```ts
+		 * const screenPos = diob.getScreenPos();
+		 * console.log(`Diob screen position: (${screenPos.x}, ${screenPos.y})`);
+		 * ```
+		 */
+		getScreenPos(pO?: Partial<Point2D>): Point2D;
+
+		/**
+		 * Called when a touch point is placed over this diob.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Client} pClient - The client initiating the touch.
+		 * @param {number} pX - Horizontal coordinate of the touch relative to the diob.
+		 * @param {number} pY - Vertical coordinate of the touch relative to the diob.
+		 * @param {TouchEvent} [pEvent] - (Optional) The native browser TouchEvent.
+		 */
+		onTouchStart?(pClient: Client, pX: number, pY: number, pEvent?: TouchEvent): void;
+
+		/**
+		 * Called when a touch point is removed from over this diob.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Client} pClient - The client whose touch was lifted.
+		 * @param {number} pX - Horizontal coordinate of the touch relative to the diob.
+		 * @param {number} pY - Vertical coordinate of the touch relative to the diob.
+		 * @param {boolean} [pCancel] - (Optional) Whether the touch was cancelled.
+		 * @param {TouchEvent} [pEvent] - (Optional) The native browser TouchEvent.
+		 */
+		onTouchEnd?(pClient: Client, pX: number, pY: number, pCancel?: boolean, pEvent?: TouchEvent): void;
+
+		/**
+		 * Called when a touch point moves over this diob.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Client} pClient - The client whose touch moved.
+		 * @param {number} pX - Horizontal coordinate of the touch relative to the diob.
+		 * @param {number} pY - Vertical coordinate of the touch relative to the diob.
+		 * @param {TouchEvent} [pEvent] - (Optional) The native browser TouchEvent.
+		 */
+		onTouchMove?(pClient: Client, pX: number, pY: number, pEvent?: TouchEvent): void;
+
+		/**
+		 * Called when this diob is attached as an overlay to another diob or client.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Diob} pParent - The parent diob or client that this diob was attached to.
+		 */
+		onOverlayed?(pParent: Diob): void;
+
+		/**
+		 * Called when this diob is removed as an overlay from its parent.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Diob} pParent - The parent diob or client that this diob was removed from.
+		 */
+		onUnoverlayed?(pParent: Diob): void;
+
+		/**
+		 * CLIENT-ONLY. Called when this diob's state is synchronized from the server to the client.
+		 *
+		 * @env Client
+		 * @event
+		 * @param {Client} pClient - The local client instance.
+		 */
+		onClientSync?(pClient: Client): void;
+
 		[key: string]: any
+
+	}
+
+
+
+	/**
+	 * MapObject represents a spatial display object situated directly on a map grid, extending Diob.
+	 */
+	interface MapObject extends Diob {
+
+		/**
+		 * Read-only boolean flag indicating this is a MapObject.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isMapObject: boolean;
+
+		/**
+		 * When `true`, prevents the MapObject from automatically being added to the screen display list.
+		 *
+		 * @env Client | Server
+		 */
+		preventAutoDisplay: boolean;
+
+		/**
+		 * Calculates Euclidean distance in pixels between the top-left position of this object and `pD`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pD - The target MapObject.
+		 * @returns {number} The distance in pixels.
+		 */
+		getDistFrom(pD: MapObject): number;
+
+		/**
+		 * Calculates Euclidean distance in pixels between the bounding box centers of this object and `pD`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pD - The target MapObject.
+		 * @returns {number} The center-to-center distance in pixels.
+		 */
+		getDistCenterFrom(pD: MapObject): number;
+
+		/**
+		 * Calculates Euclidean distance in pixels between the closest bounding edges of this object and `pD`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pD - The target MapObject.
+		 * @returns {number} The edge-to-edge distance in pixels.
+		 */
+		getDistEdgeFrom(pD: MapObject): number;
+
+		/**
+		 * Calculates the compass direction string from this object's top-left position towards `pD`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pD - Target MapObject.
+		 * @param {boolean} [pCard] - If `true`, constrains return to standard cardinal directions.
+		 * @returns {Direction | string} Direction string.
+		 */
+		getDirFrom(pD: MapObject, pCard?: boolean): Direction | string;
+
+		/**
+		 * Calculates the compass direction string from this object's bounding center towards `pD`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pD - Target MapObject.
+		 * @param {boolean} [pCard] - If `true`, constrains return to standard cardinal directions.
+		 * @returns {Direction | string} Direction string.
+		 */
+		getDirCenterFrom(pD: MapObject, pCard?: boolean): Direction | string;
+
+		/**
+		 * Calculates the angle in radians from this object's top-left position towards `pD`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pD - Target MapObject.
+		 * @returns {number} Angle in radians.
+		 */
+		getAngleFrom(pD: MapObject): number;
+
+		/**
+		 * Calculates the angle in radians from this object's bounding center towards `pD`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pD - Target MapObject.
+		 * @returns {number} Angle in radians.
+		 */
+		getAngleCenterFrom(pD: MapObject): number;
+
+		/**
+		 * Checks whether this MapObject's bounding box intersects with `pO`.
+		 *
+		 * @env Client | Server
+		 * @param {MapObject} pO - Object to test intersection with.
+		 * @returns {boolean} `true` if bounding boxes overlap; otherwise `false`.
+		 */
+		checkIntersectWith(pO: MapObject): boolean;
+
+		/**
+		 * Checks whether this MapObject would collide with dense tiles or dense objects at the specified rectangle.
+		 *
+		 * @env Client | Server
+		 * @param {number} [pX] - Test horizontal position in map pixels (defaults to current x).
+		 * @param {number} [pY] - Test vertical position in map pixels (defaults to current y).
+		 * @param {number} [pW] - Test width (defaults to current width).
+		 * @param {number} [pH] - Test height (defaults to current height).
+		 * @returns {Tile | Diob | null} The obstacle encountered, or `null` if clear.
+		 */
+		checkCollideAt(pX?: number, pY?: number, pW?: number, pH?: number): Tile | Diob | null;
+
+		[key: string]: any;
 
 	}
 
@@ -2326,7 +2873,21 @@ declare global {
          */
 		move(): void
 
-        /**
+		/**
+		 * Read-only boolean flag indicating this object is a Movable.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isMovable: boolean;
+
+		/**
+		 * The default step distance in pixels moved per step when moving in a direction.
+		 *
+		 * @env Client | Server
+		 */
+		stepSize: number;
+
+		/**
          * Current facing or movement direction of the movable (`'north'`, `'south'`, `'east'`, `'west'`, `'northwest'`, `'northeast'`, `'southwest'`, `'southeast'`).
          *
          * @env Client | Server
@@ -2354,6 +2915,13 @@ declare global {
 		 * @env Client
 		 */
 		preventScreenRelayer: boolean
+
+		/**
+		 * Read-only boolean flag indicating this object is a Particle.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isParticle: boolean;
 		[key: string]: any
 
 	}
@@ -2411,6 +2979,28 @@ declare global {
 		 * @env Client | Server
 		 */
 		mouseOpacity?: MouseOpacity | 0 | 1 | 2;
+
+		/**
+		 * Read-only boolean flag indicating this object is a Tile.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isTile: boolean;
+
+		/**
+		 * Returns the neighbor Tile located in the compass direction `pDir` from this tile on the same map.
+		 *
+		 * @env Client | Server
+		 * @param {Direction | string} pDir - Compass direction (e.g. `'north'`, `'east'`, `'southwest'`).
+		 * @returns {Tile | null} The adjacent tile in that direction, or the engine void tile / null if out of bounds.
+		 *
+		 * @example
+		 * ```ts
+		 * const northTile = tile.getTileByDir('north');
+		 * ```
+		 */
+		getTileByDir(pDir: Direction | string): Tile | null;
+
 		[key: string]: any
 
 	}
@@ -2419,6 +3009,13 @@ declare global {
 
 	/** The region object. */
 	type Region = {
+
+		/**
+		 * Read-only boolean flag indicating this object is a Region.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isRegion: boolean;
 
 		/**
 		 * When an object exits the contents of another object.
@@ -2445,6 +3042,13 @@ declare global {
 
 	/** The mob object. */
 	interface Mob {
+
+		/**
+		 * Read-only boolean flag indicating this object is a Mob.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isMob: boolean;
 
 		/**
 		 * A reference to the client of this mob.
@@ -2476,6 +3080,13 @@ declare global {
 
 	/** The overlay object. */
 	type Overlay = {
+
+		/**
+		 * Reference to the parent Diob that this overlay is attached to (`_vy_parent`).
+		 *
+		 * @env Client | Server
+		 */
+		parent: Diob;
 
 		/**
 		 * If `true`, this overlay will appear directly above the parent and use the same appearance properties as the parent, such as angle and alpha. The overlay will basically be an extension of the parent's icon. Instead of `true` this can be an object containing information on the appearMask, `shareIcon` to have the overlay share the same iconName as the parent, `isUnder` to make the overlay appear under the parent instead of above, and `ownMod` to let the overlay use its own alpha, angle, scale, transform, and composite variables, `ownState` to have this overlay not sync up with the parent's iconState. Example: `{'shareIcon': `true`, 'isUnder': `true`}`.
@@ -2636,6 +3247,54 @@ declare global {
          */
 		loop: boolean
 
+		/**
+		 * Read-only flag confirming this object is a Sound instance.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isSound?: boolean
+
+		/**
+		 * Playback rate factor for the sound (e.g. `1.0` for normal speed, `0.5` for half-speed, `2.0` for double speed).
+		 *
+		 * @env Client | Server
+		 */
+		playbackRate?: number
+
+		/**
+		 * Sets the playback speed rate of this sound.
+		 *
+		 * @env Client | Server
+		 * @param {number} pVal - Playback rate multiplier (e.g. `1` is default speed).
+		 */
+		setPlaybackRate(pVal: number): void
+
+		/**
+		 * Returns the native Web Audio API `AudioBufferSourceNode` source for this sound.
+		 *
+		 * @env Client | Server
+		 * @returns {AudioBufferSourceNode | any} The active audio source node.
+		 */
+		getSource(): AudioBufferSourceNode | any
+
+		/**
+		 * Returns the spatial audio `PannerNode` for this sound, creating one if it doesn't already exist.
+		 *
+		 * @env Client | Server
+		 * @returns {PannerNode | any} The audio panner node.
+		 */
+		getPanner(): PannerNode | any
+
+		/**
+		 * Registers a new sound buffer into the engine resources.
+		 *
+		 * @env Client | Server
+		 * @param {string} pName - Sound identifier name.
+		 * @param {string | ArrayBuffer} pData - Sound data or base64 data URL.
+		 * @param {string} [pDataType] - Optional data type (e.g. `'url'`).
+		 */
+		newSound?(pName: string, pData: string | ArrayBuffer, pDataType?: string): void
+
 	}
 
 
@@ -2772,6 +3431,36 @@ declare global {
 		xPos: number
 
 		/**
+		 * Read-only boolean flag indicating this is an Interface element.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isInterface: boolean;
+
+		/**
+		 * Reference to the Client instance that owns this interface element.
+		 *
+		 * @env Client | Server
+		 */
+		client: Client;
+
+		/**
+		 * The InterfacePane instance that contains this interface element.
+		 *
+		 * @env Client | Server
+		 */
+		pane: InterfacePane;
+
+		/**
+		 * Called when this interface element is moved or reassigned to a different interface pane.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {InterfacePane} pOldPane - The previous interface pane.
+		 */
+		onPaneChange?(pOldPane: InterfacePane): void;
+
+		/**
 		 * Determines if the cursor executes mouse events on this interface element.
 		 *
 		 * - `MouseOpacity.Transparent` (`0`): Ignores mouse events.
@@ -2782,6 +3471,588 @@ declare global {
 		 */
 		mouseOpacity?: MouseOpacity | 0 | 1 | 2;
 		[key: string]: any
+
+	}
+
+
+
+	/**
+	 * Represents a named container of interface elements belonging to a client.
+	 */
+	interface InterfacePane {
+
+		/**
+		 * Read-only boolean flag indicating this is an InterfacePane.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isInterfacePane: boolean;
+
+		/**
+		 * The identifier name of this interface pane.
+		 *
+		 * @env Client | Server
+		 */
+		name: string;
+
+		/**
+		 * The client that owns this interface pane.
+		 *
+		 * @env Client | Server
+		 */
+		readonly client: Client;
+
+		/**
+		 * Transparency alpha level of all elements in this pane (0.0 to 1.0).
+		 *
+		 * @env Client | Server
+		 */
+		alpha: number;
+
+		/**
+		 * Whether this interface pane is currently shown/visible.
+		 * Setting to `true` shows the pane; setting to `false` hides it.
+		 *
+		 * @env Client | Server
+		 */
+		isShown: boolean;
+
+		/**
+		 * Shows the interface pane and its contained elements, or a specific child element `pEl`.
+		 *
+		 * @env Client | Server
+		 * @param {string | Diob} [pEl] - Optional specific child element name or instance to show.
+		 * @param {boolean} [pForce] - If `true`, forces hidden elements to be shown.
+		 */
+		show(pEl?: string | Diob, pForce?: boolean): void;
+
+		/**
+		 * Hides the interface pane or a specific child element `pEl`.
+		 *
+		 * @env Client | Server
+		 * @param {string | Diob} [pEl] - Optional specific child element name or instance to hide.
+		 */
+		hide(pEl?: string | Diob): void;
+
+		/**
+		 * Adds an interface child element `pEl` to this pane.
+		 *
+		 * @env Client | Server
+		 * @param {any} pEl - Element instance to add.
+		 * @returns {any} The added element.
+		 */
+		addChild(pEl: any): any;
+
+		/**
+		 * Removes a child element `pEl` from this pane.
+		 *
+		 * @env Client | Server
+		 * @param {any} pEl - Child element to remove.
+		 * @param {boolean} [pSave] - If `true`, avoids deleting the element from the engine.
+		 */
+		removeChild(pEl: any, pSave?: boolean): void;
+
+		/**
+		 * Retrieves the child element with the specified name `pName`.
+		 *
+		 * @env Client | Server
+		 * @param {string} pName - Name of the child element.
+		 * @returns {any} The child element.
+		 */
+		getChild(pName: string): any;
+
+		/**
+		 * Returns an array of child elements within this pane matching the specified criteria.
+		 *
+		 * @env Client | Server
+		 * @param {string} [pType] - Optional type filter.
+		 * @param {boolean} [pChild] - If `true`, includes child types.
+		 * @returns {any[]} Array of child elements.
+		 */
+		getChildren(pType?: string, pChild?: boolean): any[];
+
+		/**
+		 * Called when this interface pane is shown to a client.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Client} pClient - The client shown to.
+		 */
+		onShow?(pClient: Client): void;
+
+		/**
+		 * Called when this interface pane is hidden from a client.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Client} pClient - The client hidden from.
+		 */
+		onHide?(pClient: Client): void;
+
+		/**
+		 * Called when a child element is added to this pane.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {any} pChild - The child element added.
+		 */
+		onAddChild?(pChild: any): void;
+
+		/**
+		 * Called when a child element is removed from this pane.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {any} pChild - The child element removed.
+		 */
+		onRemoveChild?(pChild: any): void;
+
+		[key: string]: any;
+
+	}
+
+	/** WebBox padding style descriptor. */
+	interface WebBoxPaddingStyle {
+		top?: string | number;
+		right?: string | number;
+		bottom?: string | number;
+		left?: string | number;
+		[key: string]: any;
+	}
+
+	/** WebBox margin style descriptor. */
+	interface WebBoxMarginStyle {
+		top?: string | number;
+		right?: string | number;
+		bottom?: string | number;
+		left?: string | number;
+		[key: string]: any;
+	}
+
+	/** WebBox overflow style descriptor. */
+	interface WebBoxOverflowStyle {
+		x?: string;
+		y?: string;
+		[key: string]: any;
+	}
+
+	/** WebBox background style descriptor. */
+	interface WebBoxBackgroundStyle {
+		color?: string;
+		image?: string;
+		repeat?: string;
+		position?: string;
+		size?: string;
+		attachment?: string;
+		clip?: string;
+		origin?: string;
+		[key: string]: any;
+	}
+
+	/** WebBox border style descriptor. */
+	interface WebBoxBorderStyle {
+		width?: string | number;
+		style?: string;
+		color?: string;
+		radius?: string | number;
+		top?: string | number;
+		right?: string | number;
+		bottom?: string | number;
+		left?: string | number;
+		topColor?: string;
+		rightColor?: string;
+		bottomColor?: string;
+		leftColor?: string;
+		topStyle?: string;
+		rightStyle?: string;
+		bottomStyle?: string;
+		leftStyle?: string;
+		topWidth?: string | number;
+		rightWidth?: string | number;
+		bottomWidth?: string | number;
+		leftWidth?: string | number;
+		topLeftRadius?: string | number;
+		topRightRadius?: string | number;
+		bottomLeftRadius?: string | number;
+		bottomRightRadius?: string | number;
+		collapse?: string;
+		spacing?: string | number;
+		[key: string]: any;
+	}
+
+	/** WebBox outline style descriptor. */
+	interface WebBoxOutlineStyle {
+		color?: string;
+		offset?: string | number;
+		style?: string;
+		width?: string | number;
+		[key: string]: any;
+	}
+
+	/** WebBox text style descriptor. */
+	interface WebBoxTextStyle {
+		color?: string;
+		fontFamily?: string;
+		fontSize?: string | number;
+		fontStyle?: string;
+		fontWeight?: string | number;
+		letterSpacing?: string | number;
+		lineHeight?: string | number;
+		textAlign?: string;
+		textDecoration?: string;
+		textIndent?: string | number;
+		textOverflow?: string;
+		textShadow?: string;
+		textTransform?: string;
+		whiteSpace?: string;
+		wordBreak?: string;
+		wordSpacing?: string | number;
+		wordWrap?: string;
+		[key: string]: any;
+	}
+
+	/**
+	 * Represents an HTML DOM-backed interface element, extending Interface.
+	 */
+	interface WebBox extends Interface {
+
+		/**
+		 * Read-only boolean flag indicating this is a WebBox.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isWebBox: boolean;
+
+		/**
+		 * The underlying HTML DOM element (`_vy_dom`).
+		 *
+		 * @env Client
+		 */
+		readonly dom: HTMLElement;
+
+		/**
+		 * The DOM element's `id` attribute.
+		 *
+		 * @env Client | Server
+		 */
+		domID: string;
+
+		/**
+		 * CSSStyleDeclaration of the underlying DOM element.
+		 *
+		 * @env Client
+		 */
+		style: CSSStyleDeclaration | Record<string, any>;
+
+		/**
+		 * CSS `display` style property.
+		 *
+		 * @env Client | Server
+		 */
+		display: string;
+
+		/**
+		 * CSS `box-shadow` style property.
+		 *
+		 * @env Client | Server
+		 */
+		boxShadow: string;
+
+		/**
+		 * CSS `box-sizing` style property.
+		 *
+		 * @env Client | Server
+		 */
+		boxSizing: string;
+
+		/**
+		 * CSS `clip-path` style property.
+		 *
+		 * @env Client | Server
+		 */
+		clip: string;
+
+		/**
+		 * CSS `cursor` style property.
+		 *
+		 * @env Client | Server
+		 */
+		cursor: string;
+
+		/**
+		 * CSS `pointer-events` style property.
+		 *
+		 * @env Client | Server
+		 */
+		pointerEvents: string;
+
+		/**
+		 * Maximum height constraint.
+		 *
+		 * @env Client | Server
+		 */
+		maxHeight: string | number;
+
+		/**
+		 * Minimum height constraint.
+		 *
+		 * @env Client | Server
+		 */
+		minHeight: string | number;
+
+		/**
+		 * Maximum width constraint.
+		 *
+		 * @env Client | Server
+		 */
+		maxWidth: string | number;
+
+		/**
+		 * Minimum width constraint.
+		 *
+		 * @env Client | Server
+		 */
+		minWidth: string | number;
+
+		/**
+		 * Padding style helper or CSS string.
+		 *
+		 * @env Client | Server
+		 */
+		padding: WebBoxPaddingStyle | string;
+
+		/**
+		 * Margin style helper or CSS string.
+		 *
+		 * @env Client | Server
+		 */
+		margin: WebBoxMarginStyle | string;
+
+		/**
+		 * Overflow style helper or CSS string.
+		 *
+		 * @env Client | Server
+		 */
+		overflow: WebBoxOverflowStyle | string;
+
+		/**
+		 * CSS `float` style property.
+		 *
+		 * @env Client | Server
+		 */
+		float: string;
+
+		/**
+		 * CSS `transform` style property.
+		 *
+		 * @env Client | Server
+		 */
+		transform: string;
+
+		/**
+		 * CSS `composite` style property.
+		 *
+		 * @env Client | Server
+		 */
+		composite: any;
+
+		/**
+		 * Background style helper or CSS color string.
+		 *
+		 * @env Client | Server
+		 */
+		background: WebBoxBackgroundStyle | string;
+
+		/**
+		 * Border style helper or CSS border string.
+		 *
+		 * @env Client | Server
+		 */
+		border: WebBoxBorderStyle | string;
+
+		/**
+		 * Outline style helper or CSS outline string.
+		 *
+		 * @env Client | Server
+		 */
+		outline: WebBoxOutlineStyle | string;
+
+		/**
+		 * CSS `accent-color` style property.
+		 *
+		 * @env Client | Server
+		 */
+		accentColor: string;
+
+		/**
+		 * Typography and text styling options.
+		 *
+		 * @env Client | Server
+		 */
+		textStyle: WebBoxTextStyle | any;
+
+		/**
+		 * CSS class name or array of class names applied to this element.
+		 *
+		 * @env Client | Server
+		 */
+		styleClass: string | string[];
+
+		/**
+		 * Adds a CSS class name to this element.
+		 *
+		 * @env Client | Server
+		 * @param {string} pClass - CSS class name.
+		 */
+		addStyleClass(pClass: string): void;
+
+		/**
+		 * Removes a CSS class name from this element.
+		 *
+		 * @env Client | Server
+		 * @param {string} pClass - CSS class name.
+		 */
+		removeStyleClass(pClass: string): void;
+
+		/**
+		 * Parent WebBox containing this element, if nested.
+		 *
+		 * @env Client | Server
+		 */
+		parent: WebBox | null;
+
+		/**
+		 * Top-most ancestor WebBox in the hierarchy.
+		 *
+		 * @env Client | Server
+		 */
+		readonly highestParent: WebBox | null;
+
+		/**
+		 * Array of child WebBox elements contained within this element.
+		 *
+		 * @env Client | Server
+		 */
+		readonly children: WebBox[];
+
+		/**
+		 * Adds a child WebBox element to this element.
+		 *
+		 * @env Client | Server
+		 * @param {WebBox} pEl - WebBox to add.
+		 * @returns {WebBox} The added WebBox.
+		 */
+		addChild(pEl: WebBox): WebBox;
+
+		/**
+		 * Removes a child WebBox from this element.
+		 *
+		 * @env Client | Server
+		 * @param {WebBox} pEl - WebBox to remove.
+		 */
+		removeChild(pEl: WebBox): void;
+
+		/**
+		 * Removes child WebBox elements across an index range.
+		 *
+		 * @env Client | Server
+		 * @param {number} pStart - Start index.
+		 * @param {number} [pEnd] - End index.
+		 */
+		removeChildAt(pStart: number, pEnd?: number): void;
+
+		/**
+		 * Returns child WebBox elements matching the specified type.
+		 *
+		 * @env Client | Server
+		 * @param {string} [pType] - Type filter.
+		 * @param {boolean} [pChild] - Include child types.
+		 * @returns {WebBox[]} Child elements.
+		 */
+		getChildren(pType?: string, pChild?: boolean): WebBox[];
+
+		/**
+		 * Configures whether this WebBox can be interactively resized by the user.
+		 *
+		 * @env Client
+		 */
+		isResizable: boolean | 'both' | 'horizontal' | 'vertical';
+
+		/**
+		 * Configures whether this WebBox can be dragged across the screen.
+		 *
+		 * @env Client
+		 */
+		isDraggable: boolean;
+
+		[key: string]: any;
+
+	}
+
+	/**
+	 * Represents an interactive text input interface element (single-line or multiline), extending WebBox.
+	 */
+	interface TextInput extends WebBox {
+
+		/**
+		 * Read-only boolean flag indicating this is a TextInput.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isTextInput: boolean;
+
+		/**
+		 * When `true`, uses a multiline `<textarea>` element rather than a single-line input.
+		 *
+		 * @env Client | Server
+		 */
+		isMultiline: boolean;
+
+		/**
+		 * When `true`, masks characters entered for password privacy (`type="password"`).
+		 *
+		 * @env Client | Server
+		 */
+		isPasswordInput: boolean;
+
+		/**
+		 * When `true`, configures the input as a command-line input.
+		 *
+		 * @env Client | Server
+		 */
+		isCommandInput: boolean;
+
+		/**
+		 * Maximum character length allowed in the input field.
+		 *
+		 * @env Client | Server
+		 */
+		maxLength: number;
+
+		/**
+		 * Placeholder text displayed when the input field is empty.
+		 *
+		 * @env Client | Server
+		 */
+		placeholder: string;
+
+		/**
+		 * HTML `tabIndex` attribute controlling keyboard focus navigation order.
+		 *
+		 * @env Client | Server
+		 */
+		tabIndex: number;
+
+		/**
+		 * Called when the input text is modified by the user.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Client} pClient - The client that typed into the input.
+		 */
+		onInput?(pClient: Client): void;
+
+		[key: string]: any;
 
 	}
 
@@ -2798,6 +4069,23 @@ declare global {
 		 * @param {string} pData - Data as a string to store locally for the client.
 		 */
 		setLocalStorage(pKey?: string, pData?: string): void
+
+		/**
+		 * Checks whether `window.localStorage` is supported, enabled, and functioning on the client's browser.
+		 *
+		 * Tests accessibility by attempting to write and remove a temporary test key.
+		 *
+		 * @env Client
+		 * @returns {boolean} `true` if local storage is available and functional; otherwise `false`.
+		 *
+		 * @example
+		 * ```ts
+		 * if (VYLO.Client.checkLocalStorage()) {
+		 *     VYLO.Client.setLocalStorage('savedLevel', '5');
+		 * }
+		 * ```
+		 */
+		checkLocalStorage(): boolean;
 
         /**
          * Returns an object `{'x': x, 'y': y}` containing the x and y position on the map that currently matches the `pX` and `pY` position on the screen.
@@ -2819,6 +4107,40 @@ declare global {
          * @returns {Diob} Returns the interface element object of the specified interface.
          */
 		getInterfaceElement(pInterface: string, pElement: Diob): Diob
+
+		/**
+		 * Returns the interface pane instance with the specified name `pPane`.
+		 *
+		 * @env Client
+		 * @param {string} pPane - The identifier name of the interface pane to retrieve.
+		 * @returns {InterfacePane} The interface pane instance, or `undefined` if not found.
+		 *
+		 * @example
+		 * ```ts
+		 * const chatPane = VYLO.Client.getInterfacePane('chat');
+		 * chatPane?.show();
+		 * ```
+		 */
+		getInterfacePane(pPane: string): InterfacePane;
+
+		/**
+		 * Retrieves an interface pane or an element within an interface pane.
+		 *
+		 * - If `pEl` is omitted or `undefined`: returns the interface pane corresponding to `pPane`.
+		 * - If `pEl` is specified: returns the child element within that interface pane named `pEl`.
+		 *
+		 * @env Client
+		 * @param {string | InterfacePane} [pPane=''] - Name of the interface pane or the pane instance itself.
+		 * @param {string} [pEl] - Optional name of the element within the interface pane.
+		 * @returns {InterfacePane | Diob | any} The interface pane or the requested interface element.
+		 *
+		 * @example
+		 * ```ts
+		 * const hud = VYLO.Client.getInterface('hud');
+		 * const healthBar = VYLO.Client.getInterface('hud', 'healthBar');
+		 * ```
+		 */
+		getInterface(pPane?: string | InterfacePane, pEl?: string): InterfacePane | Diob | any;
 
         /**
          * Removes the specified filter.
@@ -2852,6 +4174,109 @@ declare global {
          * @env Client | Server
          */
 		xEdgeLimit: number
+
+		/**
+		 * CLIENT-ONLY. Toggles whether to hide the on-screen frames-per-second (FPS) DOM label element (`#fps_label`).
+		 *
+		 * When `true`, the default FPS counter overlay is hidden from the client view.
+		 * When `false`, the FPS label element is displayed in the corner of the game screen and updated every second.
+		 *
+		 * @env Client
+		 *
+		 * @example
+		 * ```ts
+		 * // Hide the built-in FPS counter display
+		 * VYLO.Client.hideFPS = true;
+		 * ```
+		 */
+		hideFPS: boolean
+
+		/**
+		 * CLIENT-ONLY. Controls whether off-screen display objects (Diobs) and map tiles are culled from rendering.
+		 *
+		 * By default (`false`), the Vylocity engine performs screen frustum culling, automatically removing
+		 * non-visible map tiles and cullable Diobs from the screen display list to maximize rendering performance.
+		 *
+		 * When set to `true`, screen culling is prevented, forcing all map tiles and objects within the map view
+		 * to remain added to the display list regardless of whether they are outside the current camera viewport.
+		 *
+		 * @env Client
+		 *
+		 * @example
+		 * ```ts
+		 * // Prevent culling so all diobs and tiles stay on screen
+		 * VYLO.Client.preventScreenCulling = true;
+		 * ```
+		 */
+		preventScreenCulling: boolean
+
+		/**
+		 * Name of the default map file to load when the client connects or initializes.
+		 *
+		 * When the client's controlled mob is created and does not already have an assigned map,
+		 * it is automatically placed onto this map at coordinates `(0, 0)`.
+		 *
+		 * @env Client | Server
+		 *
+		 * @example
+		 * ```ts
+		 * VYLO.Client.mainMap = 'world-map';
+		 * ```
+		 */
+		mainMap: string
+
+		/**
+		 * CLIENT-ONLY. Master volume level for sound playback on the client (default `100`).
+		 *
+		 * @env Client
+		 *
+		 * @example
+		 * ```ts
+		 * // Set client master volume to 50%
+		 * VYLO.Client.volume = 50;
+		 * ```
+		 */
+		volume: number;
+
+		/**
+		 * Checks whether the client is logged in with a guest account (e.g. `Guest`, `Guest-xxx`, or `Guest1234`).
+		 *
+		 * @env Client | Server
+		 * @returns {boolean} `true` if the connected account is a guest account; otherwise `false`.
+		 *
+		 * @example
+		 * ```ts
+		 * if (client.isGuest()) {
+		 *     client.prompt('Register', 'Please create an account to save your progress!', (name) => { ... });
+		 * }
+		 * ```
+		 */
+		isGuest(): boolean;
+
+		/**
+		 * The name of the macro atlas currently active for this client.
+		 *
+		 * @env Client | Server
+		 *
+		 * @example
+		 * ```ts
+		 * client.macroAtlas = 'default_controls';
+		 * ```
+		 */
+		macroAtlas: string;
+
+		/**
+		 * CLIENT-ONLY. Flags the client interface layout to refresh and redraw on the next animation frame.
+		 *
+		 * @env Client
+		 * @param {number} [pPlane] - Optional interface plane index to refresh.
+		 *
+		 * @example
+		 * ```ts
+		 * VYLO.Client.refreshInterface();
+		 * ```
+		 */
+		refreshInterface(pPlane?: number): void;
 
         /**
          * Executes 2D canvas drawing commands onto the top screen surface named `pName`.
@@ -3762,10 +5187,11 @@ declare global {
          * Removes an interface element from the interface.
          *
          * @env Client | Server
-         * @param {string} pInterface - Name of the interface to remove an interface element from.
-         * @param {string | number} pName - Name of the interface element to remove.
+         * @param {string | InterfacePane} pInterface - Name of the interface (or InterfacePane instance) to remove an interface element from.
+         * @param {string | number | Diob} [pName] - Optional name of the interface element or Diob element instance to remove.
+         * @param {boolean} [pSave] - Optional flag indicating whether to keep the element instance from being deleted.
          */
-		removeInterfaceElement(pInterface: string, pName: string | number): void
+		removeInterfaceElement(pInterface: string | InterfacePane, pName?: string | number | Diob, pSave?: boolean): void
 
         /**
          * Returns the dimensions `{ width, height }` of the client's render screen canvas in pixels.
@@ -3966,6 +5392,108 @@ declare global {
          * @param {number} pY - Vertical viewport coordinate of the cursor.
          */
 		onMouseWheelScrollDown?(pDiob: Diob | 0, pX: number, pY: number): void
+
+		/**
+		 * CLIENT-ONLY. The current horizontal scroll position of the client's screen viewport in map pixels. Read-only.
+		 *
+		 * @env Client
+		 *
+		 * @example
+		 * ```ts
+		 * console.log('Current horizontal screen scroll:', VYLO.Client.xView);
+		 * ```
+		 */
+		readonly xView: number;
+
+		/**
+		 * CLIENT-ONLY. The current vertical scroll position of the client's screen viewport in map pixels. Read-only.
+		 *
+		 * @env Client
+		 *
+		 * @example
+		 * ```ts
+		 * console.log('Current vertical screen scroll:', VYLO.Client.yView);
+		 * ```
+		 */
+		readonly yView: number;
+
+		/**
+		 * CLIENT-ONLY. The underlying PixiJS Application instance managing the game canvas renderer (`ScreenManager.pixiApp`).
+		 *
+		 * @env Client
+		 */
+		readonly renderApp: any;
+
+		/**
+		 * CLIENT-ONLY. Prompts the user to select one or more local files for upload, optionally posting them as multipart form data to `pURL`.
+		 *
+		 * @env Client
+		 * @param {string} [pURL] - Optional target endpoint URL to upload files to via POST.
+		 * @param {Record<string, string>} [pOptions] - Optional HTML attributes to set on the hidden `<input type="file">` element (such as `accept`, `multiple`).
+		 * @returns {Promise<string | void>} Resolves with the server's text response if uploaded to `pURL`, or resolves with void.
+		 *
+		 * @example
+		 * ```ts
+		 * await VYLO.Client.uploadFile('https://example.com/api/upload', { accept: 'image/*' });
+		 * ```
+		 */
+		uploadFile(pURL?: string, pOptions?: Record<string, string>): Promise<string | void>;
+
+		/**
+		 * CLIENT-ONLY. Called when files are selected for upload via `uploadFile`.
+		 * Return `false` (or a Promise resolving to `false`) to cancel the upload.
+		 *
+		 * @env Client
+		 * @event
+		 * @param {FileList} pFiles - The native FileList containing the selected files.
+		 * @returns {boolean | Promise<boolean>} Return `false` to abort the upload; otherwise return `true`.
+		 */
+		onFileUpload?(pFiles: FileList): boolean | Promise<boolean>;
+
+		/**
+		 * Called when a touch point is placed on the touch surface.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Diob | 0} pDiob - The diob instance underneath the touch point, or `0` if empty map/screen.
+		 * @param {number} pX - Horizontal coordinate of the touch point on the screen.
+		 * @param {number} pY - Vertical coordinate of the touch point on the screen.
+		 * @param {TouchEvent} [pEvent] - (Optional) The native browser TouchEvent.
+		 *
+		 * @example
+		 * ```ts
+		 * client.onTouchStart = (pDiob, pX, pY, pEvent) => {
+		 *     console.log(`Touch started at (${pX}, ${pY}) on`, pDiob);
+		 * };
+		 * ```
+		 */
+		onTouchStart?(pDiob: Diob | 0, pX: number, pY: number, pEvent?: TouchEvent): void;
+
+		/**
+		 * Called when a touch point is removed from the touch surface.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Diob | 0} pDiob - The diob instance underneath the touch point, or `0` if empty map/screen.
+		 * @param {number} pX - Horizontal coordinate of the touch point on the screen.
+		 * @param {number} pY - Vertical coordinate of the touch point on the screen.
+		 * @param {boolean} [pCancel] - (Optional) Whether the touch was cancelled (e.g. touchcancel event).
+		 * @param {TouchEvent} [pEvent] - (Optional) The native browser TouchEvent.
+		 */
+		onTouchEnd?(pDiob: Diob | 0, pX: number, pY: number, pCancel?: boolean, pEvent?: TouchEvent): void;
+
+		/**
+		 * Called when a touch point is moved along the touch surface.
+		 *
+		 * @env Client | Server
+		 * @event
+		 * @param {Diob | 0} pDiob - The diob instance underneath the touch point, or `0` if empty map/screen.
+		 * @param {number} pX - Horizontal coordinate of the touch point on the screen.
+		 * @param {number} pY - Vertical coordinate of the touch point on the screen.
+		 * @param {TouchEvent} [pEvent] - (Optional) The native browser TouchEvent.
+		 */
+		onTouchMove?(pDiob: Diob | 0, pX: number, pY: number, pEvent?: TouchEvent): void;
+
 		[key: string]: any
 
 	}
@@ -3983,8 +5511,18 @@ declare global {
 		 * @param {string | number} pName - Name of file to set. This will be referenced in the project. Example: if `pName` was set to `my_atlas` ( atlasName = `my_atlas` ).
 		 * @param {string} pPath - Path to the file. If not a remote file this will be the name of the file (or path if any sub directories were added) inside resources/files/ for the game, otherwise it will be a web URL path to the file.
 		 * @param {boolean} [pRemote] - (Optional) If set the `pPath` file will be treated like a web URL.
+		 * @param {boolean} [pShare] - (Optional) Server-only. If set, sends the resource declaration to all connected clients.
 		 */
-		setResource(pType: string, pName: string | number, pPath: string, pRemote?: boolean): void
+		setResource(pType: string, pName: string | number, pPath: string, pRemote?: boolean, pShare?: boolean): void
+
+		/**
+		 * Returns an array of resource names registered for the given type, or all resources if no type is specified.
+		 *
+		 * @env Client | Server
+		 * @param {string} [pType] - (Optional) Resource type filter prefix (e.g. 'map', 'icon', 'interface', 'sound').
+		 * @returns {string[]} Array of resource names.
+		 */
+		getResources(pType?: string): string[]
 
         /**
          * Returns the direct path to the resource.
@@ -3992,9 +5530,10 @@ declare global {
          * @env Client | Server
          * @param {string} pType - Type of file to get.
          * @param {string | number} pName - Name of file to get.
+         * @param {boolean} [pLocal] - (Optional) Client-only. If true, returns a path relative to the local server rather than the remote resource server.
          * @returns {string} Returns the direct path to the resource.
          */
-		getResourcePath(pType: string, pName: string | number): string
+		getResourcePath(pType: string, pName: string | number, pLocal?: boolean): string
 
         /**
          * Loads the resource of type `pType` with the name `pName` and then calls the function `pFunc`.
@@ -4014,6 +5553,177 @@ declare global {
          * @returns {string} Returns a string containing the text inside of a loaded non-VS text file. The file must already be loaded to get the text.
          */
 		getFileText(pName: string | number): string
+
+	}
+
+
+
+	/**
+	 * Extended mathematical utility functions provided by the Vylocity engine.
+	 * Accessible globally via `Math` or via `VYLO.Math`.
+	 */
+	interface Math {
+
+		/**
+		 * Creates a two-dimensional matrix array populated with the supplied values.
+		 *
+		 * @env Client | Server
+		 * @param {number} pXLen - Number of rows (outer array length).
+		 * @param {number} pYLen - Number of columns (inner array length).
+		 * @param {...(number | string)[]} pValues - Optional sequence of numeric values or numeric strings to populate each matrix entry `[x][y]`.
+		 * @returns {any[][]} A 2D array representation.
+		 *
+		 * @example
+		 * ```ts
+		 * const matrix = Math.getMatrix(2, 2, 1, 2, 3, 4);
+		 * // returns [[1, 2], [3, 4]]
+		 * ```
+		 */
+		getMatrix(pXLen: number, pYLen: number, ...pValues: (number | string)[]): any[][];
+
+		/**
+		 * Generates a pseudo-random integer between `pNum1` and `pNum2` (inclusive), or a random float between `0` and `1` if no arguments are passed.
+		 *
+		 * - If no arguments: returns `Math.random()` (float `[0, 1)`).
+		 * - If one argument `pNum1`: returns random integer between `0` and `pNum1` (inclusive).
+		 * - If two arguments `pNum1` and `pNum2`: returns random integer between `pNum1` and `pNum2` (inclusive).
+		 *
+		 * @env Client | Server
+		 * @param {number} [pNum1] - Lower bound (or upper bound if `pNum2` is omitted).
+		 * @param {number} [pNum2] - Upper bound.
+		 * @returns {number} The generated random number.
+		 *
+		 * @example
+		 * ```ts
+		 * const roll = Math.rand(1, 6); // Random integer 1 through 6
+		 * const val = Math.rand(10);    // Random integer 0 through 10
+		 * ```
+		 */
+		rand(pNum1?: number, pNum2?: number): number;
+
+		/**
+		 * Generates a pseudo-random floating point number between `pNum1` and `pNum2`.
+		 *
+		 * - If no arguments: returns `Math.random()`.
+		 * - If one argument `pNum1`: returns float between `0` and `pNum1 + 1`.
+		 * - If two arguments `pNum1` and `pNum2`: returns float between `pNum1` and `pNum2`.
+		 *
+		 * @env Client | Server
+		 * @param {number} [pNum1] - Lower bound (or upper bound if `pNum2` is omitted).
+		 * @param {number} [pNum2] - Upper bound.
+		 * @returns {number} The generated random float.
+		 *
+		 * @example
+		 * ```ts
+		 * const speed = Math.randFloat(1.5, 3.5);
+		 * ```
+		 */
+		randFloat(pNum1?: number, pNum2?: number): number;
+
+		/**
+		 * Rounds a floating-point number to a specified number of decimal places.
+		 *
+		 * @env Client | Server
+		 * @param {number} pNum - Number to round.
+		 * @param {number} [pDecimal=0] - Number of decimal places to preserve (default `0`).
+		 * @returns {number} The rounded floating-point number.
+		 *
+		 * @example
+		 * ```ts
+		 * Math.roundFloat(3.14159, 2); // 3.14
+		 * ```
+		 */
+		roundFloat(pNum: number, pDecimal?: number): number;
+
+		/**
+		 * Performs a percentage-based probability check.
+		 *
+		 * Returns `true` if a random check between 0 and 100 succeeds given percentage `pProb` (0-100), otherwise `false`.
+		 *
+		 * @env Client | Server
+		 * @param {number} pProb - Probability percentage between 0 and 100 (e.g. 50 for a 50% chance).
+		 * @returns {boolean} `true` if the roll succeeds; otherwise `false`.
+		 *
+		 * @example
+		 * ```ts
+		 * if (Math.prob(25)) {
+		 *     // 25% chance of critical hit
+		 * }
+		 * ```
+		 */
+		prob(pProb: number): boolean;
+
+		/**
+		 * Clamps a numeric value between a minimum and maximum boundary.
+		 *
+		 * @env Client | Server
+		 * @param {number} pVal - The numeric value to clamp.
+		 * @param {number} pMin - The lower boundary.
+		 * @param {number} pMax - The upper boundary.
+		 * @returns {number} Clamped value within `[pMin, pMax]`.
+		 *
+		 * @example
+		 * ```ts
+		 * const health = Math.clamp(currentHealth - damage, 0, maxHealth);
+		 * ```
+		 */
+		clamp(pVal: number, pMin: number, pMax: number): number;
+
+		/**
+		 * Linearly interpolates between two numbers `pA` and `pB` by factor `pT`.
+		 *
+		 * Formula: `pA * (1 - pT) + pB * pT`.
+		 *
+		 * @env Client | Server
+		 * @param {number} pA - Starting value.
+		 * @param {number} pB - Ending value.
+		 * @param {number} pT - Interpolation weight (typically between 0 and 1).
+		 * @returns {number} The interpolated value.
+		 *
+		 * @example
+		 * ```ts
+		 * const currentX = Math.lerp(startX, targetX, 0.1);
+		 * ```
+		 */
+		lerp(pA: number, pB: number, pT: number): number;
+
+		/**
+		 * Normalizes a value `pVal` within range `[pMin, pMax]` to a `0` to `1` range.
+		 *
+		 * Formula: `(pVal - pMin) / (pMax - pMin)`.
+		 *
+		 * @env Client | Server
+		 * @param {number} pVal - Value to normalize.
+		 * @param {number} pMin - Minimum range value.
+		 * @param {number} pMax - Maximum range value.
+		 * @returns {number} Normalized value between 0 and 1.
+		 *
+		 * @example
+		 * ```ts
+		 * const ratio = Math.normalize(50, 0, 200); // 0.25
+		 * ```
+		 */
+		normalize(pVal: number, pMin: number, pMax: number): number;
+
+		/**
+		 * Remaps a number from one numeric range `[pLow1, pHigh1]` to another `[pLow2, pHigh2]`.
+		 *
+		 * Formula: `pLow2 + (pVal - pLow1) * (pHigh2 - pLow2) / (pHigh1 - pLow1)`.
+		 *
+		 * @env Client | Server
+		 * @param {number} pVal - Value to remap.
+		 * @param {number} pLow1 - Lower bound of the source range.
+		 * @param {number} pHigh1 - Upper bound of the source range.
+		 * @param {number} pLow2 - Lower bound of the target range.
+		 * @param {number} pHigh2 - Upper bound of the target range.
+		 * @returns {number} The remapped value.
+		 *
+		 * @example
+		 * ```ts
+		 * const mapped = Math.remap(5, 0, 10, 0, 100); // 50
+		 * ```
+		 */
+		remap(pVal: number, pLow1: number, pHigh1: number, pLow2: number, pHigh2: number): number;
 
 	}
 
@@ -4500,12 +6210,368 @@ declare global {
          */
 		writeText(pFile: string, pData: string, pFunc?: (pErr?: any) => void): void
 
+		/**
+		 * Asynchronously writes resource data directly into the game's `resources/` directory.
+		 *
+		 * @env Server
+		 * @param {string} pFile - Resource file path relative to the `resources/` folder.
+		 * @param {any} pData - Data content to write to the file.
+		 * @returns {Promise<void>}
+		 */
+		writeResource(pFile: string, pData: any): Promise<void>
+
 	}
 
 
 
+	/**
+	 * Represents an icon atlas containing multiple icons and textures.
+	 */
+	interface IconAtlas {
+		/** Name of the icon atlas. */
+		name: string;
+		/** Underlying atlas texture. */
+		texture: any;
+		/**
+		 * Adds one or more icons to this atlas.
+		 *
+		 * @env Client
+		 * @param {...Icon[]} pIcons - Icon instances to add.
+		 */
+		addIcon(...pIcons: Icon[]): void;
+		/**
+		 * Inserts one or more icons at the specified index or before an icon.
+		 *
+		 * @env Client
+		 * @param {number | Icon} pIndex - Insertion index or target icon.
+		 * @param {...Icon[]} pIcons - Icons to insert.
+		 */
+		insertIcon(pIndex: number | Icon, ...pIcons: Icon[]): void;
+		/**
+		 * Creates and adds a new icon to this atlas.
+		 *
+		 * @env Client
+		 * @param {any} pData - Image data or URL.
+		 * @param {string} pName - Name of the icon.
+		 * @param {number} [pW] - Width in pixels.
+		 * @param {number} [pH] - Height in pixels.
+		 * @param {number} [pDelay] - Animation frame delay in milliseconds.
+		 * @returns {Icon} The newly created Icon instance.
+		 */
+		newIcon(pData: any, pName: string, pW?: number, pH?: number, pDelay?: number): Icon;
+		/**
+		 * Removes one or more icons from this atlas.
+		 *
+		 * @env Client
+		 * @param {...(Icon | string)[]} pIcons - Icons or icon names to remove.
+		 */
+		removeIcon(...pIcons: (Icon | string)[]): void;
+		/**
+		 * Removes icons within the specified index range.
+		 *
+		 * @env Client
+		 * @param {number} [pStart] - Start index.
+		 * @param {number} [pEnd] - End index.
+		 */
+		removeIconAt(pStart?: number, pEnd?: number): void;
+		/**
+		 * Destroys this icon atlas and frees resources.
+		 *
+		 * @env Client
+		 */
+		destroy(): void;
+		/**
+		 * Clones this icon atlas.
+		 *
+		 * @env Client
+		 * @returns {IconAtlas}
+		 */
+		clone(): IconAtlas;
+		/**
+		 * Returns an array of icon names in this atlas, optionally matching a regular expression.
+		 *
+		 * @env Client
+		 * @param {RegExp} [pRegex] - Optional regex filter.
+		 * @returns {string[]} Array of icon names.
+		 */
+		getIconNames(pRegex?: RegExp): string[];
+		[key: string]: any;
+	}
+
 	/** The icon object. */
 	type Icon = {
+
+		/**
+		 * Read-only flag indicating this is an Icon.
+		 *
+		 * @env Client
+		 */
+		readonly isIcon?: boolean;
+
+		/**
+		 * Parent state icon if this icon is an icon state.
+		 *
+		 * @env Client
+		 */
+		readonly isState?: any;
+
+		/**
+		 * True if this icon is an animation frame of another icon.
+		 *
+		 * @env Client
+		 */
+		readonly isFrame?: boolean;
+
+		/**
+		 * Underlying rendering texture (e.g. PIXI.Texture).
+		 *
+		 * @env Client
+		 */
+		texture?: any;
+
+		/**
+		 * Base texture of the icon atlas.
+		 *
+		 * @env Client
+		 */
+		readonly atlasTexture?: any;
+
+		/**
+		 * The IconAtlas instance this icon belongs to.
+		 *
+		 * @env Client
+		 */
+		atlas?: any;
+
+		/**
+		 * Name of the icon atlas this icon belongs to.
+		 *
+		 * @env Client
+		 */
+		atlasName?: string;
+
+		/**
+		 * Name of this icon.
+		 *
+		 * @env Client
+		 */
+		iconName?: string;
+
+		/**
+		 * State name of this icon (empty string for default state).
+		 *
+		 * @env Client
+		 */
+		iconState?: string;
+
+		/**
+		 * Width of this icon in pixels.
+		 *
+		 * @env Client
+		 */
+		width?: number;
+
+		/**
+		 * Height of this icon in pixels.
+		 *
+		 * @env Client
+		 */
+		height?: number;
+
+		/**
+		 * Frame delay duration in milliseconds.
+		 *
+		 * @env Client
+		 */
+		frameDelay?: number;
+
+		/**
+		 * Parent icon or state if nested.
+		 *
+		 * @env Client
+		 */
+		parent?: any;
+
+		/**
+		 * Image data source or base64 data URL.
+		 *
+		 * @env Client
+		 */
+		imageData?: any;
+
+		/**
+		 * Adds one or more state icons to this icon.
+		 *
+		 * @env Client
+		 * @param {...Icon[]} pIcons - Icon instances to add as states.
+		 */
+		addState?(...pIcons: Icon[]): void;
+
+		/**
+		 * Inserts one or more state icons at the specified index.
+		 *
+		 * @env Client
+		 * @param {number | Icon} pIndex - Insertion index or target icon.
+		 * @param {...Icon[]} pIcons - Icon instances to insert.
+		 */
+		insertState?(pIndex: number | Icon, ...pIcons: Icon[]): void;
+
+		/**
+		 * Removes one or more state icons from this icon.
+		 *
+		 * @env Client
+		 * @param {...(Icon | string)[]} pIcons - States or state names to remove.
+		 */
+		removeState?(...pIcons: (Icon | string)[]): void;
+
+		/**
+		 * Removes state icons within the specified index range.
+		 *
+		 * @env Client
+		 * @param {number} [pStart] - Start index.
+		 * @param {number} [pEnd] - End index.
+		 */
+		removeStateAt?(pStart?: number, pEnd?: number): void;
+
+		/**
+		 * Creates and adds a new state to this icon.
+		 *
+		 * @env Client
+		 * @param {any} pData - Image data or URL.
+		 * @param {string} pName - Name of the new state.
+		 * @param {number} [pDelay] - Animation frame delay in milliseconds.
+		 * @returns {Icon} The newly created state Icon.
+		 */
+		newState?(pData: any, pName: string, pDelay?: number): Icon;
+
+		/**
+		 * Adds one or more frame icons to this icon.
+		 *
+		 * @env Client
+		 * @param {...Icon[]} pIcons - Icon instances to add as animation frames.
+		 */
+		addFrame?(...pIcons: Icon[]): void;
+
+		/**
+		 * Inserts one or more frame icons at the specified index.
+		 *
+		 * @env Client
+		 * @param {number | Icon} pIndex - Insertion index or target frame.
+		 * @param {...Icon[]} pIcons - Frame instances to insert.
+		 */
+		insertFrame?(pIndex: number | Icon, ...pIcons: Icon[]): void;
+
+		/**
+		 * Removes one or more frame icons from this icon.
+		 *
+		 * @env Client
+		 * @param {...Icon[]} pIcons - Frame instances to remove.
+		 */
+		removeFrame?(...pIcons: Icon[]): void;
+
+		/**
+		 * Removes animation frames within the specified index range.
+		 *
+		 * @env Client
+		 * @param {number} [pStart] - Start frame index.
+		 * @param {number} [pEnd] - End frame index.
+		 */
+		removeFrameAt?(pStart?: number, pEnd?: number): void;
+
+		/**
+		 * Creates and adds a new animation frame to this icon.
+		 *
+		 * @env Client
+		 * @param {any} pData - Image data or URL.
+		 * @param {number} [pDelay] - Frame delay duration in milliseconds.
+		 * @returns {Icon} The newly created frame Icon.
+		 */
+		newFrame?(pData: any, pDelay?: number): Icon;
+
+		/**
+		 * Removes this icon from its parent atlas, state, or frame container.
+		 *
+		 * @env Client
+		 */
+		remove?(): void;
+
+		/**
+		 * Destroys this icon and frees associated texture and memory.
+		 *
+		 * @env Client
+		 * @param {boolean} [pSkip] - Whether to skip removing from parent tracking.
+		 */
+		destroy?(pSkip?: boolean): void;
+
+		/**
+		 * Returns the raw base64 data URL string for this icon's image.
+		 *
+		 * @env Client
+		 * @returns {string} Data URL string.
+		 */
+		getDataURL?(): string;
+
+		/**
+		 * Retrieves the raw pixel ImageData of this icon.
+		 *
+		 * @env Client
+		 * @returns {any} ImageData instance.
+		 */
+		getRawData?(): any;
+
+		/**
+		 * Updates this icon's pixels using the provided ImageData.
+		 *
+		 * @env Client
+		 * @param {any} pData - ImageData object.
+		 * @returns {Promise<void>}
+		 */
+		setRawData?(pData: any): Promise<void>;
+
+		/**
+		 * Sets this icon's image content from an image URL.
+		 *
+		 * @env Client
+		 * @param {string} pData - Image URL or data URL.
+		 * @returns {Promise<void>}
+		 */
+		setDataFromURL?(pData: string): Promise<void>;
+
+		/**
+		 * Sets this icon's image content from a file path.
+		 *
+		 * @env Client
+		 * @param {string} pPath - File path to the image.
+		 * @returns {Promise<void>}
+		 */
+		setDataFromFile?(pPath: string): Promise<void>;
+
+		/**
+		 * Sets this icon's image content from a registered resource.
+		 *
+		 * @env Client
+		 * @param {string} pType - Resource type.
+		 * @param {string} pName - Resource name.
+		 * @returns {Promise<void>}
+		 */
+		setDataFromResource?(pType: string, pName: string): Promise<void>;
+
+		/**
+		 * Creates a clone of this icon.
+		 *
+		 * @env Client
+		 * @returns {Icon}
+		 */
+		clone?(): Icon;
+
+		/**
+		 * Returns an array of state names belonging to this icon.
+		 *
+		 * @env Client
+		 * @param {RegExp} [pRegex] - Optional regex filter.
+		 * @returns {string[]} Array of state names.
+		 */
+		getStateNames?(pRegex?: RegExp): string[];
 
 		/**
 		 * Creates a new blank icon named `pIcon` inside of the atlas `pAtlas`.
@@ -4739,12 +6805,92 @@ declare global {
          */
 		applyFilter(pFilter: object, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
 
+		/**
+		 * Creates and returns a new rendering sprite (e.g. `PIXI.Sprite`) using the texture from the specified icon, state, or frame.
+		 *
+		 * @env Client
+		 * @param {string} pAtlas - Name of the icon atlas.
+		 * @param {string} pIcon - Name of the icon.
+		 * @param {string} [pState] - Optional icon state name.
+		 * @param {number} [pFrame] - Optional 1-based frame index number.
+		 * @returns {any} A sprite display object referencing the icon texture.
+		 */
+		createSprite(pAtlas: string, pIcon: string, pState?: string, pFrame?: number): any
+
+		/**
+		 * Creates and returns a new graphics display object (e.g. `PIXI.Graphics`).
+		 *
+		 * @env Client
+		 * @param {...any[]} pArgs - Optional constructor arguments passed to graphics initialization.
+		 * @returns {any} A graphics canvas display instance.
+		 */
+		createGraphics(...pArgs: any[]): any
+
 	}
 
 
 
 	/** The map object. */
 	type Map = {
+
+		/**
+		 * Read-only boolean flag indicating this is a Map instance.
+		 *
+		 * @env Client | Server
+		 */
+		readonly isMap?: boolean;
+
+		/**
+		 * Display name of this map.
+		 *
+		 * @env Client | Server
+		 */
+		name?: string;
+
+		/**
+		 * System identifier name of this map.
+		 *
+		 * @env Client | Server
+		 */
+		mapName?: string;
+
+		/**
+		 * Number of horizontal tile columns in this map.
+		 *
+		 * @env Client | Server
+		 */
+		xMax?: number;
+
+		/**
+		 * Number of vertical tile rows in this map.
+		 *
+		 * @env Client | Server
+		 */
+		yMax?: number;
+
+		/**
+		 * Total width of this map in pixels.
+		 *
+		 * @env Client | Server
+		 */
+		width?: number;
+
+		/**
+		 * Total height of this map in pixels.
+		 *
+		 * @env Client | Server
+		 */
+		height?: number;
+
+		/**
+		 * Resizes this map to the specified tile coordinates.
+		 *
+		 * @env Client | Server
+		 * @param {number} pX - Horizontal size in tiles.
+		 * @param {number} [pY] - Vertical size in tiles (defaults to pX).
+		 * @param {string} [pTile] - Default tile type for new tiles.
+		 */
+		setSizeByCoords?(pX: number, pY?: number, pTile?: string): void;
 
 		/**
 		 * Returns number of tiles between `pA` and `pB`.
@@ -4756,17 +6902,18 @@ declare global {
 		 */
 		getTileDist(pA: Diob | Object, pB: Diob | Object): number
 
-        /**
-         * Returns an array of diobs on the map `pMap` depending on the provided arguments. If `pType` is not set, all diobs on the map will be returned. If `pType` is set but `pChild` is not, diobs on the map with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs on the map will be returned.
-         *
-         * @env Client | Server
-         * @param {string} pMap - Name of the map to get diobs from.
-         * @param {string} [pType] - (Optional) String containing type path to return.
-         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
-         * @param {Diob[]} [pAdd] - (Optional) If set, tiles and regions on the map will also be returned.
-         * @returns {Diob[]} Returns an array of diobs on the map `pMap` depending on the provided arguments. If `pType` is not set, all diobs on the map will be returned. If `pType` is set but `pChild` is not, diobs on the map with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs on the map will be returned.
-         */
-		getDiobs(pMap: string, pType?: string, pChild?: boolean, pAdd?: Diob[]): Diob[]
+		/**
+		 * Returns an array of diobs on this map or on map `pMap` depending on the provided arguments.
+		 * When called on a Map instance, `pType` can be passed as the first parameter.
+		 *
+		 * @env Client | Server
+		 * @param {string} [pMapOrType] - Name of the map or type path filter.
+		 * @param {string | boolean} [pTypeOrChild] - String containing type path or boolean for child types.
+		 * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+		 * @param {Diob[]} [pAdd] - (Optional) If set, tiles and regions on the map will also be returned.
+		 * @returns {Diob[]} Array of diobs matching the query.
+		 */
+		getDiobs(pMapOrType?: string, pTypeOrChild?: string | boolean, pChild?: boolean, pAdd?: Diob[]): Diob[];
 
         /**
          * Changes the sized of `pMap` to the width and height of `pW` and `pH`. Reducing the size will delete diobs that are no longer within the map size.
@@ -4800,25 +6947,25 @@ declare global {
 		setLoc(pLoc: Diob | Object, pT: string): Diob
 
         /**
-         * Returns the tiles on `pMap` within the specified area. If no area is specified, all tiles will be returned.
+         * Returns the tiles within the specified area. Can be called on a Map instance with `(pX, pY, pW, pH)` or statically with `(pMap, pX, pY, pW, pH)`.
          *
          * @env Client | Server
-         * @param {string} pMap - Name of the map to get tiles from.
-         * @param {number} [pX] - (Optional) Starting x coordinate.
-         * @param {number} [pY] - (Optional) Starting y coordinate.
-         * @param {number} [pW] - (Optional) Number of tiles to get from the right of `pX`. Negative numbers to get tiles from the left.
-         * @param {number} [pH] - (Optional) Number of tiles to get from below `pY`. Negative numbers to get tiles from above.
-         * @returns {Diob[]} Returns the tiles on `pMap` within the specified area. If no area is specified, all tiles will be returned.
+         * @param {string | number} [pMapOrX] - Name of map or starting x coordinate.
+         * @param {number} [pXOrY] - Starting x coordinate or starting y coordinate.
+         * @param {number} [pYOrW] - Starting y coordinate or width.
+         * @param {number} [pWOrH] - Width in tiles or height in tiles.
+         * @param {number} [pH] - Height in tiles.
+         * @returns {Diob[]} Returns the tiles on the map within the specified area.
          */
-		getTiles(pMap: string, pX?: number, pY?: number, pW?: number, pH?: number): Diob[]
+		getTiles(pMapOrX?: string | number, pXOrY?: number, pYOrW?: number, pWOrH?: number, pH?: number): Diob[];
 
         /**
-         * Returns an array of diobs on the map `pMap` that have the tag `pTag`.
+         * Returns an array of diobs on the map that have the tag `pTag`.
          *
          * @env Client | Server
          * @param {string} pTag - String containing tag to look for.
-         * @param {string} [pMap] - (Optional) Name of map to search.
-         * @returns {Diob[]} Returns an array of diobs on the map `pMap` that have the tag `pTag`.
+         * @param {string} [pMap] - (Optional) Name of map to search if called statically.
+         * @returns {Diob[]} Returns an array of diobs that have the tag `pTag`.
          */
 		getDiobsByTag(pTag: string, pMap?: string): Diob[]
 
@@ -5125,6 +7272,16 @@ declare global {
          */
 		createMap(pName: string | number, pX: number, pY: number, pTile: string): void
 
+		/**
+		 * Creates a map by parsing raw map text file data and initializing all tiles, objects, and overlays.
+		 *
+		 * @env Client | Server
+		 * @param {string} pName - Name to assign to the newly created map.
+		 * @param {string} pText - Raw map file text data to parse.
+		 * @param {Function} [pFunc] - Optional callback function invoked once the map finishes parsing and loading.
+		 */
+		createMapFromText(pName: string, pText: string, pFunc?: Function): void
+
         /**
          * Sends the data for the `pD` diob to all clients on the `pMap` map, if `pVar` is set it will send only those variables, if it is not set it will only send built-in engine variables.
          *
@@ -5382,6 +7539,8 @@ declare global {
 		Map: Map
 		/** The type object. */
 		Type: Type
+		/** The math object. */
+		Math: Math
 
         /**
          * The global object referencing all global variables in VyScript.
@@ -5438,4 +7597,4 @@ declare global {
 }
 
 
-export { VyloType, World, Diob, Movable, Particle, Tile, Region, Mob, Overlay, Sound, Interface, Client, Resource, Util, Icon, Macro, Type, MouseButton, MouseOpacity, Direction, Directions, MoveSettingsConfig, AppearMask, AppearMaskConfig };
+export { VyloType, World, Diob, MapObject, Movable, Particle, Tile, Region, Mob, Overlay, Sound, Interface, InterfacePane, WebBox, TextInput, Client, Resource, Util, Icon, IconAtlas, Macro, Type, ObjectType, MouseButton, MouseOpacity, Direction, Directions, MoveSettingsConfig, AppearMask, AppearMaskConfig };
