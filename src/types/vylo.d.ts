@@ -1,3849 +1,5441 @@
+declare global {
 
-                
-	
-	/**The world object.*/
-	type World = {
-                    
+
+
+	/**
+	 * Mouse button identifiers emitted by Vylocity input handlers (1-based DOM button offsets).
+	 *
+	 * - `Left`: Primary / left mouse button (`1`)
+	 * - `Middle`: Auxiliary / middle scroll wheel button (`2`)
+	 * - `Right`: Secondary / right mouse button (`3`)
+	 *
+	 * @example
+	 * ```ts
+	 * onMouseDown(pClient: Client, pX: number, pY: number, pButton: MouseButton): void {
+	 *     if (pButton === MouseButton.Left) {
+	 *         // Left click
+	 *     } else if (pButton === MouseButton.Right) {
+	 *         // Right click
+	 *     }
+	 * }
+	 * ```
+	 */
+	enum MouseButton {
+		/** Primary / Left mouse button. */
+		Left = 1,
+		/** Auxiliary / Middle mouse button (wheel click). */
+		Middle = 2,
+		/** Secondary / Right mouse button. */
+		Right = 3
+	}
+
+	/**
+	 * Mouse opacity modes determining how cursor hit-testing and mouse events are processed on an object.
+	 *
+	 * - `Transparent` (`0`): Ignores mouse events completely (clicks pass through).
+	 * - `Icon` (`1`): Uses the object's visual icon bounds (`iconWidth` x `iconHeight` + icon offsets) to detect mouse events.
+	 * - `Bounds` (`2`): Uses the object's physical collision bounding box (`width` x `height` + origins) to detect mouse events.
+	 *
+	 * @example
+	 * ```ts
+	 * diob.mouseOpacity = MouseOpacity.Bounds;
+	 * ```
+	 */
+	enum MouseOpacity {
+		/** Mouse events are disabled; cursor passes through to underlying objects or tiles. */
+		Transparent = 0,
+		/** Mouse events are detected using the object's visual icon boundaries. */
+		Icon = 1,
+		/** Mouse events are detected using the object's physical collision bounding box. */
+		Bounds = 2
+	}
+
+	/**
+	 * Readonly tuple containing all 8 standard compass movement directions in clockwise order.
+	 */
+	type Directions = readonly ['east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', 'southeast'];
+
+	/**
+	 * Cardinal and ordinal compass movement directions.
+	 */
+	type Direction = Directions[number];
+
+	/**
+	 * Movement settings configuration controlling step size, gliding, sliding, cardinal locking, and step frequency.
+	 */
+	interface MoveSettingsConfig {
 		/**
-		 * returns an array of diobs in the world depending on the provided arguments; if pType is not set, all diobs in the game will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
+		 * Number of pixels moved per step. Defaults to `2`.
+		 */
+		stepSize?: number;
+		/**
+		 * If true or numeric, movement will glide around obstacle corners instead of halting immediately when blocked.
+		 */
+		stepGlide?: boolean | number;
+		/**
+		 * If true, steps occur without changing the movable's facing direction.
+		 */
+		stepSlide?: boolean;
+		/**
+		 * If true, restricts diagonal movement steps to the dominant cardinal direction.
+		 */
+		stepCard?: boolean;
+		/**
+		 * Milliseconds between each movement step tick. Defaults to `16.6667` (~60 ticks/second).
+		 */
+		stepTick?: number;
+		readonly isMoveSettings?: boolean;
+		[key: string]: any;
+	}
+
+	/**
+	 * Configuration options for an overlay's appearance mask when attached to a parent Diob.
+	 */
+	interface AppearMaskConfig {
+		/**
+		 * If `true`, the overlay shares the same icon name (`iconName`) as the parent Diob.
+		 */
+		shareIcon?: boolean;
+		/**
+		 * If `true`, the overlay appears underneath the parent Diob instead of above it.
+		 */
+		isUnder?: boolean;
+		/**
+		 * If `true`, the overlay uses its own alpha, angle, scale, transform, and composite variables instead of inheriting them from the parent Diob.
+		 */
+		ownMod?: boolean;
+		/**
+		 * If `true`, the overlay does not synchronize its `iconState` with the parent Diob's `iconState`.
+		 */
+		ownState?: boolean;
+		/**
+		 * If `true`, the overlay manages its own animator and animation playback instead of sharing the parent Diob's animator.
+		 */
+		ownAnim?: boolean;
+		[key: string]: any;
+	}
+
+	/**
+	 * Appearance mask configuration or flag determining how an overlay attaches and synchronizes visually with its parent Diob.
+	 *
+	 * - `true`: Overlay acts as an appearance extension on top of the parent.
+	 * - `false` / `0`: Overlay acts as an independent diob that follows the parent.
+	 * - Positive number: Same as `true` (rendered above parent).
+	 * - Negative number: Same as `true`, but rendered under parent (`isUnder`).
+	 * - `AppearMaskConfig`: Fine-grained configuration object (`shareIcon`, `isUnder`, `ownMod`, `ownState`, `ownAnim`).
+	 */
+	type AppearMask = boolean | number | AppearMaskConfig | null;
+
+	/**
+	 * Represents coordinate and dimensional dimensions for size calculations.
+	 */
+	interface Size2D {
+		width: number;
+		height: number;
+	}
+
+	/**
+	 * Represents 2D spatial coordinates or offset points.
+	 */
+	interface Point2D {
+		x: number;
+		y: number;
+	}
+
+	/**
+	 * Represents zoom configuration on the MapView.
+	 */
+	interface MapViewZoomConfig {
+		/** Horizontal zoom factor. */
+		x: number;
+		/** Vertical zoom factor. */
+		y: number;
+		/** Set both horizontal and vertical zoom factors. */
+		set?: (pX: number, pY?: number) => void;
+		readonly isMapViewZoom?: boolean;
+	}
+
+	/**
+	 * Represents boundary dimensional limits for MapView.
+	 */
+	interface MapViewDimensionLimit {
+		/** Maximum or minimum width limit in pixels. */
+		width?: number;
+		/** Maximum or minimum height limit in pixels. */
+		height?: number;
+		readonly isMapViewMaxView?: boolean;
+		readonly isMapViewMinView?: boolean;
+	}
+
+	/**
+	 * Represents zoom constraint limits for MapView.
+	 */
+	interface MapViewZoomLimit {
+		/** Horizontal zoom limit. */
+		x: number;
+		/** Vertical zoom limit. */
+		y: number;
+		readonly isMapViewMaxZoom?: boolean;
+		readonly isMapViewMinZoom?: boolean;
+	}
+
+	/**
+	 * Represents padding configuration styles for MapView.
+	 */
+	interface MapViewPaddingConfig {
+		top?: number | string;
+		left?: number | string;
+		right?: number | string;
+		bottom?: number | string;
+		setStyle?: (pStyle: string | number | Partial<MapViewPaddingConfig>, pOverride?: boolean) => void;
+	}
+
+	/**
+	 * Configuration options for creating or updating a client's MapView.
+	 */
+	interface MapViewConfig {
+		/**
+		 * Width of the map view in pixels, percentage string (e.g. `'100%'`), or auto.
+		 */
+		width?: number | string;
+		/**
+		 * Height of the map view in pixels, percentage string (e.g. `'100%'`), or auto.
+		 */
+		height?: number | string;
+		/**
+		 * X coordinate position of the map view on screen.
+		 */
+		xPos?: number;
+		/**
+		 * Y coordinate position of the map view on screen.
+		 */
+		yPos?: number;
+		/**
+		 * Map zoom configuration or numeric factor.
+		 */
+		zoom?: number | Partial<MapViewZoomConfig>;
+		/**
+		 * Maximum allowable zoom level.
+		 */
+		maxZoom?: number | Partial<MapViewZoomLimit>;
+		/**
+		 * Minimum allowable zoom level.
+		 */
+		minZoom?: number | Partial<MapViewZoomLimit>;
+		/**
+		 * Maximum view dimensions before auto-zoom triggers.
+		 */
+		maxView?: number | Partial<MapViewDimensionLimit>;
+		/**
+		 * Minimum view dimensions before auto-zoom triggers.
+		 */
+		minView?: number | Partial<MapViewDimensionLimit>;
+		/**
+		 * Anchor point for scale origin (e.g. `{ x: 0.5, y: 0.5 }`).
+		 */
+		anchor?: number | Point2D;
+		/**
+		 * Horizontal and vertical scale multipliers.
+		 */
+		scale?: number | Point2D;
+		/**
+		 * Multiplier step interval for auto-zoom calculations.
+		 */
+		autoZoomMulti?: number;
+		/**
+		 * When true, prevents the map view from automatically scaling with the window.
+		 */
+		preventAutoScale?: boolean;
+		/**
+		 * When true, prevents automatic resize recalculations on window resize.
+		 */
+		preventAutoResize?: boolean;
+		/**
+		 * Edge lock constraints (e.g. `'bottom'`, `'right'`, etc.).
+		 */
+		edgeLock?: string | string[];
+		/**
+		 * Callback invoked when auto-zoom level changes.
+		 */
+		onAutoZoom?: (pOldAutoX: number, pOldAutoY: number) => void;
+		[key: string]: any;
+	}
+
+	/**
+	 * The active MapView instance attached to a Client.
+	 *
+	 * Controls the camera viewport, world rendering canvas, rendering resolution,
+	 * eye tracking target, zoom levels, and spatial conversions.
+	 *
+	 * @example
+	 * ```ts
+	 * const mapView = VYLO.Client.getMapView();
+	 * mapView.setZoom(1.5);
+	 * mapView.eye = playerMob;
+	 * ```
+	 */
+	interface MapViewInstance extends MapViewConfig {
+		readonly isMapView: boolean;
+		/** The target Diob the camera viewport is centered on. */
+		eye: Diob | null;
+		/** Offset from the eye target on the x-axis in pixels. */
+		xEyeOffset: number;
+		/** Offset from the eye target on the y-axis in pixels. */
+		yEyeOffset: number;
+		/** Current horizontal screen viewport offset. */
+		readonly xView: number;
+		/** Current vertical screen viewport offset. */
+		readonly yView: number;
+		/** Number of blank tiles visible on the horizontal map edges. */
+		xEdgeLimit: number | null;
+		/** Number of blank tiles visible on the vertical map edges. */
+		yEdgeLimit: number | null;
+		/** Current zoom controller object. */
+		zoom: MapViewZoomConfig;
+		/** Maximum zoom controller object. */
+		maxZoom: MapViewZoomLimit;
+		/** Minimum zoom controller object. */
+		minZoom: MapViewZoomLimit;
+		/** Maximum view dimensions controller object. */
+		maxView: MapViewDimensionLimit;
+		/** Minimum view dimensions controller object. */
+		minView: MapViewDimensionLimit;
+		/** Current horizontal auto-zoom factor. */
+		readonly xAutoZoom: number;
+		/** Current vertical auto-zoom factor. */
+		readonly yAutoZoom: number;
+		/** Multiplier step factor for auto-zoom. */
+		autoZoomMulti: number | null;
+		/** Padding controller for the MapView viewport. */
+		padding: MapViewPaddingConfig;
+		/** The underlying rendering application instance (e.g. PIXI.Application). */
+		readonly renderApp: any;
+		/** Sets both horizontal and vertical eye offsets. */
+		setEyeOffsets: (pX: number, pY?: number) => void;
+		/** Sets horizontal and vertical edge limits. */
+		setEdgeLimit: (pX: number, pY: number) => void;
+		/** Sets horizontal and vertical zoom factors. */
+		setZoom: (pX: number, pY?: number) => void;
+		/** Sets maximum horizontal and vertical zoom bounds. */
+		setMaxZoom: (pX: number, pY: number) => void;
+		/** Sets minimum horizontal and vertical zoom bounds. */
+		setMinZoom: (pX: number, pY: number) => void;
+		/** Sets maximum view dimension bounds. */
+		setMaxView: (pW: number, pH: number) => void;
+		/** Sets minimum view dimension bounds. */
+		setMinView: (pW: number, pH: number) => void;
+		/** Converts a screen-space X pixel coordinate to a map-space coordinate. */
+		getMapPosXFromScreen: (pX: number) => number;
+		/** Converts a screen-space Y pixel coordinate to a map-space coordinate. */
+		getMapPosYFromScreen: (pY: number) => number;
+		/** Retrieves all diobs currently visible within this MapView. */
+		getDiobs: (pType?: string, pChild?: boolean, pAdd?: boolean) => Diob[];
+		[key: string]: any;
+	}
+
+	/**
+	 * Window scaling modes for the client screen view.
+	 *
+	 * - `'normal'`: Normal scaling according to window size.
+	 * - `'ratio'`: Preserves original aspect ratio when scaled.
+	 * - `'multiple'`: Integer multiplier scaling (2x, 3x, etc.).
+	 * - `'multiAspect'`: Aspect ratio scaling with integer stepping.
+	 * - `'none'`: Disables automatic window scaling.
+	 */
+	type ScreenViewScaleTo = 'normal' | 'ratio' | 'multiple' | 'multiAspect' | 'none';
+
+	/**
+	 * Settings and state configuration for the client's screenView viewport.
+	 *
+	 * @example
+	 * ```ts
+	 * VYLO.Client.setScreenView({
+	 *     scaleTo: 'ratio',
+	 *     scaleNearest: true,
+	 *     disableImageSmoothing: true,
+	 *     resolution: window.devicePixelRatio || 1
+	 * });
+	 * ```
+	 */
+	interface ScreenView {
+		/**
+		 * Window scaling policy mode.
+		 */
+		scaleTo?: ScreenViewScaleTo;
+		/**
+		 * When true, enables nearest-neighbor pixelated canvas rendering.
+		 */
+		scaleNearest?: boolean;
+		/**
+		 * When true, disables image smoothing on renderer canvases.
+		 */
+		disableImageSmoothing?: boolean;
+		/**
+		 * Rendering resolution / pixel ratio. Defaults to `1`.
+		 */
+		resolution?: number | string;
+		/**
+		 * Current calculated window width in pixels.
+		 */
+		width?: number;
+		/**
+		 * Current calculated window height in pixels.
+		 */
+		height?: number;
+		/**
+		 * When true, prevents auto-resizing the world gameWidth/gameHeight when `scaleTo` is `'none'`.
+		 */
+		preventAutoResize?: boolean;
+		/**
+		 * Automatic scale multiplier step value.
+		 */
+		autoScaleMulti?: number;
+		/**
+		 * Minimum viewport constraints for auto-scale calculations.
+		 */
+		minView?: Partial<Size2D> & { autoScaleMulti?: number };
+		/**
+		 * Maximum viewport constraints for auto-scale calculations.
+		 */
+		maxView?: Partial<Size2D> & { autoScaleMulti?: number };
+		/**
+		 * Horizontal auto-scale factor currently applied.
+		 */
+		xAutoScale?: number;
+		/**
+		 * Vertical auto-scale factor currently applied.
+		 */
+		yAutoScale?: number;
+		/**
+		 * Callback invoked when auto-scaling values change.
+		 */
+		onAutoScale?: (pOldScaleX: number, pOldScaleY: number) => void;
+		[key: string]: any;
+	}
+
+	/**
+	 * Screen capture representation returned by `getTopScreen` or `getOverScreen`.
+	 */
+	interface ScreenCaptureData {
+		/** Screen or identifier name. */
+		name?: string | number;
+		/** Display layer depth. */
+		layer?: number;
+		/** Horizontal coordinate. */
+		x?: number;
+		/** Vertical coordinate. */
+		y?: number;
+		/** Width in pixels. */
+		width?: number;
+		/** Height in pixels. */
+		height?: number;
+		/** Pixel data array (ImageData), base64 data URL string, canvas, or sprite. */
+		data?: string | ImageData | HTMLCanvasElement | any;
+		/** Associated canvas element if requested. */
+		canvas?: HTMLCanvasElement;
+		/** Settings object associated with the capture. */
+		settings?: { scaleType?: string; [key: string]: any };
+	}
+
+	/**
+	 * Draw command parameter object for `topScreenDraw`, `overScreenDraw`, or `Icon.draw`.
+	 */
+	interface DrawCommandArgs {
+		/** Draw action type: `'image'`, `'fillRect'`, `'strokeRect'`, `'clearRect'`, `'text'`, `'fillPath'`, `'strokePath'`. */
+		type?: 'image' | 'fillRect' | 'strokeRect' | 'clearRect' | 'text' | 'fillPath' | 'strokePath' | string;
+		/** Image source (Image, canvas, Diob, or URL string) when drawing images. */
+		image?: HTMLImageElement | HTMLCanvasElement | Diob | string | any;
+		/** X coordinate on the destination canvas. */
+		x?: number;
+		/** Y coordinate on the destination canvas. */
+		y?: number;
+		/** Destination render width. */
+		width?: number;
+		/** Destination render height. */
+		height?: number;
+		/** Source clipping X offset on the image. */
+		clipX?: number;
+		/** Source clipping Y offset on the image. */
+		clipY?: number;
+		/** Source clipping width on the image. */
+		clipW?: number;
+		/** Source clipping height on the image. */
+		clipH?: number;
+		/** Fill or stroke CSS color string (e.g. `'#ff0000'`, `'rgba(0,0,0,0.5)'`). */
+		color?: string;
+		/** Rotation angle in radians (0 to 2*PI). */
+		angle?: number;
+		/** Anchor point for rotation and scaling. */
+		anchor?: number | Point2D;
+		/** Stroke line width in pixels. */
+		lineWidth?: number;
+		/** Text string to render. */
+		text?: string;
+		/** CSS font specification string (e.g. `'16px Arial'`). */
+		font?: string;
+		/** Text alignment: `'left'`, `'right'`, `'center'`, `'start'`, `'end'`. */
+		align?: CanvasTextAlign;
+		/** Maximum text width limit. */
+		maxWidth?: number;
+		/** Path command sequence array for `'fillPath'` or `'strokePath'`. */
+		path?: any[];
+		[key: string]: any;
+	}
+
+	/**
+	 * Information describing a Diob's active animation state.
+	 */
+	interface AnimationInfo {
+		/** 1-based index of the currently playing frame. */
+		onFrame: number;
+		/** Total count of frames in the active animation. */
+		frameCount: number;
+		/** Atlas containing the animation. */
+		atlasName: string;
+		/** Icon name inside the atlas. */
+		iconName: string;
+		/** State name inside the icon. */
+		iconState: string;
+	}
+
+	/**
+	 * Coordinates and transformation properties for a 2D affine matrix.
+	 */
+	interface TransformMatrixObject {
+		scaleX: number;
+		scaleY: number;
+		skewX: number;
+		skewY: number;
+		moveX: number;
+		moveY: number;
+	}
+
+	/**
+	 * Modifier configuration applied to an over screen sprite.
+	 */
+	interface OverScreenMod {
+		/** Scale modifier factor as a single scalar or {x, y} object. */
+		scale?: number | Point2D;
+		/** Opacity alpha value (0 to 1). */
+		alpha?: number;
+		/** Rotation angle in radians (0 to 2*PI). */
+		angle?: number;
+		[key: string]: any;
+	}
+
+	/**
+	 * Represents a MySQL connection pool instance returned by World.openMySQL.
+	 */
+	interface MySQLConnectionPool {
+		getConnection: Function;
+		query: Function;
+		end: Function;
+		[key: string]: any;
+	}
+
+	/**
+	 * File statistics object returned by File.stat and File.getStats.
+	 */
+	interface FileStats {
+		/** Returns true if the path is a regular file. */
+		isFile(): boolean;
+		/** Returns true if the path is a directory. */
+		isDirectory(): boolean;
+		/** Returns true if the path is a block device. */
+		isBlockDevice(): boolean;
+		/** Returns true if the path is a character device. */
+		isCharacterDevice(): boolean;
+		/** Returns true if the path is a symbolic link. */
+		isSymbolicLink(): boolean;
+		/** Returns true if the path is a FIFO named pipe. */
+		isFIFO(): boolean;
+		/** Returns true if the path is a socket. */
+		isSocket(): boolean;
+		/** Size of the file in bytes. */
+		size: number;
+		/** File mode bit mask. */
+		mode: number;
+		/** Timestamp of last file modification. */
+		mtime: Date;
+		/** Timestamp of last file access. */
+		atime: Date;
+		/** Timestamp of last status change. */
+		ctime: Date;
+		/** Timestamp of file creation. */
+		birthtime: Date;
+		[key: string]: any;
+	}
+
+	/** The world object. */
+	interface World {
+
+		/**
+		 * Returns an array of diobs in the world depending on the provided arguments. If `pType` is not set, all diobs in the game will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs in the game will be returned.
+		 *
 		 * @env Client | Server
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {Diob[]} returns an array of diobs in the world depending on the provided arguments; if pType is not set, all diobs in the game will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
+		 * @param {string} [pType] - (Optional) String containing type path to return.
+		 * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+		 * @returns {Diob[]} Returns an array of diobs in the world depending on the provided arguments. If `pType` is not set, all diobs in the game will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs in the game will be returned.
 		 */
 		getDiobs(pType?: string, pChild?: boolean): Diob[]
 
         /**
-		 * object that will become the contents of 'settings.json' file for your game server
-		 * @env Client | Server
-		 */
+         * Object that will become the contents of `settings.json` file for your game server.
+         *
+         * @env Client | Server
+         */
 		serverSettings: {[key: string]: unknown, 'port'?: number,'name'?: string,'accessCode'?: 'string','secure'?: {'key': string, 'cert': string}}
 
         /**
-		 * alphanumeric string between 1 and 48 characters needed to list a server and use the api for the game
-		 * @env Client | Server
-		 */
+         * Alphanumeric string between 1 and 48 characters needed to list a server and use the api for the game.
+         *
+         * @env Client | Server
+         */
 		webAccessCode: string
 
         /**
-		 * SERVER-ONLY; default 10000; number of milliseconds to wait before pinging a client to see if it is still connected
-		 * @env Server
-		 */
+         * Default is `10000`. Number of milliseconds to wait before pinging a client to see if it is still connected.
+         *
+         * @env Server
+         */
 		pingDelay: number
 
         /**
-		 * SERVER-ONLY; default port to use when hosting; if the host sets a port in settings.json that port will override this one
-		 * @env Server
-		 */
+         * Default port to use when hosting. If the host sets a port in `settings.json` that port will override this one.
+         *
+         * @env Server
+         */
 		mainPort: number
 
         /**
-		 * type of map to use; 'normal' or 'isometric'
-		 * @env Client | Server
-		 */
+         * Type of map to use; `normal` or `isometric`.
+         *
+         * @env Client | Server
+         */
 		mapMode: 'normal' | 'isometric'
 
         /**
-		 * a string containing the address of the server to automatically connect players to; example '127.0.0.1:1234'
-		 * @env Client | Server
-		 */
+         * A string containing the address of the server to automatically connect players to. Example: `127.0.0.1:1234`.
+         *
+         * @env Client | Server
+         */
 		mainServer: string
 
         /**
-		 * passes an array of objects containing information about the game servers currently online; example {'name': 'Server 1', 'address': '127.0.0.1:1234', 'players': 12, 'guests': 2} would be the data for a server named Server 1 with 12 players and 2 guests on it at 127.0.0.1:1234 address to pFunc
-		 * @env Client | Server
-		 * @param {Function} pFunc - function to call after the servers have been retrieved
-		 */
+         * Width of the game canvas. Resolution of the game width.
+         * 
+         * @env Client | Server
+         */
+        gameWidth: number
+
+        /**
+         * Height of the game canvas. Resolution of the game height.
+         * 
+         * @env Client | Server
+         */
+        gameHeight: number
+
+        /**
+         * Passes an array of objects containing information about the game servers currently online. Example: `{'name': 'Server 1', 'address': '127.0.0.1:1234', 'players': 12, 'guests': 2}` would be the data for a server named Server 1 with 12 players and 2 guests on it at 127.0.0.1:1234 address to `pFunc`.
+         *
+         * @env Client | Server
+         * @param {Function} pFunc - Function to call after the servers have been retrieved.
+         */
 		getServers(pFunc: Function): void
 
         /**
-		 * returns an array of diobs in the world that have the tag pTag
-		 * @env Client | Server
-		 * @param {string} pTag - string containing tag to look for
-		 * @returns {Diob[]} returns an array of diobs in the world that have the tag pTag
-		 */
+         * Returns an array of diobs in the world that have the tag `pTag`.
+         *
+         * @env Client | Server
+         * @param {string} pTag - String containing tag to look for.
+         * @returns {Diob[]} Returns an array of diobs in the world that have the tag `pTag`.
+         */
 		getDiobsByTag(pTag: string): Diob[]
 
         /**
-		 * returns an object {'width': world.gameWidth, 'height': world.gameHeight} containing the width and height of the game
-		 * @env Client | Server
-		 * @returns {{'width': number, 'height': number}} returns an object {'width': world.gameWidth, 'height': world.gameHeight} containing the width and height of the game
-		 */
+         * Returns an object `{'width': world.gameWidth, 'height': world.gameHeight}` containing the width and height of the game.
+         *
+         * @env Client | Server
+         * @returns {{'width': number, 'height': number} } returns an object `{'width': world.gameWidth, 'height': world.gameHeight}` containing the width and height of the game.
+         */
 		getGameSize(): {'width': number, 'height': number}
 
         /**
-		 * closes the socket connection
-		 * @env Client | Server
-		 * @param {string} pAddress - address of server to open a socket to; example '127.0.0.1:1234'
-		 * @param {Function} pFunc - function to call once the socket has been opened; an object holding the socket information is passed into pFunc
-		 * @param {object} pSettings - object containing settings values; example: {'secure': true}
-		 */
+         * Closes the socket connection.
+         *
+         * @env Client | Server
+         * @param {string} pAddress - Address of server to open a socket to. Example: `127.0.0.1:1234`.
+         * @param {Function} pFunc - Function to call once the socket has been opened. An object holding the socket information is passed into `pFunc`.
+         * @param {object} pSettings - Object containing settings values. Example: `{'secure': `true`}`.
+         */
 		openWebSocket(pAddress: string, pFunc: Function, pSettings: object): void
 
         /**
-		 * name that the server's js file will have, default being 'server' making it 'server.js'
-		 * @env Client | Server
-		 */
+         * Name that the server's js file will have, default being `server` making it `server.js`.
+         *
+         * @env Client | Server
+         */
 		serverFileName: string
 
         /**
-		 * closes the host socket
-		 * @env Server
-		 * @param {number} pPort - the port to listen for sockets on
-		 * @param {Function} pFunc - the function to call once the host socket has started
-		 * @returns {unknown[]} returns an array of all the socket client objects
-		 */
-		hostWebSocket(pPort: number, pFunc: Function): unknown[]
+         * Closes the host socket.
+         *
+         * @env Server
+         * @param {number} pPort - The port to listen for sockets on.
+         * @param {Function} pFunc - The function to call once the host socket has started.
+         * @returns {Client[]} Returns an array of all the socket client objects.
+         */
+		hostWebSocket(pPort: number, pFunc: Function): Client[]
 
         /**
-		 * checks if Vylocity account pName is a subscriber of the game then calls pFunc; server-side only
-		 * @env Server
-		 * @param {string | number} pName - name of the Vyocity account to check sub of
-		 * @param {Function} pFunc - function to call after the sub check; function is called with up to two parameters where the first is true or false depending on if the account is a sub or not and the second is a string containing an error message if there was one
-		 */
+         * Checks if Vylocity account `pName` is a subscriber of the game then calls `pFunc`. Server-side only.
+         *
+         * @env Server
+         * @param {string | number} pName - Name of the Vyocity account to check sub of.
+         * @param {Function} pFunc - Function to call after the sub check. Function is called with up to two parameters where the first is `true` or `false` depending on if the account is a sub or not and the second is a string containing an error message if there was one.
+         */
 		checkSub(pName: string | number, pFunc: Function): void
 
         /**
-		 * plays a sound to all objects in pArr; returns the Sound object
-		 * @env Client | Server
-		 * @param {string | {'soundName': string, 'volume': number}} pSound - either a string with the name of a sound file, or a string containing the path of a Sound object, or an actual Sound object, or a basic object with the proper information; ex ( {'soundName': 'name', 'volume': 50} )
-		 * @param {unknown} [pArr] - optional list of objects to play sound to
-		 * @param {unknown} [pStart] - optional; time to start playing the sound at
-		 * @param {unknown} [pDuration] - optional; how long to play the sound for
-		 * @returns {void} returns the Sound object
-		 */
-		playSound(pSound: string | {'soundName': string, 'volume': number}, pArr?: unknown, pStart?: unknown, pDuration?: unknown): void
+         * Plays a sound to all objects in `pArr`. Returns the Sound object.
+         *
+         * @env Client | Server
+         * @param {string | {'soundName': string, 'volume': number}} pSound - either a string with the name of a sound file, or a string containing the path of a Sound object, or an actual Sound object, or a basic object with the proper information; ex ( {'soundName': 'name', 'volume': 50} )
+         * @param {Client | Client[]} [pArr] - (Optional) List of objects to play sound to.
+         * @param {number} [pStart] - (Optional) Time to start playing the sound at.
+         * @param {number} [pDuration] - (Optional) How long to play the sound for.
+         * @returns {void} Returns the Sound object.
+         */
+		playSound(pSound: string | {'soundName': string, 'volume': number}, pArr?: Client | Client[], pStart?: number, pDuration?: number): void
 
         /**
-		 * sends a request of method pMethod to the url pLink and passes the response into pFunc
-		 * @env Client | Server
-		 * @param {string} pLink - string containing the link to send a request to; for example 'https://vylocity.com/'
-		 * @param {string} [pMethod] - optional; string containing method type of request, ex 'POST', 'GET'
-		 * @param {object} [pHeaders] - optional; object containing custom headers
-		 * @param {unknown} [pData] - optional; data to send with method 'POST'
-		 * @param {Function} [pFunc] - optional; function to call after the request has been sent and a response received, the arguments of the function will be (pData, pError) where pData is the data returned and pError the error (if there is one)
-		 */
-		sendRequest(pLink: string, pMethod?: string, pHeaders?: object, pData?: unknown, pFunc?: Function): void
+         * Sends a request of method `pMethod` to the url `pLink` and passes the response into `pFunc`.
+         *
+         * @env Client | Server
+         * @param {string} pLink - String containing the link to send a request to. For example `https://vylocity.com/`.
+         * @param {string} [pMethod] - (Optional) String containing method type of request, ex `POST`, `GET`.
+         * @param {object} [pHeaders] - (Optional) Object containing custom headers.
+         * @param {any} [pData] - (Optional) Data to send with method `POST`.
+         * @param {Function} [pFunc] - (Optional) Function to call after the request has been sent and a response received, the arguments of the function will be (`pData`, `pError`) where `pData` is the data returned and `pError` the error (if there is one).
+         */
+		sendRequest(pLink: string, pMethod?: string, pHeaders?: object, pData?: any, pFunc?: (pData: any, pError?: any) => void): void
 
         /**
-		 * SERVER-ONLY; a string containing addresses allowed to use scripts to access and download resources from this game server (currently set for .vyr|.json|.txt files); default '*' which allows all addresses
-		 * @env Server
-		 */
+         * A string containing addresses allowed to use scripts to access and download resources from this game server (currently set for `.vyr`|`.json`|`.txt` files). Default `*` which allows all addresses.
+         *
+         * @env Server
+         */
 		resourceOrigin: string
 
         /**
-		 * map to be loaded when the game starts
-		 * @env Client | Server
-		 */
+         * Map to be loaded when the game starts.
+         *
+         * @env Client | Server
+         */
 		mainMap: string
 
         /**
-		 * a string containing the address of the server to download resources from (game server or web server); default '.' which is same address as the game; if using web server, add htaccess file in the resources folder to set header Access-Control-Allow-Origin ex of htaccess file: ( Header set Access-Control-Allow-Origin "*" ); this feature only works for the client of multiplayer, if playing solo the resources at the index location will be used and the server in multiplayer will use its own resource location
-		 * @env Client | Server
-		 */
+         * A string containing the address of the server to download resources from (game server or web server). Default is `.` which is same address as the game. If using web server, add htaccess file in the resources folder to set header Access-Control-Allow-Origin ex of htaccess file: ( Header set Access-Control-Allow-Origin "*" ). This feature only works for the client of multiplayer, if playing solo the resources at the index location will be used and the server in multiplayer will use its own resource location.
+         *
+         * @env Client | Server
+         */
 		resourceServer: string
 
         /**
-		 * returns an object {'width': world.tileWidth, 'height': world.tileHeight} containing the width and height of the game tiles
-		 * @env Client | Server
-		 * @returns {{'width': number, 'height': number}} returns an object {'width': world.tileWidth, 'height': world.tileHeight} containing the width and height of the game tiles
-		 */
+         * Returns an object `{'width': world.tileWidth, 'height': world.tileHeight}` containing the width and height of the game tiles.
+         *
+         * @env Client | Server
+         * @returns {{'width': number, 'height': number} } returns an object `{'width': world.tileWidth, 'height': world.tileHeight}` containing the width and height of the game tiles.
+         */
 		getTileSize(): {'width': number, 'height': number}
 
         /**
-		 * gracefully reboot the server
-		 * @env Client | Server
-		 */
+         * Gracefully reboot the server.
+         *
+         * @env Client | Server
+         */
 		reboot(): void
 
         /**
-		 * string containing the name of the default macro atlas
-		 * @env Client | Server
-		 */
+         * String containing the name of the default macro atlas.
+         *
+         * @env Client | Server
+         */
 		mainMacro: string
 
         /**
-		 * returns an array of objects that are in pArr depending on the provided arguments; if pType is not set, all objects in the game will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
-		 * @env Client | Server
-		 * @param {unknown[]} pArr - array to check for objects in
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {unknown[]} returns an array of objects that are in pArr depending on the provided arguments; if pType is not set, all objects in the game will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
-		 */
-		getObjectsFromArray(pArr: unknown[], pType?: string, pChild?: boolean): unknown[]
+         * Returns an array of objects that are in `pArr` depending on the provided arguments. If `pType` is not set, all objects in the game will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs in the game will be returned.
+         *
+         * @env Client | Server
+         * @param {unknown[]} pArr - Array to check for objects in.
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @returns {unknown[]} Returns an array of objects that are in `pArr` depending on the provided arguments. If `pType` is not set, all objects in the game will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs in the game will be returned.
+         */
+		getObjectsFromArray<T extends Diob = Diob>(pArr: any[], pType?: string, pChild?: boolean): T[]
 
         /**
-		 * returns a string containing the address of the server or client; for example '1.2.3.4:1234' for server and 'localhost' always for client
-		 * @env Client | Server
-		 * @returns {string} returns a string containing the address of the server or client; for example '1.2.3.4:1234' for server and 'localhost' always for client
-		 */
+         * Returns a string containing the address of the server or client. For example `1.2.3.4:1234` for server and `localhost` always for client.
+         *
+         * @env Client | Server
+         * @returns {string} Returns a string containing the address of the server or client. For example `1.2.3.4:1234` for server and `localhost` always for client.
+         */
 		getHostAddress(): string
 
         /**
-		 * goes to pLink and passes the content of the page to pFunc once it is finished
-		 * @env Client
-		 * @param {string} pLink - string containing the link to read; for example 'http://vylocity.com/'
-		 * @param {Function} pFunc - function to call after the content has been retrieved
-		 * @param {unknown} [pMime] - CLIENT-ONLY; optional; set the mime type; ex text/html or application/octet-stream
-		 */
-		getWebContent(pLink: string, pFunc: Function, pMime?: unknown): void
+         * Goes to `pLink` and passes the content of the page to `pFunc` once it is finished.
+         *
+         * @env Client
+         * @param {string} pLink - String containing the link to read. For example `http://vylocity.com/`.
+         * @param {Function} pFunc - Function to call after the content has been retrieved.
+         * @param {string} [pMime] - (Optional) Set the mime type. Example: text/html or application/octet-stream.
+         */
+		getWebContent(pLink: string, pFunc: (pContent: string | ArrayBuffer) => void, pMime?: string): void
 
         /**
-		 * SERVER-ONLY; reference to the node process (https://nodejs.org/api/process.html); warning: for advanced users
-		 * @env Server
-		 */
+         * Reference to the node process (https://nodejs.org/api/process.html). Warning: for advanced users.
+         *
+         * @env Server
+         */
 		nodeProcess: NodeJS.Process
 
         /**
-		 * version of the game
-		 * @env Client | Server
-		 */
+         * Version of the game.
+         *
+         * @env Client | Server
+         */
 		gameVersion: string | number
 
         /**
-		 * displays pMes to the console
-		 * @env Client | Server
-		 * @param {string} pMes - message to display
-		 */
+         * Displays `pMes` to the console.
+         *
+         * @env Client | Server
+         * @param {string} pMes - Message to display.
+         */
 		log(pMes: string): void
 
         /**
-		 * returns a string containing the game version
-		 * @env Client | Server
-		 * @returns {string | number} returns a string containing the game version
-		 */
+         * Returns a string containing the game version.
+         *
+         * @env Client | Server
+         * @returns {string | number} Returns a string containing the game version.
+         */
 		getGameVersion(): string | number
 
         /**
-		 * outputs text to an interface element for all clients; if pInt or pEl is not set or is invalid, text goes to client.mainOutput
-		 * @env Client | Server
-		 * @param {string} pText - text to be displayed
-		 * @param {string} pInt - string containing interface file name to output to
-		 * @param {string} pEl - string containing the interface element name to output to
-		 */
+         * Outputs text to an interface element for all clients. If `pInt` or `pEl` is not set or is invalid, text goes to client.mainOutput.
+         *
+         * @env Client | Server
+         * @param {string} pText - Text to be displayed.
+         * @param {string} pInt - String containing interface file name to output to.
+         * @param {string} pEl - String containing the interface element name to output to.
+         */
 		outputText(pText: string, pInt: string, pEl: string): void
 
         /**
-		 * SERVER-ONLY; a string containing the address that can access the API ( '*' to allow all ) or an array of strings for each address with access
-		 * @env Server
-		 */
+         * A string containing the address that can access the API ( `*` to allow all ) or an array of strings for each address with access.
+         *
+         * @env Server
+         */
 		apiOrigin: string | string[]
 
         /**
-		 * sends a string message pMes to another server located at pAddress; game server getting the message must have World/apiOrigin set to allow the message
-		 * @env Client | Server
-		 * @param {string} pAddress - address of the server to send a message to
-		 * @param {string} pMes - string containing the message to send
-		 * @param {Function} [pCallback] - optional; function to call after the message has been sent; the function will have two arguments, the first being an error if there was one, the second being the response from the server (the return value of the World/onMessage)
-		 */
+         * Sends a string message `pMes` to another server located at `pAddress`. Game server getting the message must have World/apiOrigin set to allow the message.
+         *
+         * @env Client | Server
+         * @param {string} pAddress - Address of the server to send a message to.
+         * @param {string} pMes - String containing the message to send.
+         * @param {Function} [pCallback] - (Optional) Function to call after the message has been sent. The function will have two arguments, the first being an error if there was one, the second being the response from the server (the return value of the World/onMessage).
+         */
 		sendMessage(pAddress: string, pMes: string, pCallback?: Function): void
 
         /**
-		 * called when a map finishes loading
-		 * @env Client | Server
-		 * @event
-		 * @param {string | number} pName - name of map that has loaded
-		 */
+         * Called when a map finishes loading.
+         *
+         * @env Client | Server
+         * @event
+         * @param {string | number} pName - Name of map that has loaded.
+         */
 		onMapLoaded(pName: string | number): void
 
         /**
-		 * string containing the path of the mob for the player to control
-		 * @env Client | Server
-		 */
+         * String containing the path of the mob for the player to control.
+         *
+         * @env Client | Server
+         */
 		mainMob: string
 
         /**
-		 * returns an array of all connected clients
-		 * @env Client | Server
-		 * @returns {Client[]} returns an array of all connected clients
-		 */
+         * Returns an array of all connected clients.
+         *
+         * @env Client | Server
+         * @returns {Client[]} Returns an array of all connected clients.
+         */
 		getClients(): Client[]
 
         /**
-		 * terminates the connection and prevents any queued data from being processed
-		 * @env Server
-		 * @param {object} pDatabase - object containing database information
-		 * @param {Function} [pFunc] - optional; hostname of database; default localhost
-		 * @returns {object} returns one argument that contains any error information<br />
-			called: returns the connection pool object after connecting to the MySQL database pDatabase
-		 */
-		openMySQL(pDatabase: object, pFunc?: Function): object
+         * Connects to a MySQL database using the provided configuration options and returns a connection pool object.
+         *
+         * @env Server
+         * @param {Record<string, any>} pDatabase - Configuration object for the MySQL connection (e.g. `{ host: 'localhost', user: 'root', password: '', database: 'game' }`).
+         * @param {Function} [pFunc] - Optional callback function invoked when connection establishment completes.
+         * @returns {MySQLConnectionPool} Returns the connection pool instance created via `mysql.createPool()`.
+         *
+         * @example
+         * ```ts
+         * const pool = VYLO.World.openMySQL({
+         *     host: '127.0.0.1',
+         *     user: 'dbuser',
+         *     password: 'secretpassword',
+         *     database: 'my_game_db'
+         * });
+         * ```
+         */
+		openMySQL(pDatabase: Record<string, any>, pFunc?: Function): MySQLConnectionPool
 
         /**
-		 * returns a string containing information about what the code type is; code ran in solo will return 'local'; code ran in multi-player client will return 'client'; code ran on the server will return 'server'
-		 * @env Client | Server
-		 * @returns {'local' | 'client' | 'server'} returns a string containing information about what the code type is; code ran in solo will return 'local'; code ran in multi-player client will return 'client'; code ran on the server will return 'server'
-		 */
+         * Returns a string containing information about what the code type is. Code ran in solo will return `local`. Code ran in multi-player client will return `client`. Code ran on the server will return `server`.
+         *
+         * @env Client | Server
+         * @returns {'local' | 'client' | 'server'} Returns a string containing information about what the code type is. Code ran in solo will return `local`. Code ran in multi-player client will return `client`. Code ran on the server will return `server`.
+         */
 		getCodeType(): 'local' | 'client' | 'server'
 
         /**
-		 * gracefully shut down the server
-		 * @env Client | Server
-		 */
+         * Gracefully shut down the server.
+         *
+         * @env Client | Server
+         */
 		shutdown(): void
 
         /**
-		 * returns the diob with the specified ID
-		 * @env Client | Server
-		 * @param {string} pID - id of the diob to get
-		 * @returns {Diob} returns the diob with the specified ID
-		 */
+         * Returns the diob with the specified ID.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the diob to get.
+         * @returns {Diob} Returns the diob with the specified ID.
+         */
 		getDiobByID(pID: string): Diob
 
         /**
-		 * an object containing width and height of tiles on the map {'width': 32, 'height': 32}; acts as the default size of diobs
-		 * @env Client | Server
-		 */
+         * An object containing width and height of tiles on the map `{'width': 32, 'height': 32}`. Acts as the default size of diobs.
+         *
+         * @env Client | Server
+         */
 		tileSize: {'width': number, 'height': number}
 
         /**
-		 * a number; 1 for single player game, 2 for multi-player game, 3 for single and multi-player
-		 * @env Client | Server
-		 */
+         * A number; 1 for single player game, 2 for multi-player game, 3 for single and multi-player.
+         *
+         * @env Client | Server
+         */
 		playerMode: 1 | 2 | 3
 
         /**
-		 * returns a string contain server IP and port in 'ip:port' format
-		 * @env Client | Server
-		 * @returns {string} returns a string contain server IP and port in 'ip:port' format
-		 */
+         * Returns a string contain server IP and port in `ip:port` format.
+         *
+         * @env Client | Server
+         * @returns {string} Returns a string contain server IP and port in `ip:port` format.
+         */
 		getAddress(): string
 
         /**
-		 * sends a notification with the message pMessage to the Vylocity account pName and then calls pFunc; server-side only
-		 * @env Server
-		 * @param {string | number} pName - name of the Vyocity account to send notification to
-		 * @param {unknown} pMessage - message to send; 256 characters max
-		 * @param {Function} pFunc - function to call after the notification has been sent or attempted; function is called with up to two parameters where the first is true or false depending on the success of the send and the second is a string containing an error message if there was one
-		 */
-		sendNotification(pName: string | number, pMessage: unknown, pFunc: Function): void
+         * Sends a notification with the message `pMessage` to the Vylocity account `pName` and then calls `pFunc`. Server-side only.
+         *
+         * @env Server
+         * @param {string | number} pName - Name of the Vyocity account to send notification to.
+         * @param {string} pMessage - Message to send; 256 characters max.
+         * @param {Function} pFunc - Function to call after the notification has been sent or attempted. Function is called with up to two parameters where the first is `true` or `false` depending on the success of the send and the second is a string containing an error message if there was one.
+         */
+		sendNotification(pName: string | number, pMessage: string, pFunc: Function): void
 
         /**
-		 * only manually set this if you are using the offline IDE and are setting the source to match the game id for vylocity.com
-		 * @env Client | Server
-		 */
+         * Only manually set this if you are using the offline IDE and are setting the source to match the game id for vylocity.com.
+         *
+         * @env Client | Server
+         */
 		gameID: number
 
         /**
-		 * evaluates the JavaScript code in the pScript string; if the world is running on the server-side this code will be Node.js
-		 * @env Client | Server
-		 * @param {string} pScript - a string containing the JavaScript code to evaluate
-		 */
+         * Evaluates the JavaScript code in the `pScript` string. If the world is running on the server-side this code will be Node.js.
+         *
+         * @env Client | Server
+         * @param {string} pScript - A string containing the JavaScript code to evaluate.
+         */
 		evalWebScript(pScript: string): void
 
         /**
-		 * returns a number containing the game's player mode
-		 * @env Client | Server
-		 * @returns {number} returns a number containing the game's player mode
-		 */
+         * Returns a number containing the game's player mode.
+         *
+         * @env Client | Server
+         * @returns {number} Returns a number containing the game's player mode.
+         */
 		getPlayerMode(): number
 
         /**
-		 * array of files to preload when the game starts up or '*' to load all resources; if no name is provided, all resources of that type will be preloaded; for example [{'type': 'icon', 'name': 'icon1'}, {'type': 'sound'}] to load an icon named icon1 and all sound resources; all interface files and macro files are automatically preloaded; you may include remote resources by giving the object a 'remote' property and setting it to the web URL path of the resource
-		 * @env Client | Server
-		 */
+         * Array of files to preload when the game starts up or `*` to load all resources. If no name is provided, all resources of that type will be preloaded. For example [`{'type': 'icon', 'name': 'icon1'}`, `{'type': 'sound'}`] to load an icon named icon1 and all sound resources. All interface files and macro files are automatically preloaded. You may include remote resources by giving the object a `remote` property and setting it to the web URL path of the resource.
+         *
+         * @env Client | Server
+         */
 		preloadResources: {'type': string, 'name': string}[] | '*'
 
         /**
-		 * kicks the client pClient and displays the pReason message to them if there is one
-		 * @env Client | Server
-		 * @param {Client} pClient - client to kick
-		 * @param {string} [pReason] - optional; message to display to the client being kicked
-		 */
+         * Kicks the client `pClient` and displays the `pReason` message to them if there is one.
+         *
+         * @env Client | Server
+         * @param {Client} pClient - Client to kick.
+         * @param {string} [pReason] - (Optional) Message to display to the client being kicked.
+         */
 		kickClient(pClient: Client, pReason?: string): void
 
         /**
-		 * SERVER-ONLY; default 50; number of milliseconds to wait before sending built-in engine packets (custom client packets are sent immediately)
-		 * @env Server
-		 */
+         * Default is `50`. Number of milliseconds to wait before sending built-in engine packets (custom client packets are sent immediately).
+         *
+         * @env Server
+         */
 		packetDelay: number
 
         /**
-		 * default 45; how many tiles to combine into chunks to improve efficiency for rendering and networking; recommended to use at least 1.5x map view, so if the map view is 1920x1080 and the tile size is 32x32, you would want at least 90 chunk (90x90 tiles); if a part of the remaining map (after other parts have been chunked) is smaller than the chunk size, it will be added to the nearest chunk instead
-		 * @env Client | Server
-		 */
+         * Default is `45`. How many tiles to combine into chunks to improve efficiency for rendering and networking. Recommended to use at least 1.5x map view, so if the map view is 1920x1080 and the tile size is 32x32, you would want at least 90 chunk (90x90 tiles). If a part of the remaining map (after other parts have been chunked) is smaller than the chunk size, it will be added to the nearest chunk instead.
+         *
+         * @env Client | Server
+         */
 		mapChunk: number
 
         /**
-		 * sends the data for the pD diob to all clients in the world, if pVar is set it will send only those variables, if it is not set it will only send built-in engine variables
-		 * @env Server
-		 * @param {Diob} pD - reference to the diob to send
-		 * @param {unknown[]} [pVar] - optional; variable name or array of variable names
-		 */
-		sendDiob(pD: Diob, pVar?: unknown[]): void
-                
+         * Sends the data for the `pD` diob to all clients in the world, if `pVar` is set it will send only those variables, if it is not set it will only send built-in engine variables.
+         *
+         * @env Server
+         * @param {Diob} pD - Reference to the diob to send.
+         * @param {string | string[]} [pVar] - (Optional) Variable name or array of variable names.
+         */
+		sendDiob(pD: Diob, pVar?: string | string[]): void
+
 	}
-            
-                
-	
-	/**The base object that Diob extends from.*/
+
+
+
+	/** The base object that Diob extends from. */
 	type Object = {
-                    
+
 		/**
-		 * object containing ticker details if in an active ticker; set to null to remove from ticker
+		 * Object containing ticker details if in an active ticker. Set to `null` to remove from ticker.
+		 *
 		 * @env Client | Server
 		 */
 		inTicker: object
 
         /**
-		 * sets the pVal value of the pVar static variable belonging to the type pType; static variables are variables that belong to all Objects of this type collectively and are different than normal variables, usually static variables can only be set once, but VyScript static variables may be changed if that is what the developer wants
-		 * @env Client | Server
-		 * @param {unknown} pVar - name of the static variable to set
-		 * @param {boolean} pVal - value to give to the static variable
-		 */
-		setStaticVariable(pVar: unknown, pVal: boolean): void
+         * Sets the `pVal` value of the `pVar` static variable belonging to the type `pType`. Static variables are variables that belong to all Objects of this type collectively and are different than normal variables, usually static variables can only be set once, but VyScript static variables may be changed if that is what the developer wants.
+         *
+         * @env Client | Server
+         * @param {string} pVar - Name of the static variable to set.
+         * @param {boolean} pVal - Value to give to the static variable.
+         */
+		setStaticVariable(pVar: string, pVal: any): void
 
         /**
-		 * returns the static variable value belonging to the type pType
-		 * @env Client | Server
-		 * @param {unknown} pVar - name of the static variable to get
-		 * @returns {unknown} returns the static variable value belonging to the type pType
-		 */
-		getStaticVariable(pVar: unknown): unknown
-                
+         * Returns the static variable value belonging to the type `pType`.
+         *
+         * @env Client | Server
+         * @param {string} pVar - Name of the static variable to get.
+         * @returns {any} Returns the static variable value belonging to the type `pType`.
+         */
+		getStaticVariable<T = any>(pVar: string): T
+
 	}
-            
-                
-	
-	/**The diob object.*/
-	type Diob = {
-                    
+
+
+
+	/** The diob object. */
+	interface Diob {
+
 		/**
-		 * returns true if this Diob is currently shown on the screen, false if not
+		 * Returns `true` if this Diob is currently shown on the screen, `false` if not.
+		 *
 		 * @env Client | Server
-		 * @returns {void} returns true if this Diob is currently shown on the screen, false if not
+		 * @returns {void} Returns `true` if this Diob is currently shown on the screen, `false` if not.
 		 */
 		checkScreenShown(): void
 
         /**
-		 * removes the specified filter
-		 * @env Client | Server
-		 * @param {string | number} pName - name of filter to remove
-		 */
+         * Removes the specified filter.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of filter to remove.
+         */
 		removeFilter(pName: string | number): void
 
         /**
-		 * sets the diob's overlays to the array pOver
-		 * @env Client | Server
-		 * @param {Diob[]} pOver - array of overlays to set this diob's overlays to
-		 * @param {boolean} [pSave] - optional; if set, removed overlays will not be deleted, otherwise this call will delete removed overlays after removing them from the overlays
-		 */
+         * Sets the diob's overlays to the array `pOver`.
+         *
+         * @env Client | Server
+         * @param {Diob[]} pOver - Array of overlays to set this diob's overlays to.
+         * @param {boolean} [pSave] - (Optional) If set, removed overlays will not be deleted, otherwise this call will delete removed overlays after removing them from the overlays.
+         */
 		setOverlays(pOver: Diob[], pSave?: boolean): void
 
         /**
-		 * when this diob has a transition change; if pVar, pChange, and pStart are all unset then this is the event called when all transitions have ended
-		 * @env Client | Server
-		 * @event
-		 * @param {string} pVar - a string containing the name of the variable involved in the transition
-		 * @param {unknown} pChange - the amount changed
-		 * @param {object} pStart - if this is set then this is the event called when a transition starts; this will be a reference to the transition object used
-		 */
-		onTransition(pVar: string, pChange: unknown, pStart: object): void
+         * When this diob has a transition change. If `pVar`, `pChange`, and `pStart` are all unset then this is the event called when all transitions have ended.
+         *
+         * @env Client | Server
+         * @event
+         * @param {string} pVar - A string containing the name of the variable involved in the transition.
+         * @param {number} pChange - The amount changed.
+         * @param {object} pStart - If this is set then this is the event called when a transition starts. This will be a reference to the transition object used.
+         */
+		onTransition(pVar?: string, pChange?: number, pStart?: object): void
 
         /**
-		 * returns an array of diobs currently in this diob's viewer array
-		 * @env Client | Server
-		 * @returns {unknown[]} returns an array of diobs currently in this diob's viewer array
-		 */
-		getInvisibilityViewers(): unknown[]
+         * Returns an array of Diobs currently in this diob's invisibility viewer list.
+         *
+         * @env Client | Server
+         * @returns {Diob[]} Array of Diob instances currently able to see through this diob's invisibility.
+         *
+         * @example
+         * ```ts
+         * const viewers: Diob[] = mob.getInvisibilityViewers();
+         * for (const viewer of viewers) {
+         *     console.log('Viewer present:', viewer.tag);
+         * }
+         * ```
+         */
+		getInvisibilityViewers(): Diob[]
 
         /**
-		 * if set, diob will be invisible to all other diobs with visibility less than this value
-		 * @env Client | Server
-		 */
+         * If set, diob will be invisible to all other diobs with visibility less than this value.
+         *
+         * @env Client | Server
+         */
 		invisibility: number
 
         /**
-		 * sets this diob's icon anchor to pX and pY; default is 0.5,0.5 which is the center of the diob's icon (0,0 would be the top-left corner); 
-		 * @env Client | Server
-		 * @param {number} pX - default 0.5; x value of the diob's icon anchor
-		 * @param {number} [pY] - optional; default 0.5; y value of the diob's icon anchor
-		 */
+         * Sets this diob's icon anchor to `pX` and `pY`. Default is 0.5,0.5 which is the center of the diob's icon (0,0 would be the top-left corner).
+         *
+         * @env Client | Server
+         * @param {number} pX - Default is `0`. 5. X value of the diob's icon anchor.
+         * @param {number} [pY] - (Optional) Default is `0`. 5. Y value of the diob's icon anchor.
+         */
 		setAnchor(pX: number, pY?: number): void
 
         /**
-		 * modifies scale, angle, or alpha of the over screen
-		 * @env Client | Server
-		 * @param {object} pMod - object containing mods; scale, angle, alpha; ex ( {'angle': 0.8} )
-		 * @param {unknown} [pAdd] - optional; if set, the values in pMod will be added to the current mod object
-		 */
-		setOverScreenMod(pMod: object, pAdd?: unknown): void
+         * Modifies the scale, angle, or alpha of this diob's over screen display.
+         *
+         * @env Client | Server
+         * @param {OverScreenMod} pMod - Object containing modifications: `scale`, `angle`, `alpha`.
+         * @param {boolean} [pAdd] - (Optional) If true, values in `pMod` will be added to the existing modifications.
+         *
+         * @example
+         * ```ts
+         * diob.setOverScreenMod({ angle: Math.PI / 4, alpha: 0.8, scale: { x: 1.5, y: 1.5 } });
+         * ```
+         */
+		setOverScreenMod(pMod: OverScreenMod, pAdd?: boolean): void
 
         /**
-		 * moves this to specified location; if pVal1 and pVal2 are numbers, this is moved to the coordinate pVal1, pVal2; if pVal1 is an object but not a tile, this is moved to the location of object; if pVal1 is a tile, this is moved to that tile
-		 * @env Client | Server
-		 */
+         * Moves this to specified location. If `pVal1` and `pVal2` are numbers, this is moved to the coordinate `pVal1`, `pVal2`. If `pVal1` is an object but not a tile, this is moved to the location of object. If `pVal1` is a tile, this is moved to that tile.
+         *
+         * @env Client | Server
+         */
 		setLoc(): Diob
 
         /**
-		 * returns the current diob being used as a mask
-		 * @env Client | Server
-		 * @returns {Diob} returns the current diob being used as a mask
-		 */
+         * Returns the current diob being used as a mask.
+         *
+         * @env Client | Server
+         * @returns {Diob} Returns the current diob being used as a mask.
+         */
 		getMask(): Diob
 
         /**
-		 * a string to be displayed as text above the diob
-		 * @env Client | Server
-		 */
+         * A string to be displayed as text above the diob.
+         *
+         * @env Client | Server
+         */
 		text: string
 
         /**
-		 * adds pDiob to this diob's viewer array, allowing pDiob to always see this diob
-		 * @env Client | Server
-		 * @param {Diob} pDiob - the diob to add
-		 */
+         * Adds `pDiob` to this diob's viewer array, allowing `pDiob` to always see this diob.
+         *
+         * @env Client | Server
+         * @param {Diob} pDiob - The diob to add.
+         */
 		addInvisibilityViewer(pDiob: Diob): void
 
         /**
-		 * when this diob and pD have overlapping bounding boxes and one of them changes position and stays overlapped
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pD - diob that is crossed with this diob
-		 * @param {unknown} pInit - if set, pD was relocated and initiated the event
-		 */
-		onCrossedRelocated(pD: Diob, pInit: unknown): void
+         * When this diob and `pD` have overlapping bounding boxes and one of them changes position and stays overlapped.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pD - Diob that is crossed with this diob.
+         * @param {boolean} pInit - If set, `pD` was relocated and initiated the event.
+         */
+		onCrossedRelocated(pD: Diob, pInit?: boolean): void
 
         /**
-		 * turns this diob's sprite into a repeating pattern; call with no arguments to return to a normal sprite
-		 * @env Client | Server
-		 * @param {number} pX - default 0; position where the pattern starts on the x-axis
-		 * @param {number} pY - default 0; position where the pattern starts on the y-axis
-		 * @param {number} [pWidth] - optional; width of the pattern
-		 * @param {number} [pHeight] - optional; height of the pattern
-		 */
+         * Turns this diob's sprite into a repeating pattern. Call with no arguments to return to a normal sprite.
+         *
+         * @env Client | Server
+         * @param {number} pX - Default is `0`. Position where the pattern starts on the x-axis.
+         * @param {number} pY - Default is `0`. Position where the pattern starts on the y-axis.
+         * @param {number} [pWidth] - (Optional) Width of the pattern.
+         * @param {number} [pHeight] - (Optional) Height of the pattern.
+         */
 		setPattern(pX: number, pY: number, pWidth?: number, pHeight?: number): void
 
         /**
-		 * determines if the object is dense or not; true or false for dense or not, or a number for value, over 1 for different densities; for example, density 3 diobs can move over density 2 and lower diobs but not anything density 3 or higher
-		 * @env Client | Server
-		 */
-		density: unknown
+         * Determines if the object is dense or not. True or `false` for dense or not, or a number for value, over 1 for different densities. For example, density 3 diobs can move over density 2 and lower diobs but not anything density 3 or higher.
+         *
+         * @env Client | Server
+         */
+		density: boolean | number
 
         /**
-		 * name of icon inside object's icon atlas
-		 * @env Client | Server
-		 */
+         * Name of icon inside object's icon atlas.
+         *
+         * @env Client | Server
+         */
 		iconName: string
 
         /**
-		 * adds the specified filter
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the filter; only one name may be used at a time, using the name will remove the old filter with that name
-		 * @param {string} pType - the type of filter to add; below is the types and their specific possible pArgs values
-		 * @param {unknown} pArgs - color-based filter
-		 */
+         * Adds the specified filter.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the filter. Only one name may be used at a time, using the name will remove the old filter with that name.
+         * @param {string} pType - The type of filter to add. Below is the types and their specific possible `pArgs` values.
+         * @param {unknown} pArgs - Color-based filter.
+         */
 		addFilter(pName: string | number, pType: string, pArgs: unknown): void
+		snapToFloor?: boolean
+		floatingPlatform?: boolean
 
         /**
-		 * position of object on the grid x-axis
-		 * @env Client | Server
-		 */
+         * Position of object on the grid x-axis.
+         *
+         * @env Client | Server
+         */
 		xCoord: number
 
         /**
-		 * sets the width and height of the diob
-		 * @env Client | Server
-		 * @param {number} pWidth - value to set the diob's width to
-		 * @param {number} pHeight - value to set the diob's height to
-		 */
+         * Sets the width and height of the diob.
+         *
+         * @env Client | Server
+         * @param {number} pWidth - Value to set the diob's width to.
+         * @param {number} pHeight - Value to set the diob's height to.
+         */
 		setSize(pWidth: number, pHeight: number): void
 
         /**
-		 * called when a packet is sent from this diob on the client or server using diob.sendPacket
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client that sent the packet
-		 * @param {string | number} pName - name of packet
-		 * @param {unknown} pData - any data containing information for packet; ex {'a': 1, 'b': 2} or 'test'
-		 */
+         * Called when a packet is sent from this diob on the client or server using diob.sendPacket.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - Client that sent the packet.
+         * @param {string | number} pName - Name of packet.
+         * @param {unknown} pData - Any data containing information for packet. Example: `{'a': 1, 'b': 2}` or `test`.
+         */
 		onPacket(pClient: Client, pName: string | number, pData: unknown): void
 
         /**
-		 * called when the mouse clicks this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle, 3 for right
-		 */
-		onMouseClick(pClient: Client, pX: number, pY: number, pButton: unknown): void
+         * Called when a mouse button is clicked on this diob (press and release sequence).
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - The client instance originating the mouse click.
+         * @param {number} pX - The horizontal coordinate of the mouse relative to the diob's origin.
+         * @param {number} pY - The vertical coordinate of the mouse relative to the diob's origin.
+         * @param {MouseButton} pButton - The mouse button that was clicked (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         *
+         * @example
+         * ```ts
+         * onMouseClick(pClient: Client, pX: number, pY: number, pButton: MouseButton): void {
+         *     if (pButton === MouseButton.Left) {
+         *         console.log(`${pClient.getAccountName()} left-clicked on diob at (${pX}, ${pY})`);
+         *     }
+         * }
+         * ```
+         */
+		onMouseClick(pClient: Client, pX: number, pY: number, pButton: MouseButton): void
 
         /**
-		 * the region that the diob is in
-		 * @env Client | Server
-		 */
-		region: unknown
+         * The region that the diob is in.
+         *
+         * @env Client | Server
+         */
+		region: Region | null
 
         /**
-		 * name of atlas the object's icon is in
-		 * @env Client | Server
-		 */
+         * Name of atlas the object's icon is in.
+         *
+         * @env Client | Server
+         */
 		atlasName: string
 
         /**
-		 * returns an array of diobs that are crossing this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
-		 * @env Client | Server
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {Diob[]} returns an array of diobs that are crossing this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
-		 */
+         * Returns an array of diobs that are crossing this diob using the provided arguments. If `pType` is not set, all diobs will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs will be returned.
+         *
+         * @env Client | Server
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @returns {Diob[]} Returns an array of diobs that are crossing this diob using the provided arguments. If `pType` is not set, all diobs will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs will be returned.
+         */
 		getCrossed(pType?: string, pChild?: boolean): Diob[]
 
         /**
-		 * changes the appearance of the diob based on the values provided by pDiob
-		 * @env Client | Server
-		 * @param {Diob} pDiob - object containing the appearance information or a diob itself; values used: atlasName, iconName, iconState, width, height, layer, scale, color, alpha, transform, anchor, angle, composite, plane, text, textStyle, animator, overlays, overScreen
-		 */
+         * Changes the appearance of the diob based on the values provided by `pDiob`.
+         *
+         * @env Client | Server
+         * @param {Diob} pDiob - Object containing the appearance information or a diob itself. Values used: atlasName, iconName, iconState, width, height, layer, scale, color, alpha, transform, anchor, angle, composite, plane, text, textStyle, animator, overlays, overScreen.
+         */
 		setAppearance(pDiob: Diob): void
 
         /**
-		 * sets the x and y origin offsets
-		 * @env Client | Server
-		 * @param {number} pX - the x offset of the origin of this object from the left
-		 * @param {number} pY - the y offset of the origin of this object from the top
-		 */
+         * Sets the x and y origin offsets.
+         *
+         * @env Client | Server
+         * @param {number} pX - The x offset of the origin of this object from the left.
+         * @param {number} pY - The y offset of the origin of this object from the top.
+         */
 		setOrigin(pX: number, pY: number): void
 
         /**
-		 * if set, the client will not interpolation position changes
-		 * @env Client | Server
-		 */
-		preventInterpolation: unknown
+         * If set, the client will not interpolate position changes.
+         *
+         * @env Client | Server
+         */
+		preventInterpolation: boolean
 
         /**
-		 * default 0; number of pixels to offset the text by on the y-axis
-		 * @env Client | Server
-		 */
+         * Default is `0`. Number of pixels to offset the text by on the y-axis.
+         *
+         * @env Client | Server
+         */
 		textStyle: object
 
         /**
-		 * name of the type of the object
-		 * @env Client | Server
-		 */
+         * Name of the type of the object.
+         *
+         * @env Client | Server
+         */
 		type: string
 
         /**
-		 * unique ID of the diob
-		 * @env Client | Server
-		 */
-		id: unknown
+         * Unique ID of the diob.
+         *
+         * @env Client | Server
+         */
+		id: number | string
 
         /**
-		 * the diob's transformation matrix or transformation object; example [scaleX, skewY, 0, skewX, scaleY, 0, moveX, moveY, 1] where scaleX scales the diob's appearance on the x-axis, skewY skews on the y-axis, moveX moves on the x-axis, skewX skews on the x-axis, scaleY scales on the y-axis, moveY moves on the y-axis, and the last three are static for matrix; example {'scaleX': 2, 'skewY': 0.1} would scale by 2 on the x-axis and skew by 0.1 on the y-axis for object
-		 * @env Client | Server
-		 */
-		transform: object | number[]
+         * The diob's transformation matrix (9-element array) or 2D transformation object.
+         *
+         * Array format: `[scaleX, skewY, 0, skewX, scaleY, 0, moveX, moveY, 1]`
+         * Object format: `{ scaleX, skewY, skewX, scaleY, moveX, moveY }`
+         *
+         * @env Client | Server
+         *
+         * @example
+         * ```ts
+         * diob.transform = { scaleX: 2, scaleY: 2, skewX: 0, skewY: 0, moveX: 10, moveY: 10 };
+         * ```
+         */
+		transform: TransformMatrixObject | number[]
 
         /**
-		 * sets the scale of the diob
-		 * @env Client | Server
-		 * @param {number} pX - number to scale the width of the diob by; for example 2 would be a 200% scale
-		 * @param {number} [pY] - optional; number to scale the height of the diob by; for example 2 would be a 200% scale; pX used if null
-		 */
+         * Sets the scale of the diob.
+         *
+         * @env Client | Server
+         * @param {number} pX - Number to scale the width of the diob by. For example 2 would be a 200% scale.
+         * @param {number} [pY] - (Optional) Number to scale the height of the diob by. For example 2 would be a 200% scale. PX used if `null`.
+         */
 		setScale(pX: number, pY?: number): void
 
         /**
-		 * transitions this diob's pO properties from their current values to the new values over time; if pO is not set all transitions will be cancelled and all properties will automatically go to their end transition values; current allowed properties: alpha, angle, scale, xScale, yScale, xIconOffset, yIconOffset
-		 * @env Client | Server
-		 * @param {object} pO - object containing properties to transition; ex {'alpha': 0.5, 'xIconOffset': 20}
-		 * @param {number} pS - number of steps to take to transition the properties; default 1; -1 for a step every frame
-		 * @param {number} pT - number of milliseconds between each step; default 100; if pS is -1 then this is the total time
-		 * @param {number} [pQ] - optional; if set, this transition will be added to a queue and happen after the current transition finishes or the rest of the queue clears; set as -1 to merge this with the last thing in the queue
-		 * @param {number} [pLoop] - optional; if set, this transition will be added to the current loop of transitions and repeat until told to stop, if this transition is first, this can be set to a specify number to stop looping after that amount of loops; -1 to loop forever
-		 * @param {string} [pEase] - optional; use an easing equation that isn't linear; options: 'quadraticIn', 'quadraticOut', 'quadraticInOut', 'cubicIn', 'cubicOut', 'cubicInOut', 'quarticIn', 'quarticOut', 'quarticInOut', 'quinticIn', 'quinticOut', 'quinticInOut', 'sineIn', 'sineOut', 'sineInOut', 'expoIn', 'expoOut', 'expoInOut', 'circularIn', 'circularOut', 'circularInOut'
-		 */
+         * Transitions this diob's `pO` properties from their current values to the new values over time. If `pO` is not set all transitions will be cancelled and all properties will automatically go to their end transition values. Current allowed properties: alpha, angle, scale, xScale, yScale, xIconOffset, yIconOffset.
+         *
+         * @env Client | Server
+         * @param {object} pO - Object containing properties to transition. Example: `{'alpha': 0.5, 'xIconOffset': 20}`.
+         * @param {number} pS - Number of steps to take to transition the properties. Default is `1`.  -1 for a step every frame.
+         * @param {number} pT - Number of milliseconds between each step. Default is `100`. If `pS` is -1 then this is the total time.
+         * @param {number} [pQ] - (Optional) If set, this transition will be added to a queue and happen after the current transition finishes or the rest of the queue clears. Set as -1 to merge this with the last thing in the queue.
+         * @param {number} [pLoop] - (Optional) If set, this transition will be added to the current loop of transitions and repeat until told to stop, if this transition is first, this can be set to a specify number to stop looping after that amount of loops; -1 to loop forever.
+         * @param {string} [pEase] - (Optional) Use an easing equation that isn't linear. Options: `quadraticIn`, `quadraticOut`, `quadraticInOut`, `cubicIn`, `cubicOut`, `cubicInOut`, `quarticIn`, `quarticOut`, `quarticInOut`, `quinticIn`, `quinticOut`, `quinticInOut`, `sineIn`, `sineOut`, `sineInOut`, `expoIn`, `expoOut`, `expoInOut`, `circularIn`, `circularOut`, `circularInOut`.
+         */
 		setTransition(pO: object, pS: number, pT: number, pQ?: number, pLoop?: number, pEase?: string): void
 
         /**
-		 * the tile that the diob is on
-		 * @env Client | Server
-		 */
-		loc: unknown
+         * The tile that the diob is on.
+         *
+         * @env Client | Server
+         */
+		loc: Tile | null
 
         /**
-		 * when this diob leaves the client's screen view
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - a reference to the client
-		 */
+         * When this diob leaves the client's screen view.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - A reference to the client.
+         */
 		onScreenHide(pClient: Client): void
 
         /**
-		 * returns the transformation matrix of this diob
-		 * @env Client | Server
-		 * @param {unknown} [pAsObj] - optional; if set, the diob's transformation matrix will be returned as an object, for example {'scaleX': scaleX, 'skewY': skewY}
-		 * @returns {void} returns the transformation matrix of this diob
-		 */
-		getTransform(pAsObj?: unknown): void
+         * Returns the transformation matrix of this diob either as a 9-element array or as a `TransformMatrixObject`.
+         *
+         * @env Client | Server
+         * @param {boolean} [pAsObj] - If true, returns an object `{ scaleX, skewY, skewX, scaleY, moveX, moveY }` instead of a 9-element array.
+         * @returns {TransformMatrixObject | number[]} The current 2D transformation matrix.
+         *
+         * @example
+         * ```ts
+         * const transformObj = diob.getTransform(true) as TransformMatrixObject;
+         * console.log(transformObj.scaleX, transformObj.scaleY);
+         * ```
+         */
+		getTransform(pAsObj?: boolean): TransformMatrixObject | number[]
 
         /**
-		 * returns the over screen mod
-		 * @env Client | Server
-		 * @returns {void} returns the over screen mod
-		 */
-		getOverScreenMod(): void
+         * Returns the over screen modifier object currently applied to this diob.
+         *
+         * @env Client | Server
+         * @returns {OverScreenMod | undefined} Current modifier object containing scale, angle, and alpha settings.
+         */
+		getOverScreenMod(): OverScreenMod | undefined
 
         /**
-		 * returns an object {'atlas': atlasName, 'icon': iconName} containing the diob's icon atlas and icon names
-		 * @env Client | Server
-		 * @returns {object} returns an object {'atlas': atlasName, 'icon': iconName} containing the diob's icon atlas and icon names
-		 */
-		getIcon(): object
+         * Returns an object containing the diob's icon atlas and icon name.
+         *
+         * @env Client | Server
+         * @returns {{ atlas: string; icon: string }} Object with `atlas` and `icon` properties.
+         *
+         * @example
+         * ```ts
+         * const { atlas, icon } = diob.getIcon();
+         * console.log(`Atlas: ${atlas}, Icon: ${icon}`);
+         * ```
+         */
+		getIcon(): { atlas: string; icon: string }
 
         /**
-		 * grabs an object with the screen x offset, y offset, width, height, settings, and either an array of pixel data or a data url depending on pType (data returned client-side only). The data can then be changed and used elsewhere or drawn onto another screen. To read the width and height you could use object.width and object.height, where object is the object returned by the function. The object data array is as follows: object.data[0] is the red value (0-255) of the pixel at 0,0, object.data[1] is the green value (0-255) of the pixel at 0,0, object.data[2] is the blue value (0-255) of the pixel at 0,0, and object.data[3] is the alpha value (0-255) of the pixel at 0,0. Then object.data[4], object.data[5], object.data[6], and object.data[7] are the respective values for the pixel at 1,0. This trend continues through the whole array for every pixel.  object ex: {'x': 0, 'y': 0, 'width': 100, 'height': 100, 'data': ''}
-		 * @env Client
-		 * @param {string} pType - type of data to get; 'url', 'pixels', 'canvas', or 'sprite'
-		 */
-		getOverScreen(pType: string): void
+         * Captures or retrieves over screen data for this diob (client-side only).
+         *
+         * @env Client
+         * @param {'url' | 'pixels' | 'canvas' | 'sprite'} [pType] - Type of data representation to retrieve.
+         * @returns {ScreenCaptureData | undefined} Captured screen data object or undefined.
+         *
+         * @example
+         * ```ts
+         * const capture = diob.getOverScreen('pixels');
+         * if (capture && capture.data) {
+         *     console.log('Captured width:', capture.width, 'height:', capture.height);
+         * }
+         * ```
+         */
+		getOverScreen(pType?: 'url' | 'pixels' | 'canvas' | 'sprite'): ScreenCaptureData | undefined
 
         /**
-		 * angle of the diob (0 to 2PI)
-		 * @env Client | Server
-		 */
+         * Angle of the diob (0 to 2PI).
+         *
+         * @env Client | Server
+         */
 		angle: number
 
         /**
-		 * changes the over screen information; adding data optional
-		 * @env Client | Server
-		 * @param {number} pX - x offset of display
-		 * @param {number} pY - y offset of display
-		 * @param {number} pWidth - width of display
-		 * @param {number} pHeight - height of display
-		 * @param {unknown} [pData] - optional; data to add to the screen
-		 * @param {object} [pSet] - optional; settings object; ex ( {'scaleNearest': true} );
-		 */
+         * Changes the over screen information. Adding data optional.
+         *
+         * @env Client | Server
+         * @param {number} pX - X offset of display.
+         * @param {number} pY - Y offset of display.
+         * @param {number} pWidth - Width of display.
+         * @param {number} pHeight - Height of display.
+         * @param {unknown} [pData] - (Optional) Data to add to the screen.
+         * @param {object} [pSet] - (Optional) Settings object. Example: ( `{'scaleNearest': `true`}` ).
+         */
 		setOverScreen(pX: number, pY: number, pWidth: number, pHeight: number, pData?: unknown, pSet?: object): void
 
         /**
-		 * when this diob changes maps; this event will be called twice if the map has not already been loaded, once before loading and once after the loading has completed (the first event will have pBefore set)
-		 * @env Client | Server
-		 * @event
-		 * @param {string} pMap - name of the old map or name of the new map if pBefore is set
-		 * @param {unknown} pBefore - if set then the map is currently loading and this is the pre-load event
-		 */
-		onMapChange(pMap: string, pBefore: unknown): void
+         * When this diob changes maps. This event will be called twice if the map has not already been loaded, once before loading and once after the loading has completed (the first event will have `pBefore` set).
+         *
+         * @env Client | Server
+         * @event
+         * @param {string} pMap - Name of the old map or name of the new map if `pBefore` is set.
+         * @param {boolean} pBefore - If set then the map is currently loading and this is the pre-load event.
+         */
+		onMapChange(pMap: string, pBefore?: boolean): void
 
         /**
-		 * returns an object {'width': width, 'height': height} containing the diob's width and height
-		 * @env Client | Server
-		 * @returns {object} returns an object {'width': width, 'height': height} containing the diob's width and height
-		 */
-		getSize(): object
+         * Returns the dimensions (width and height in pixels) of this diob's current icon state.
+         *
+         * @env Client | Server
+         * @returns {Size2D} Dimensions containing `width` and `height` in pixels.
+         *
+         * @example
+         * ```ts
+         * const { width, height } = diob.getSize();
+         * console.log(`Diob size: ${width}x${height}`);
+         * ```
+         */
+		getSize(): Size2D
 
         /**
-		 * custom string used to identify the diob
-		 * @env Client | Server
-		 */
+         * Custom string used to identify the diob.
+         *
+         * @env Client | Server
+         */
 		tag: string
 
         /**
-		 * all invisible diobs with invisibility levels equal to or less than this will be visible to this diob
-		 * @env Client | Server
-		 */
+         * All invisible diobs with invisibility levels equal to or less than this will be visible to this diob.
+         *
+         * @env Client | Server
+         */
 		visibility: number
 
         /**
-		 * called when the mouse double clicks this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle
-		 */
-		onMouseDblClick(pClient: Client, pX: number, pY: number, pButton: unknown): void
+         * Called when a mouse button is double clicked on this diob.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - The client instance originating the double click.
+         * @param {number} pX - The horizontal coordinate of the mouse relative to the diob's origin.
+         * @param {number} pY - The vertical coordinate of the mouse relative to the diob's origin.
+         * @param {MouseButton} pButton - The mouse button used (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         *
+         * @example
+         * ```ts
+         * onMouseDblClick(pClient: Client, pX: number, pY: number, pButton: MouseButton): void {
+         *     if (pButton === MouseButton.Left) {
+         *         console.log('Double clicked diob with left mouse button');
+         *     }
+         * }
+         * ```
+         */
+		onMouseDblClick(pClient: Client, pX: number, pY: number, pButton: MouseButton): void
 
         /**
-		 * when an object exits the contents of another object
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pDiob - object that exited
-		 */
+         * When an object exits the contents of another object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Object that exited.
+         */
 		onExited(pDiob: Diob): void
 
         /**
-		 * performs the specified draw function using the specified pArgs object; ex ( {'type': 'image', 'image': this, 'x': 1, 'y': 1} )
-		 * @env Client | Server
-		 * @param {object | object[]} pArgs - an object or array of objects which determines the settings of the draw
-		 */
-		overScreenDraw(pArgs: object | object[]): void
+         * Executes 2D canvas drawing commands onto this diob's over screen surface.
+         *
+         * @env Client | Server
+         * @param {DrawCommandArgs | DrawCommandArgs[]} pArgs - A draw command configuration object or array of command objects.
+         *
+         * @example
+         * ```ts
+         * diob.overScreenDraw({
+         *     type: 'fillRect',
+         *     color: 'rgba(255, 0, 0, 0.5)',
+         *     x: 0,
+         *     y: 0,
+         *     width: 32,
+         *     height: 32
+         * });
+         * ```
+         */
+		overScreenDraw(pArgs: DrawCommandArgs | DrawCommandArgs[]): void
 
         /**
-		 * how visible the diob appears; (0 to 1); 0 completely invisible, 1 completely visible, between partially visible, higher the number the more visible
-		 * @env Client | Server
-		 */
+         * How visible the diob appears; (0 to 1); 0 completely invisible, 1 completely visible, between partially visible, higher the number the more visible.
+         *
+         * @env Client | Server
+         */
 		alpha: number
 
         /**
-		 * changes display icon of object
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of atlas icon is in
-		 * @param {string} pIcon - name of icon in pAtlas
-		 */
+         * Changes display icon of object.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of atlas icon is in.
+         * @param {string} pIcon - Name of icon in `pAtlas`.
+         */
 		setIcon(pAtlas: string, pIcon: string): void
 
         /**
-		 * position on the y-axis of the origin from the top edge of the diob
-		 * @env Client | Server
-		 */
+         * Position on the y-axis of the origin from the top edge of the diob.
+         *
+         * @env Client | Server
+         */
 		yOrigin: number
 
         /**
-		 * position of object on the grid y-axis
-		 * @env Client | Server
-		 */
+         * Position of object on the grid y-axis.
+         *
+         * @env Client | Server
+         */
 		yCoord: number
 
         /**
-		 * returns an object {'x': xOrigin, 'y': yOrigin} containing the diob's x and y origin offsets
-		 * @env Client | Server
-		 * @returns {object} returns an object {'x': xOrigin, 'y': yOrigin} containing the diob's x and y origin offsets
-		 */
-		getOrigin(): object
+         * Returns the origin point offsets `{ x, y }` from which rotation and positioning offsets are calculated.
+         *
+         * @env Client | Server
+         * @returns {Point2D} Object containing horizontal (`x`) and vertical (`y`) origin offsets in pixels.
+         *
+         * @example
+         * ```ts
+         * const origin = diob.getOrigin();
+         * console.log(`Origin: (${origin.x}, ${origin.y})`);
+         * ```
+         */
+		getOrigin(): Point2D
 
         /**
-		 * when this diob changes icons
-		 * @env Client | Server
-		 * @event
-		 */
+         * When this diob changes icons.
+         *
+         * @env Client | Server
+         * @event
+         */
 		onIconUpdate(): void
 
         /**
-		 * returns an object {'x': x,'y': y} containing the x and y icon offsets
-		 * @env Client | Server
-		 * @returns {object} returns an object {'x': x,'y': y} containing the x and y icon offsets
-		 */
-		getIconOffsets(): object
+         * Returns the icon rendering visual offsets `{ x, y }` in pixels.
+         *
+         * @env Client | Server
+         * @returns {Point2D} Object containing horizontal (`x`) and vertical (`y`) icon offsets.
+         *
+         * @example
+         * ```ts
+         * const offsets = diob.getIconOffsets();
+         * console.log(`Icon visual offsets: (${offsets.x}, ${offsets.y})`);
+         * ```
+         */
+		getIconOffsets(): Point2D
 
         /**
-		 * turns pMask into a mask which this diob interacts with; transparent portions of the pMask's icon will cut out those same spots from this diob's icon
-		 * @env Client | Server
-		 * @param {Diob} pMask - diob to use as a mask
-		 */
+         * Turns `pMask` into a mask which this diob interacts with. Transparent portions of the `pMask`'s icon will cut out those same spots from this diob's icon.
+         *
+         * @env Client | Server
+         * @param {Diob} pMask - Diob to use as a mask.
+         */
 		setMask(pMask: Diob): void
 
         /**
-		 * if this diob is an Overlay type or is being used as an overlay, this will be set; if the overlay has a parent diob, this will be a reference to that diob
-		 * @env Client | Server
-		 */
-		isOverlay: unknown
+         * If this diob is an Overlay type or is being used as an overlay, this will be set. If the overlay has a parent diob, this will be a reference to that diob.
+         *
+         * @env Client | Server
+         */
+		isOverlay: boolean | Diob | null
 
         /**
-		 * height to use when calculating y position relayering
-		 * @env Client | Server
-		 */
-		relayerHeight: unknown
+         * Height to use when calculating y position relayering.
+         *
+         * @env Client | Server
+         */
+		relayerHeight: number
 
         /**
-		 * SERVER-ONLY; if set, the server will not update clients when changes are made; can be 'true' to prevent all clients from getting updated or can be an object containing variables and/or specific clients to ignore; possible variables 'pos', 'dir', 'icon'; ex ( {'type': ['pos', 'dir'], 'client': [someClient]} )
-		 * @env Server
-		 */
-		preventClientUpdates: unknown
+         * If set, the server will not update clients when changes are made. Can be `true` to prevent all clients from getting updated or can be an object containing variables and/or specific clients to ignore. Possible variables `pos`, `dir`, `icon`. Example: ( `{'type': ['pos', 'dir'], 'client': [someClient]}` ).
+         *
+         * @env Server
+         */
+		preventClientUpdates: boolean | { type?: string[]; client?: Client[] }
 
         /**
-		 * called when a mouse wheel button is scrolled upward while over this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 */
+         * Called when a mouse wheel button is scrolled upward while over this object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - Client of the mouse.
+         * @param {number} pX - The x position of the mouse over the diob.
+         * @param {number} pY - The y position of the mouse over the diob.
+         */
 		onMouseWheelScrollUp(pClient: Client, pX: number, pY: number): void
 
         /**
-		 * data shared automatically from the server-side to clients that have a sync for this diob; changing the variable will update any clients that have this diob's sync in realtime
-		 * @env Client | Server
-		 */
-		clientSyncData: unknown
+         * Data shared automatically from the server-side to clients that have a sync for this diob. Changing the variable will update any clients that have this diob's sync in realtime.
+         *
+         * @env Client | Server
+         */
+		clientSyncData: Record<string, any> | any
 
         /**
-		 * sends a packet to a client or server specifically for this diob, depending on where the code is executed; client code executing this will send the packet to the server; server code executing this will send the packet to the client; this will invoke Diob/onPacket on client-side if the sendPacket is server-side and on the server-side if it is on the client-side
-		 * @env Client | Server
-		 * @param {string | number} pName - name of packet to send
-		 * @param {unknown} pData - data to be sent; ex {'a': 1, 'b': 2} or 'test'
-		 * @param {Client} [pClient] - SERVER ONLY; optional; specific client or array of clients to send this packet to; if no client is specified the packet will be sent to all clients currently synced with this diob
-		 */
+         * Sends a packet to a client or server specifically for this diob, depending on where the code is executed. Client code executing this will send the packet to the server. Server code executing this will send the packet to the client. This will invoke Diob/onPacket on client-side if the sendPacket is server-side and on the server-side if it is on the client-side.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of packet to send.
+         * @param {unknown} pData - Data to be sent. Example: `{'a': 1, 'b': 2}` or `test`.
+         * @param {Client} [pClient] - (Optional) SERVER ONLY. Optional. Specific client or array of clients to send this packet to. If no client is specified the packet will be sent to all clients currently synced with this diob.
+         */
 		sendPacket(pName: string | number, pData: unknown, pClient?: Client): void
 
         /**
-		 * returns an object {'x': x, 'y': y} containing the x and y coord offsets of the object
-		 * @env Client | Server
-		 * @returns {object} returns an object {'x': x, 'y': y} containing the x and y coord offsets of the object
-		 */
-		getCoordOffsets(): object
+         * Returns the coordinate offsets `{ x, y }` from the diob's grid position.
+         *
+         * @env Client | Server
+         * @returns {Point2D} Object containing `x` and `y` coordinate offsets in pixels.
+         *
+         * @example
+         * ```ts
+         * const offsets = diob.getCoordOffsets();
+         * console.log(`Coord offsets: (${offsets.x}, ${offsets.y})`);
+         * ```
+         */
+		getCoordOffsets(): Point2D
 
         /**
-		 * removes all overlays with the pOver type or the exact overlay matching pOver
-		 * @env Client | Server
-		 * @param {string | Diob | Object} pOver - string of the type of object or overlay to remove or actual overlay to remove
-		 * @param {unknown} [pSave] - optional; if set, the overlay will not be deleted, otherwise this call will delete pOver after removing it from the overlays
-		 */
-		removeOverlay(pOver: string | Diob | Object, pSave?: unknown): void
+         * Removes all overlays with the `pOver` type or the exact overlay matching `pOver`.
+         *
+         * @env Client | Server
+         * @param {string | Diob | Object} pOver - String of the type of object or overlay to remove or actual overlay to remove.
+         * @param {boolean} [pSave] - (Optional) If set, the overlay will not be deleted, otherwise this call will delete `pOver` after removing it from the overlays.
+         */
+		removeOverlay(pOver: string | Diob | Object, pSave?: boolean): void
 
         /**
-		 * called when the mouse exits this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 */
+         * Called when the mouse exits this object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - Client of the mouse.
+         * @param {number} pX - The x position of the mouse over the diob.
+         * @param {number} pY - The y position of the mouse over the diob.
+         */
 		onMouseExit(pClient: Client, pX: number, pY: number): void
 
         /**
-		 * returns an object {'x': x, 'y': y} containing the x and y positions of the diob on the map
-		 * @env Client | Server
-		 * @returns {{'x': number,'y': number}} returns an object {'x': x, 'y': y} containing the x and y positions of the diob on the map
-		 */
+         * Returns an object `{'x': x, 'y': y}` containing the x and y positions of the diob on the map.
+         *
+         * @env Client | Server
+         * @returns {{'x': number,'y': number} } returns an object `{'x': x, 'y': y}` containing the x and y positions of the diob on the map.
+         */
 		getPos(): {'x': number,'y': number}
 
         /**
-		 * how many pixels object is offset on the grid x-axis from the xCoord
-		 * @env Client | Server
-		 */
+         * How many pixels object is offset on the grid x-axis from the xCoord.
+         *
+         * @env Client | Server
+         */
 		xCoordOffset: number
 
         /**
-		 * if set, any movable with the same density as this diob may cross over it
-		 * @env Client | Server
-		 */
+         * If set, any movable with the same density as this diob may cross over it.
+         *
+         * @env Client | Server
+         */
 		allowDensityCross: boolean
 
         /**
-		 * when an object enters the contents of another object
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pDiob - object that entered
-		 */
+         * When an object enters the contents of another object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Object that entered.
+         */
 		onEntered(pDiob: Diob): void
 
         /**
-		 * height of the collision box of the object
-		 * @env Client | Server
-		 */
+         * Height of the collision box of the object.
+         *
+         * @env Client | Server
+         */
 		height: number
 
         /**
-		 * string containing composite value that determines how this diob is drawn with other diobs on the same plane; possible values: normal, add, multiply, screen
-		 * @env Client | Server
-		 */
+         * String containing composite value that determines how this diob is drawn with other diobs on the same plane. Possible values: normal, add, multiply, screen.
+         *
+         * @env Client | Server
+         */
 		composite: 'source-over' | 'source-atop' | 'source-in' | 'source-out' | 'destination-over' | 'destination-atop' | 'destination-in' | 'destination-out' | 'lighter' | 'copy' | 'xor' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity'
 
         /**
-		 * sets the animation frame to pFrame and freezes for pDelay milliseconds before returning to the previous frame or continuing on if pCont is set
-		 * @env Client | Server
-		 * @param {number} pFrame - frame number
-		 * @param {number} [pDelay] - optional; delay in milliseconds to freeze the newly set frame for; passing in -1 will pause the animation until you unpause it by changing the diob's 'animator.isPaused' to false
-		 * @param {boolean} [pCont] - optional; if true, animation will play like normal after the frame delay; false will return the animation to the frame it was at before the set after the delay
-		 */
+         * Sets the animation frame to `pFrame` and freezes for `pDelay` milliseconds before returning to the previous frame or continuing on if `pCont` is set.
+         *
+         * @env Client | Server
+         * @param {number} pFrame - Frame number.
+         * @param {number} [pDelay] - (Optional) Delay in milliseconds to freeze the newly set frame for. Passing in -1 will pause the animation until you unpause it by changing the diob's `animator.isPaused` to `false`.
+         * @param {boolean} [pCont] - (Optional) If `true`, animation will play like normal after the frame delay. False will return the animation to the frame it was at before the set after the delay.
+         */
 		setFrame(pFrame: number, pDelay?: number, pCont?: boolean): void
 
         /**
-		 * returns an object containing the information for the diob's current animation; current variables, onFrame for the current frame the animation is on, frameCount for total number of frames in the animation, atlasName for atlas of the current animation, iconName for icon name of current animation, iconState for state of current animation; example {'onFrame': 1, 'frameCount' 20, 'atlasName': '', 'iconName': '', 'iconState': ''}
-		 * @env Client | Server
-		 * @param {boolean} [pVal] - optional; string with name of specific value to get; options: 'onFrame', 'frameCount', 'atlasName', 'iconName', 'iconState'
-		 * @returns {object,number} returns an object containing the information for the diob's current animation; current variables, onFrame for the current frame the animation is on, frameCount for total number of frames in the animation, atlasName for atlas of the current animation, iconName for icon name of current animation, iconState for state of current animation; example {'onFrame': 1, 'frameCount' 20, 'atlasName': '', 'iconName': '', 'iconState': ''}
-		 */
-		getAnimation(pVal?: boolean): object,number
+         * Returns animation state information for the diob's currently active animation.
+         *
+         * When called without arguments, returns an `AnimationInfo` object:
+         * `{ onFrame, frameCount, atlasName, iconName, iconState }`.
+         *
+         * When called with a specific key name, returns the corresponding scalar value.
+         *
+         * @env Client | Server
+         * @returns {AnimationInfo} Complete animation state object.
+         *
+         * @example
+         * ```ts
+         * const anim = diob.getAnimation();
+         * console.log(`Playing frame ${anim.onFrame} of ${anim.frameCount}`);
+         * ```
+         */
+		getAnimation(): AnimationInfo
+        getAnimation(pVal: 'onFrame' | 'frameCount'): number
+        getAnimation(pVal: 'atlasName' | 'iconName' | 'iconState'): string
+        getAnimation(pVal: string): number | string | AnimationInfo
 
         /**
-		 * when this diob and pMovable no longer have overlapping bounding boxes
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pDiob - diob that uncrossed with this diob
-		 */
+         * When this diob and `pMovable` no longer have overlapping bounding boxes.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Diob that uncrossed with this diob.
+         */
 		onUncrossed(pDiob: Diob): void
 
         /**
-		 * called when a mouse button has been pressed while over this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle, 3 for right
-		 */
-		onMouseDown(pClient: Client, pX: number, pY: number, pButton: unknown): void
+         * Called when a mouse button has been pressed while positioned over this diob.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - The client instance whose mouse button was pressed.
+         * @param {number} pX - The horizontal coordinate of the mouse relative to the diob's origin.
+         * @param {number} pY - The vertical coordinate of the mouse relative to the diob's origin.
+         * @param {MouseButton} pButton - The mouse button that was pressed (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         *
+         * @example
+         * ```ts
+         * onMouseDown(pClient: Client, pX: number, pY: number, pButton: MouseButton): void {
+         *     if (pButton === MouseButton.Left) {
+         *         // Handle left press (e.g. begin dragging or selection)
+         *     } else if (pButton === MouseButton.Right) {
+         *         // Handle right press (e.g. contextual actions)
+         *     }
+         * }
+         * ```
+         */
+		onMouseDown(pClient: Client, pX: number, pY: number, pButton: MouseButton): void
 
         /**
-		 * called when the mouse moves after entering this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 */
+         * Called when the mouse moves after entering this object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - Client of the mouse.
+         * @param {number} pX - The x position of the mouse over the diob.
+         * @param {number} pY - The y position of the mouse over the diob.
+         */
 		onMouseMove(pClient: Client, pX: number, pY: number): void
 
         /**
-		 * returns the coords of the diob with an object {'x': x, 'y': y}
-		 * @env Client | Server
-		 * @returns {object} returns the coords of the diob with an object {'x': x, 'y': y}
-		 */
-		getCoords(): object
+         * Returns the integer grid tile coordinates `{ x, y }` of the diob.
+         *
+         * @env Client | Server
+         * @returns {Point2D} Coordinates containing `xCoord` and `yCoord`.
+         *
+         * @example
+         * ```ts
+         * const coords = diob.getCoords();
+         * console.log(`Tile grid: (${coords.x}, ${coords.y})`);
+         * ```
+         */
+		getCoords(): Point2D
 
         /**
-		 * CLIENT-ONLY; if set, the client will not update the draw layer of this diob when it changes location on the screen
-		 * @env Client
-		 */
+         * If set, the client will not update the draw layer of this diob when it changes location on the screen.
+         *
+         * @env Client
+         */
 		preventScreenRelayer: boolean
 
         /**
-		 * calls on the client-side when clientSyncData is changed by the server
-		 * @env Client | Server
-		 * @event
-		 * @param {unknown} pOld - old data in clientSyncData
-		 */
+         * Calls on the client-side when clientSyncData is changed by the server.
+         *
+         * @env Client | Server
+         * @event
+         * @param {unknown} pOld - Old data in clientSyncData.
+         */
 		onClientSyncData(pOld: unknown): void
 
         /**
-		 * returns an array of locations the diob is on; if diob is a tile, it returns an array containing only itself
-		 * @env Client | Server
-		 * @returns {Diob[]} returns an array of locations the diob is on; if diob is a tile, it returns an array containing only itself
-		 */
+         * Returns an array of locations the diob is on. If diob is a tile, it returns an array containing only itself.
+         *
+         * @env Client | Server
+         * @returns {Diob[]} Returns an array of locations the diob is on. If diob is a tile, it returns an array containing only itself.
+         */
 		getLocs(): Diob[]
 
         /**
-		 * name of the lowest level parent type
-		 * @env Client | Server
-		 */
+         * Name of the lowest level parent type.
+         *
+         * @env Client | Server
+         */
 		baseType: string
 
         /**
-		 * sets the coord offset of the object
-		 * @env Client | Server
-		 * @param {number} pX - the x offset from the xCoord
-		 * @param {number} pY - the y offset from the yCoord
-		 */
+         * Sets the coord offset of the object.
+         *
+         * @env Client | Server
+         * @param {number} pX - The x offset from the xCoord.
+         * @param {number} pY - The y offset from the yCoord.
+         */
 		setCoordOffsets(pX: number, pY: number): void
 
         /**
-		 * name of object
-		 * @env Client | Server
-		 */
-		name: unknown
+         * Name of object.
+         *
+         * @env Client | Server
+         */
+		name: string
 
         /**
-		 * sets the icon state of the diob's icon
-		 * @env Client | Server
-		 * @param {string} pState - state of the icon to set
-		 * @param {number} [pFrame] - optional; if true, animation will start from the frame the last iconState left off on
-		 */
+         * Sets the icon state of the diob's icon.
+         *
+         * @env Client | Server
+         * @param {string} pState - State of the icon to set.
+         * @param {number} [pFrame] - (Optional) If `true`, animation will start from the frame the last iconState left off on.
+         */
 		setIconState(pState: string, pFrame?: number): void
 
         /**
-		 * when this diob has an overlay removed from it
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pD - the diob that was removed from the overlays
-		 */
+         * When this diob has an overlay removed from it.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pD - The diob that was removed from the overlays.
+         */
 		onRemoveOverlay(pD: Diob): void
 
         /**
-		 * called when a mouse button is released while over this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 * @param {unknown} pButton - the button used; 1 for left, 2 for middle, 3 for right
-		 */
-		onMouseUp(pClient: Client, pX: number, pY: number, pButton: unknown): void
+         * Called when a mouse button is released while positioned over this diob.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - The client instance whose mouse button was released.
+         * @param {number} pX - The horizontal coordinate of the mouse relative to the diob's origin.
+         * @param {number} pY - The vertical coordinate of the mouse relative to the diob's origin.
+         * @param {MouseButton} pButton - The mouse button that was released (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         *
+         * @example
+         * ```ts
+         * onMouseUp(pClient: Client, pX: number, pY: number, pButton: MouseButton): void {
+         *     if (pButton === MouseButton.Left) {
+         *         // End dragging or selection
+         *     }
+         * }
+         * ```
+         */
+		onMouseUp(pClient: Client, pX: number, pY: number, pButton: MouseButton): void
 
         /**
-		 * position on the x-axis of the origin from the left edge of the diob
-		 * @env Client | Server
-		 */
+         * Position on the x-axis of the origin from the left edge of the diob.
+         *
+         * @env Client | Server
+         */
 		xOrigin: number
 
         /**
-		 * when pMovable attempts to cross this diob resulting in overlapping bounding boxes; this function must return 'true' in order for pMovable to cross; this event is called for both diobs if they are both movable; tiles do not have this event
-		 * @env Client | Server
-		 * @event
-		 * @param {unknown} pMovable - movable that is attempting to cross with this diob
-		 * @param {unknown} pInit - if set, pMovable initiated the event
-		 */
-		onCross(pMovable: unknown, pInit: unknown): void
+         * When `pMovable` attempts to cross this diob resulting in overlapping bounding boxes. This function must return `true` in order for `pMovable` to cross. This event is called for both diobs if they are both movable. Tiles do not have this event.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob & Movable} pMovable - Movable that is attempting to cross with this diob.
+         * @param {boolean} pInit - If set, `pMovable` initiated the event.
+         */
+		onCross(pMovable: Diob & Movable, pInit?: boolean): boolean | void
 
         /**
-		 * position on the y-axis from top to bottom of the map
-		 * @env Client | Server
-		 */
+         * Position on the y-axis from top to bottom of the map.
+         *
+         * @env Client | Server
+         */
 		yPos: number
 
         /**
-		 * when this diob has an overlay added to it
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pD - the diob added as an overlay
-		 */
+         * When this diob has an overlay added to it.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pD - The diob added as an overlay.
+         */
 		onAddOverlay(pD: Diob): void
 
         /**
-		 * adds an overlay to the object which is a visual icon that always follows the object; returns the new overlay
-		 * @env Client | Server
-		 * @param {string | Diob | Object} pOver - string of the type of object or overlay to add an overlay of or actual diob to get type from
-		 * @param {number | boolean} [pAppearance] - optional; if 1 or positive, this overlay will be be treated as if it is part of the the parent's actual appearance - appearance settings such as angle and alpha of the parent will be used for this overlay and the overlay will be drawn directly on top of the parent so no other diobs that are not an overlay of the parent can appear between it and the parent (it will basically be an extension of the parent's icon); if this is false or 0, the overlay will be treated as an independent diob that just follows the parent around; if -1 or negative it will be treated like if it was 1 but it will appear under the parent instead of above it
-		 * @param {boolean} [pSkipEvent] - optional; if true, the onAddOverlay event will not be called
-		 * @returns {void} returns the new overlay
-		 */
-		addOverlay(pOver: string | Diob | Object, pAppearance?: number | boolean, pSkipEvent?: boolean): void
+         * Adds an overlay to the object which is a visual icon that always follows the object. Returns the new overlay.
+         *
+         * @env Client | Server
+         * @param {string | Diob | Object} pOver - String of the type of object or overlay to add an overlay of or actual diob to get type from.
+         * @param {number | boolean} [pAppearance] - (Optional) If 1 or positive, this overlay will be be treated as if it is part of the the parent's actual appearance - appearance settings such as angle and alpha of the parent will be used for this overlay and the overlay will be drawn directly on top of the parent so no other diobs that are not an overlay of the parent can appear between it and the parent (it will basically be an extension of the parent's icon). If this is `false` or 0, the overlay will be treated as an independent diob that just follows the parent around. If -1 or negative it will be treated like if it was 1 but it will appear under the parent instead of above it.
+         * @param {boolean} [pSkipEvent] - (Optional) If `true`, the onAddOverlay event will not be called.
+         * @returns {void} Returns the new overlay.
+         */
+		addOverlay(pOver: string | Diob | Object, pAppearance?: AppearMask, pSkipEvent?: boolean): void
 
         /**
-		 * when this diob enters the client's screen view
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - a reference to the client
-		 */
+         * When this diob enters the client's screen view.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - A reference to the client.
+         */
 		onScreenShow(pClient: Client): void
 
         /**
-		 * if set, will share animation with all other diobs with the same sync id; ex {'sync': 'water'}
-		 * @env Client | Server
-		 */
+         * If set, will share animation with all other diobs with the same sync id. Example: `{'sync': 'water'}`.
+         *
+         * @env Client | Server
+         */
 		animator: object
 
         /**
-		 * state of the icon
-		 * @env Client | Server
-		 */
-		iconState: unknown
+         * State of the icon.
+         *
+         * @env Client | Server
+         */
+		iconState: string
 
         /**
-		 * return data related to the internal sprite of the diob which 
-		 * @env Client | Server
-		 * @param {string} pType - the type of data to get 'url' for data url, 'pixels' for array of pixel data, 'canvas' for an HTML canvas element
-		 */
-		getSpriteData(pType: string): void
+         * Returns data extracted from the internal rendering sprite of the diob (client-side only).
+         *
+         * @env Client
+         * @param {'url' | 'pixels' | 'canvas'} [pType] - Format to extract: `'url'` for base64 data URL string, `'pixels'` for Uint8ClampedArray / ImageData, `'canvas'` for HTMLCanvasElement. If omitted, returns the internal PIXI sprite reference.
+         * @returns {string | ImageData | HTMLCanvasElement | any} Rendered sprite extraction data.
+         *
+         * @example
+         * ```ts
+         * const dataUrl = diob.getSpriteData('url') as string;
+         * const canvas = diob.getSpriteData('canvas') as HTMLCanvasElement;
+         * ```
+         */
+		getSpriteData(pType?: 'url' | 'pixels' | 'canvas'): string | ImageData | HTMLCanvasElement | any
 
         /**
-		 * when this diob and pD have overlapping bounding boxes
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pD - diob that crossed with this diob
-		 * @param {unknown} pInit - if set, pD was relocated and initiated the event
-		 */
-		onCrossed(pD: Diob, pInit: unknown): void
+         * When this diob and `pD` have overlapping bounding boxes.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pD - Diob that crossed with this diob.
+         * @param {boolean | number} [pInit] - If set, `pD` was relocated and initiated the event.
+         */
+		onCrossed(pD: Diob, pInit?: boolean | number): void
 
         /**
-		 * set the diob's sprite to pData
-		 * @env Client | Server
-		 * @param {unknown} pData - the data used as the sprite
-		 * @param {string} [pType] - optional; default 'url'; the type of data to get 'url' for data url
-		 */
-		setSpriteData(pData: unknown, pType?: string): void
+         * Set the diob's sprite to `pData`.
+         *
+         * @env Client | Server
+         * @param {unknown} pData - Data to set sprite to.
+         */
+		setSpriteData(pData: unknown): void
 
         /**
-		 * removed pDiob from this diob's viewer array
-		 * @env Client | Server
-		 * @param {Diob} pDiob - the diob to remove
-		 */
-		removeInvisibilityViewer(pDiob: Diob): void
+         * When this diob and `pMovable` are crossed and `pMovable` moves.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Diob that moved.
+         */
+		onCrossMove(pDiob: Diob): void
 
         /**
-		 * y-axis offset of the icon
-		 * @env Client | Server
-		 */
-		yIconOffset: number
+         * Removes the mask applied to this diob.
+         *
+         * @env Client | Server
+         */
+		removeMask(): void
 
         /**
-		 * determines if the cursor executes mouse events on this object or not; 0 to ignore mouse events, 1 for icon size to determine mouse events, 2 for physical size to determine mouse events
-		 * @env Client | Server
-		 */
-		mouseOpacity: unknown
-
-        /**
-		 * sets the movable's map position to pX, pY
-		 * @env Client | Server
-		 * @param {number} pX - value to set the movable's x position on the map to
-		 * @param {number} pY - value to set the movable's y position on the map to
-		 * @param {string} [pMap] - optional; string containing name of map to set position on
-		 */
-		setPos(pX: number, pY: number, pMap?: string): void
-
-        /**
-		 * returns an array of diobs in the diob's contents using the provided arguments; if pType is not set, all diobs in the diob's contents will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
-		 * @env Client | Server
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {unknown[]} returns an array of diobs in the diob's contents using the provided arguments; if pType is not set, all diobs in the diob's contents will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs in the game will be returned
-		 */
-		getContents(pType?: string, pChild?: boolean): unknown[]
-
-        /**
-		 * called when the mouse enters this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 */
-		onMouseEnter(pClient: Client, pX: number, pY: number): void
-
-        /**
-		 * order of display of the diob; diobs with the same plane appear together with layers determining the order; a diob with a plane of 1 and layer 1000 will appear below a diob with plane 2 (default planes: Diob 0, Movable 1, Particle 2)
-		 * @env Client | Server
-		 */
-		plane: unknown
-
-        /**
-		 * x-axis offset of the icon
-		 * @env Client | Server
-		 */
-		xIconOffset: number
-
-        /**
-		 * returns an array of filter names
-		 * @env Client | Server
-		 * @returns {string[]} returns an array of filter names
-		 */
-		getFilters(): string[]
-
-        /**
-		 * name of the map
-		 * @env Client | Server
-		 */
-		mapName: string
-
-        /**
-		 * sets the x and y icon offsets
-		 * @env Client | Server
-		 * @param {number} pX - the x offset of the icon of this object
-		 * @param {number} pY - the y offset of the icon of this object
-		 */
-		setIconOffsets(pX: number, pY: number): void
-
-        /**
-		 * when a movable bumps into this diob
-		 * @env Client | Server
-		 * @event
-		 * @param {unknown} pMovable - movable that did the bumping
-		 */
-		onBumped(pMovable: unknown): void
-
-        /**
-		 * called when a mouse wheel button is scrolled downward while over this object
-		 * @env Client | Server
-		 * @event
-		 * @param {Client} pClient - client of the mouse
-		 * @param {number} pX - the x position of the mouse over the diob
-		 * @param {number} pY - the y position of the mouse over the diob
-		 */
-		onMouseWheelScrollDown(pClient: Client, pX: number, pY: number): void
-
-        /**
-		 * hex, rgb, rgba, color matrix value, or a tint object; applies color filter to diob; ex ( '#000000' ); ex ( 'rgb(10, 20, 30)' ); ex ( {'tint': 0x444444} )
-		 * @env Client | Server
-		 */
-		color: string | number[] | {'tint': number}
-
-        /**
-		 * name of the highest level parent type
-		 * @env Client | Server
-		 */
-		parentType: unknown
-
-        /**
-		 * width of the collision box of the object
-		 * @env Client | Server
-		 */
-		width: number
-
-        /**
-		 * 0 for no scale or an object {'x': 2, 'y': 2} containing the information for the scale
-		 * @env Client | Server
-		 */
-		scale: unknown
-
-        /**
-		 * how many pixels object is offset on the grid y-axis from its yCoord
-		 * @env Client | Server
-		 */
-		yCoordOffset: number
-
-        /**
-		 * position on the x-axis from left to right of the map
-		 * @env Client | Server
-		 */
+         * Position on the x-axis from left to right of the map.
+         *
+         * @env Client | Server
+         */
 		xPos: number
 
         /**
-		 * order of display of the diob; higher layer objects appear above lower layer objects
-		 * @env Client | Server
-		 */
+         * When this diob is created.
+         *
+         * @env Client | Server
+         * @event
+         */
+		onNew(): void
+
+        /**
+         * Moves the movable to the position `pX` and `pY` on the map named `pMap`.
+         *
+         * @env Client | Server
+         * @param {number} pX - Value to set the movable's x position on the map to.
+         * @param {number} pY - Value to set the movable's y position on the map to.
+         * @param {string} [pMap] - (Optional) String containing name of map to set position on.
+         */
+		setPos(pX: number, pY: number, pMap?: string): void
+
+        /**
+         * Returns an array of Diobs currently inside this diob's contents container.
+         *
+         * @env Client | Server
+         * @param {string} [pType] - Optional type name filter (e.g. `'Item'`, `'Mob'`).
+         * @param {boolean} [pChild] - If true, includes instances of child/derived types matching `pType`.
+         * @returns {Diob[]} Array of child Diob instances.
+         *
+         * @example
+         * ```ts
+         * const items: Diob[] = chest.getContents('Item', true);
+         * for (const item of items) {
+         *     console.log('Item in container:', item.name);
+         * }
+         * ```
+         */
+		getContents(pType?: string, pChild?: boolean): Diob[]
+
+        /**
+         * Called when the mouse enters this object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - Client of the mouse.
+         * @param {number} pX - The x position of the mouse over the diob.
+         * @param {number} pY - The y position of the mouse over the diob.
+         */
+		onMouseEnter(pClient: Client, pX: number, pY: number): void
+
+        /**
+         * Order of display of the diob. Diobs with the same plane appear together with layers determining the order. A diob with a plane of 1 and layer 1000 will appear below a diob with plane 2 (default planes: Diob 0, Movable 1, Particle 2).
+         *
+         * @env Client | Server
+         */
+		plane: number
+
+        /**
+         * X-axis offset of the icon.
+         *
+         * @env Client | Server
+         */
+		xIconOffset: number
+
+        /**
+         * Returns an array of filter names.
+         *
+         * @env Client | Server
+         * @returns {string[]} Returns an array of filter names.
+         */
+		getFilters(): string[]
+
+        /**
+         * Name of the map.
+         *
+         * @env Client | Server
+         */
+		mapName: string
+
+        /**
+         * The current map instance this diob belongs to.
+         *
+         * @env Client | Server
+         */
+		map: Map | null
+
+        /**
+         * Sets the x and y offsets of the icon.
+         *
+         * @env Client | Server
+         * @param {number} pX - The x offset of the icon of this object.
+         * @param {number} pY - The y offset of the icon of this object.
+         */
+		setIconOffsets(pX: number, pY: number): void
+
+        /**
+         * When a movable bumps into this diob.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob & Movable} pMovable - Movable that did the bumping.
+         */
+		onBumped(pMovable: Diob & Movable): void
+
+        /**
+         * Called when a mouse wheel button is scrolled downward while over this object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Client} pClient - Client of the mouse.
+         * @param {number} pX - The x position of the mouse over the diob.
+         * @param {number} pY - The y position of the mouse over the diob.
+         */
+		onMouseWheelScrollDown(pClient: Client, pX: number, pY: number): void
+
+        /**
+         * Hex, rgb, rgba, color matrix value, or a tint object. Applies color filter to diob. Example: ( `#000000` ). Example: ( `rgb(10, 20, 30)` ). Example: ( `{'tint': 0x444444}` ).
+         *
+         * @env Client | Server
+         */
+		color: string | number[] | {'tint': number}
+
+        /**
+         * Name of the highest level parent type.
+         *
+         * @env Client | Server
+         */
+		parentType: string
+
+        /**
+         * Width of the collision box of the object.
+         *
+         * @env Client | Server
+         */
+		width: number
+
+        /**
+         * The scale factors `{ x: number, y: number }` applied to the diob's visual rendering.
+         *
+         * @env Client | Server
+         *
+         * @example
+         * ```ts
+         * diob.scale = { x: 2, y: 2 };
+         * ```
+         */
+		scale: { x: number, y: number }
+
+        /**
+         * How many pixels object is offset on the grid y-axis from its yCoord.
+         *
+         * @env Client | Server
+         */
+		yCoordOffset: number
+
+        /**
+         * Position on the x-axis from left to right of the map.
+         *
+         * @env Client | Server
+         */
+		xPos: number
+
+        /**
+         * Order of display of the diob. Higher layer objects appear above lower layer objects.
+         *
+         * @env Client | Server
+         */
 		layer: number
 
         /**
-		 * returns an array of diobs that are overlays of this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
-		 * @env Client | Server
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {Diob[]} returns an array of diobs that are overlays of this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
-		 */
+         * Returns an array of diobs that are overlays of this diob using the provided arguments. If `pType` is not set, all diobs will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs will be returned.
+         *
+         * @env Client | Server
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @returns {Diob[]} Returns an array of diobs that are overlays of this diob using the provided arguments. If `pType` is not set, all diobs will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs will be returned.
+         */
 		getOverlays(pType?: string, pChild?: boolean): Diob[]
 
         /**
-		 * default 0.5; number for both x and y anchors or an object containing both {'x': 0, 'y': 0}; determines where the icon's origin is
-		 * @env Client | Server
-		 */
+         * Default is `0.5`. Number for both x and y anchors or an object containing both `{'x': 0, 'y': 0}`. Determines where the icon's origin is.
+         *
+         * @env Client | Server
+         */
 		anchor: {'x': number, 'y': number}
-		[key: string]: any
-                
-	}
-            
-                
-	
-	/**The movable object.*/
-	type Movable = {
-                    
+
 		/**
-		 * moves movable in the direction of pDir using movable's stepSize until told to stop; takes density into consideration; you can stop movement by calling a different movement function or calling this function with no or null arguments
+		 * Determines if the cursor executes mouse events on this diob or not.
+		 *
+		 * - `MouseOpacity.Transparent` (`0`): Ignores mouse events (cursor clicks pass through).
+		 * - `MouseOpacity.Icon` (`1`): Uses the object's visual icon bounds (`iconWidth` x `iconHeight` + icon offsets) to detect mouse events.
+		 * - `MouseOpacity.Bounds` (`2`): Uses the object's physical collision bounding box (`width` x `height` + origins) to detect mouse events.
+		 *
 		 * @env Client | Server
-		 * @param {string} pDir - direction to move movable in
+		 *
+		 * @example
+		 * ```ts
+		 * diob.mouseOpacity = MouseOpacity.Bounds;
+		 * ```
 		 */
-		moveDir(pDir: string): void
+		mouseOpacity: MouseOpacity | 0 | 1 | 2;
+		[key: string]: any
+
+	}
+
+
+
+	/** The movable object. */
+	type Movable = {
+
+		/**
+		 * Moves movable in the direction of `pDir` using movable's stepSize until told to stop. Takes density into consideration. You can stop movement by calling a different movement function or calling this function with no or `null` arguments.
+		 *
+		 * @env Client | Server
+		 * @param {Direction | string} [pDir] - Direction to move movable in.
+		 */
+		moveDir(pDir?: Direction | string): void
 
         /**
-		 * moves the movable by pX x pixels and pY y pixels until told to stop; takes obstacles into consideration; you can stop movement by calling a different movement function or calling this function with no or null arguments
-		 * @env Client | Server
-		 * @param {number} pX - x value to step by
-		 * @param {number} pY - y value to step by
-		 */
+         * Moves the movable by `pX` x pixels and `pY` y pixels until told to stop. Takes obstacles into consideration. You can stop movement by calling a different movement function or calling this function with no or `null` arguments.
+         *
+         * @env Client | Server
+         * @param {number} pX - X value to step by.
+         * @param {number} pY - Y value to step by.
+         */
 		movePos(pX: number, pY: number): void
 
         /**
-		 * true if moving using the built-in movement
-		 * @env Client | Server
-		 */
-		isMoving: unknown
+         * True if moving using the built-in movement.
+         *
+         * @env Client | Server
+         */
+		isMoving: boolean
 
         /**
-		 * steps the movable by pX x pixels and pY y pixels; takes obstacles into consideration; returns true or false depending on if the step was successful
-		 * @env Client | Server
-		 * @param {number} pX - x value to step by
-		 * @param {number} pY - y value to step by
-		 * @param {unknown} pGlide - if set, movement will not stop unless move directions are blocked
-		 * @param {unknown} pSlide - if set, the step will occur without changing the movable's direction
-		 * @returns {void} returns true or false depending on if the step was successful
-		 */
-		stepPos(pX: number, pY: number, pGlide: unknown, pSlide: unknown): void
+         * Steps the movable by `pX` x pixels and `pY` y pixels. Takes obstacles into consideration. Returns `true` or `false` depending on if the step was successful.
+         *
+         * @env Client | Server
+         * @param {number} pX - X value to step by.
+         * @param {number} pY - Y value to step by.
+         * @param {boolean} pGlide - If set, movement will not stop unless move directions are blocked.
+         * @param {boolean} pSlide - If set, the step will occur without changing the movable's direction.
+         * @returns {void} Returns `true` or `false` depending on if the step was successful.
+         */
+		stepPos(pX: number, pY: number, pGlide: boolean, pSlide: boolean): void
 
         /**
-		 * optional; time between each step, default is 60 steps a second for smoothest possible movement (default of 16.6667)
-		 * @env Client | Server
-		 */
-		moveSettings: unknown
+         * Movement settings configuration controlling step size, gliding, sliding, cardinal locking, and step frequency.
+         *
+         * @env Client | Server
+         *
+         * @example
+         * ```ts
+         * movable.moveSettings = {
+         *     stepSize: 4,
+         *     stepGlide: true,
+         *     stepTick: 16.6667
+         * };
+         * ```
+         */
+		moveSettings: MoveSettingsConfig
 
         /**
-		 * moves movable pSize pixels in the direction of pDir; if pSize is not set, the size is the movable's stepSize; takes obstacles into consideration; returns true or false depending on if the step was successful
-		 * @env Client | Server
-		 * @param {string} pDir - direction to move movable in
-		 * @param {unknown} pSize - size of step to take
-		 * @param {unknown} pSlide - if set, the step will occur without changing the movable's direction
-		 * @returns {void} returns true or false depending on if the step was successful
-		 */
-		stepDir(pDir: string, pSize: unknown, pSlide: unknown): void
+         * Moves movable `pSize` pixels in the direction of `pDir`. If `pSize` is not set, the size is the movable's stepSize. Takes obstacles into consideration. Returns `true` or `false` depending on if the step was successful.
+         *
+         * @env Client | Server
+         * @param {Direction | string} pDir - Direction to move movable in.
+         * @param {number} [pSize] - (Optional) Size of step to take.
+         * @param {boolean} [pSlide] - (Optional) If set, the step will occur without changing the movable's direction.
+         * @returns {void} Returns `true` or `false` depending on if the step was successful.
+         */
+		stepDir(pDir: Direction | string, pSize?: number, pSlide?: boolean): void
 
         /**
-		 * calls either movable.stepPos or movable.stepDir depending on the specified arguments; if pArg1 is a number, movable.stepPos will be called, otherwise movable.stepDir will be called; returns true or false depending on if the step was successful
-		 * @env Client | Server
-		 * @returns {void} returns true or false depending on if the step was successful
-		 */
+         * Calls either movable.stepPos or movable.stepDir depending on the specified arguments. If `pArg1` is a number, movable.stepPos will be called, otherwise movable.stepDir will be called. Returns `true` or `false` depending on if the step was successful.
+         *
+         * @env Client | Server
+         * @returns {void} Returns `true` or `false` depending on if the step was successful.
+         */
 		step(): void
 
         /**
-		 * calls either movable.movePos or movable.moveDir depending on the specified arguments; if pArg1 is a number, movable.movePos will be called, otherwise movable.moveDir will be called; this moves the movable until told to stop; you can stop movement by calling a different movement function or calling this function with no or null arguments
-		 * @env Client | Server
-		 */
+         * Calls either movable.movePos or movable.moveDir depending on the specified arguments. If `pArg1` is a number, movable.movePos will be called, otherwise movable.moveDir will be called. This moves the movable until told to stop. You can stop movement by calling a different movement function or calling this function with no or `null` arguments.
+         *
+         * @env Client | Server
+         */
 		move(): void
 
         /**
-		 * string containing the direction of the movable; 'north', 'south', 'east', 'west', 'northwest', 'northeast', 'southwest', 'southeast'
-		 * @env Client | Server
-		 */
-		dir: unknown
+         * Current facing or movement direction of the movable (`'north'`, `'south'`, `'east'`, `'west'`, `'northwest'`, `'northeast'`, `'southwest'`, `'southeast'`).
+         *
+         * @env Client | Server
+         *
+         * @example
+         * ```ts
+         * if (movable.dir === 'north') {
+         *     // Facing north
+         * }
+         * ```
+         */
+		dir: Direction
 		[key: string]: any
-                
+
 	}
-            
-                
-	
-	/**The particle object.*/
+
+
+
+	/** The particle object. */
 	type Particle = {
-                    
+
 		/**
-		 * CLIENT-ONLY; if set, the client will not update the draw layer of this diob when it changes location on the screen
+		 * If set, the client will not update the draw layer of this diob when it changes location on the screen.
+		 *
 		 * @env Client
 		 */
 		preventScreenRelayer: boolean
 		[key: string]: any
-                
+
 	}
-            
-                
-	
-	/**The tile object.*/
+
+
+
+	/** The tile object. */
 	type Tile = {
-                    
+
 		/**
-		 * when an object exits the contents of another object
+		 * When an object exits the contents of another object.
+		 *
 		 * @env Client | Server
 		 * @event
-		 * @param {Diob} pDiob - object that exited
+		 * @param {Diob} pDiob - Object that exited.
 		 */
 		onExited(pDiob: Diob): void
 
         /**
-		 * called before the diob enters the tile; returning false will prevent the diob from entering
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pDiob - diob trying to enter this tile
-		 * @param {string} pDir - direction of movement diob is attempting to make to enter the tile
-		 */
+         * Called before the diob enters the tile. Returning `false` will prevent the diob from entering.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Diob trying to enter this tile.
+         * @param {string} pDir - Direction of movement diob is attempting to make to enter the tile.
+         */
 		onEnter(pDiob: Diob, pDir: string): void
 
         /**
-		 * when an object enters the contents of another object
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pDiob - object that entered
-		 */
+         * When an object enters the contents of another object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Object that entered.
+         */
 		onEntered(pDiob: Diob): void
 
         /**
-		 * called before the diob exits the tile; returning false will prevent the diob from exiting
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pDiob - diob trying to exit this tile
-		 * @param {string} pDir - direction of movement diob is attempting to make to exit the tile
-		 */
+         * Called before the diob exits the tile. Returning `false` will prevent the diob from exiting.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Diob trying to exit this tile.
+         * @param {string} pDir - Direction of movement diob is attempting to make to exit the tile.
+         */
 		onExit(pDiob: Diob, pDir: string): void
-		[key: string]: any
-                
-	}
-            
-                
-	
-	/**The region object.*/
-	type Region = {
-                    
+
 		/**
-		 * when an object exits the contents of another object
+		 * Determines if the cursor executes mouse events on this tile or not.
+		 *
+		 * - `MouseOpacity.Transparent` (`0`): Ignores mouse events (default for tiles).
+		 * - `MouseOpacity.Icon` (`1`): Uses tile icon bounds.
+		 * - `MouseOpacity.Bounds` (`2`): Uses tile bounds.
+		 *
+		 * @env Client | Server
+		 */
+		mouseOpacity?: MouseOpacity | 0 | 1 | 2;
+		[key: string]: any
+
+	}
+
+
+
+	/** The region object. */
+	type Region = {
+
+		/**
+		 * When an object exits the contents of another object.
+		 *
 		 * @env Client | Server
 		 * @event
-		 * @param {Diob} pDiob - object that exited
+		 * @param {Diob} pDiob - Object that exited.
 		 */
 		onExited(pDiob: Diob): void
 
         /**
-		 * when an object enters the contents of another object
-		 * @env Client | Server
-		 * @event
-		 * @param {Diob} pDiob - object that entered
-		 */
+         * When an object enters the contents of another object.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob} pDiob - Object that entered.
+         */
 		onEntered(pDiob: Diob): void
 		[key: string]: any
-                
+
 	}
-            
-                
-	
-	/**The mob object.*/
-	type Mob = {
-                    
+
+
+
+	/** The mob object. */
+	interface Mob {
+
 		/**
-		 * a reference to the client of this mob
+		 * A reference to the client of this mob.
+		 *
 		 * @env Client | Server
 		 */
 		client: Client
 
         /**
-		 * when a client no longer has control of a mob
-		 * @env Client | Server
-		 * @event
-		 */
+         * When a client no longer has control of a mob.
+         *
+         * @env Client | Server
+         * @event
+         */
 		onLogout(): void
 
         /**
-		 * when a client has taken control of the mob
-		 * @env Client | Server
-		 * @event
-		 */
+         * When a client has taken control of the mob.
+         *
+         * @env Client | Server
+         * @event
+         */
 		onLogin(): void
 		[key: string]: any
-                
+
 	}
-            
-                
-	
-	/**The overlay object.*/
+
+
+
+	/** The overlay object. */
 	type Overlay = {
-                    
+
 		/**
-		 * if true, this overlay will appear directly above the parent and use the same appearance properties as the parent, such as angle and alpha; the overlay will basically be an extension of the parent's icon; instead of true this can be an object containing information on the appearMask, 'shareIcon' to have the overlay share the same iconName as the parent, 'isUnder' to make the overlay appear under the parent instead of above, and 'ownMod' to let the overlay use its own alpha, angle, scale, transform, and composite variables, 'ownState' to have this overlay not sync up with the parent's iconState; ex {'shareIcon': true, 'isUnder': true}
+		 * If `true`, this overlay will appear directly above the parent and use the same appearance properties as the parent, such as angle and alpha. The overlay will basically be an extension of the parent's icon. Instead of `true` this can be an object containing information on the appearMask, `shareIcon` to have the overlay share the same iconName as the parent, `isUnder` to make the overlay appear under the parent instead of above, and `ownMod` to let the overlay use its own alpha, angle, scale, transform, and composite variables, `ownState` to have this overlay not sync up with the parent's iconState. Example: `{'shareIcon': `true`, 'isUnder': `true`}`.
+		 *
 		 * @env Client | Server
 		 */
-		appearMask: unknown
+		appearMask: AppearMask
 		[key: string]: any
-                
+
 	}
-            
-                
-	
-	/**The sound object.*/
+
+
+
+	/** The sound object. */
 	type Sound = {
-                    
+
 		/**
-		 * number of seconds that have been played into the sound
+		 * Number of seconds that have been played into the sound.
+		 *
 		 * @env Client | Server
 		 */
 		currentTime: number
 
         /**
-		 * fades the sound's volume in or out from the current volume to pVol over pDur seconds
-		 * @env Client | Server
-		 * @param {number} pVol - number between 0 and 100
-		 * @param {number} pDur - number of seconds
-		 */
+         * Fades the sound's volume in or out from the current volume to `pVol` over `pDur` seconds.
+         *
+         * @env Client | Server
+         * @param {number} pVol - Number between 0 and 100.
+         * @param {number} pDur - Number of seconds.
+         */
 		fade(pVol: number, pDur: number): void
 
         /**
-		 * if true, the sound has been manually stopped
-		 * @env Client | Server
-		 */
+         * If `true`, the sound has been manually stopped.
+         *
+         * @env Client | Server
+         */
 		isStopped: boolean
 
         /**
-		 * resume the sound
-		 * @env Client | Server
-		 */
+         * Resume the sound.
+         *
+         * @env Client | Server
+         */
 		resume(): void
 
         /**
-		 * sets the volume of this Sound
-		 * @env Client | Server
-		 * @param {number} pVol - number between 0 and 100
-		 */
+         * Sets the volume of this Sound.
+         *
+         * @env Client | Server
+         * @param {number} pVol - Number between 0 and 100.
+         */
 		setVolume(pVol: number): void
 
         /**
-		 * stop the sound
-		 * @env Client | Server
-		 */
+         * Stop the sound.
+         *
+         * @env Client | Server
+         */
 		stop(): void
 
         /**
-		 * called when the sound finishes playing
-		 * @env Client | Server
-		 * @event
-		 */
+         * Called when the sound finishes playing.
+         *
+         * @env Client | Server
+         * @event
+         */
 		onEnded(): void
 
         /**
-		 * number of seconds to play the sound for up to the sound file duration
-		 * @env Client | Server
-		 */
+         * Number of seconds to play the sound for up to the sound file duration.
+         *
+         * @env Client | Server
+         */
 		duration: number
 
         /**
-		 * called when the sound starts to playing for the first time
-		 * @env Client | Server
-		 * @event
-		 */
+         * Called when the sound starts to playing for the first time.
+         *
+         * @env Client | Server
+         * @event
+         */
 		onStarted(): void
 
         /**
-		 * returns an ArrayBuffer containing the raw sound data; soundName must already be loaded before calling this
-		 * @env Client | Server
-		 * @returns {ArrayBuffer} returns an ArrayBuffer containing the raw sound data; soundName must already be loaded before calling this
-		 */
+         * Returns an ArrayBuffer containing the raw sound data. SoundName must already be loaded before calling this.
+         *
+         * @env Client | Server
+         * @returns {ArrayBuffer} Returns an ArrayBuffer containing the raw sound data. SoundName must already be loaded before calling this.
+         */
 		getRawData(): ArrayBuffer
 
         /**
-		 * called when the sound is manually resumed
-		 * @env Client | Server
-		 * @event
-		 */
+         * Called when the sound is manually resumed.
+         *
+         * @env Client | Server
+         * @event
+         */
 		onResumed(): void
 
         /**
-		 * returns an AudioBuffer containing the useful data on the sound's buffer; the sound must already be loaded and playing
-		 * @env Client | Server
-		 * @returns {AudioBuffer} returns an AudioBuffer containing the useful data on the sound's buffer; the sound must already be loaded and playing
-		 */
+         * Returns an AudioBuffer containing the useful data on the sound's buffer. The sound must already be loaded and playing.
+         *
+         * @env Client | Server
+         * @returns {AudioBuffer} Returns an AudioBuffer containing the useful data on the sound's buffer. The sound must already be loaded and playing.
+         */
 		getBuffer(): AudioBuffer
 
         /**
-		 * name of the sound file associated with this sound object
-		 * @env Client | Server
-		 */
+         * Name of the sound file associated with this sound object.
+         *
+         * @env Client | Server
+         */
 		soundName: string
 
         /**
-		 * number of seconds to start playing the sound at
-		 * @env Client | Server
-		 */
+         * Number of seconds to start playing the sound at.
+         *
+         * @env Client | Server
+         */
 		startTime: number
 
         /**
-		 * turns looping on or off; if pLoop is not set, loop will be toggled
-		 * @env Client | Server
-		 * @param {unknown} [pLoop] - optional; true to loop, false to stop loop
-		 */
-		setLoop(pLoop?: unknown): void
+         * Turns looping on or off. If `pLoop` is not set, loop will be toggled.
+         *
+         * @env Client | Server
+         * @param {boolean} [pLoop] - (Optional) True to loop, `false` to stop loop.
+         */
+		setLoop(pLoop?: boolean): void
 
         /**
-		 * number between 0 and 100; volume of this sound object; default 100
-		 * @env Client | Server
-		 */
+         * Number between 0 and 100. Volume of this sound object. Default is `100`.
+         *
+         * @env Client | Server
+         */
 		volume: number
 
         /**
-		 * returns an AudioContext containing the useful data on the sound's context; the sound must already be loaded and playing
-		 * @env Client | Server
-		 * @returns {AudioContext} returns an AudioContext containing the useful data on the sound's context; the sound must already be loaded and playing
-		 */
+         * Returns an AudioContext containing the useful data on the sound's context. The sound must already be loaded and playing.
+         *
+         * @env Client | Server
+         * @returns {AudioContext} Returns an AudioContext containing the useful data on the sound's context. The sound must already be loaded and playing.
+         */
 		getContext(): AudioContext
 
         /**
-		 * called when the sound is manually stopped
-		 * @env Client | Server
-		 * @event
-		 */
+         * Called when the sound is manually stopped.
+         *
+         * @env Client | Server
+         * @event
+         */
 		onStopped(): void
 
         /**
-		 * if true sound loops; if false sound plays once
-		 * @env Client | Server
-		 */
+         * If `true` sound loops. If `false` sound plays once.
+         *
+         * @env Client | Server
+         */
 		loop: boolean
-                
+
 	}
-            
-                
-	
-	/**The interface object.*/
+
+
+
+	/** The interface object. */
 	type Interface = {
-                    
+
 		/**
-		 * shows the interface element
+		 * Shows the interface element.
+		 *
 		 * @env Client | Server
 		 */
 		show(): void
 
         /**
-		 * default false; if set this interface will not scale or move when the window changes size
-		 * @env Client | Server
-		 */
+         * Default is `false`. If set this interface will not scale or move when the window changes size.
+         *
+         * @env Client | Server
+         */
 		preventAutoScale: boolean
 
         /**
-		 * returns the name of the interface the interface object is part of
-		 * @env Client | Server
-		 * @returns {string} returns the name of the interface the interface object is part of
-		 */
+         * Returns the name of the interface the interface object is part of.
+         *
+         * @env Client | Server
+         * @returns {string} Returns the name of the interface the interface object is part of.
+         */
 		getInterfaceName(): string
 
         /**
-		 * default 0; number of pixels to offset the text by on the y-axis
-		 * @env Client | Server
-		 */
+         * Default is `0`. Number of pixels to offset the text by on the y-axis.
+         *
+         * @env Client | Server
+         */
 		textStyle: object
 
         /**
-		 * executes any default commands or custom executed event of object
-		 * @env Client | Server
-		 * @param {Client} pClient - client to execute with
-		 */
+         * Executes any default commands or custom executed event of object.
+         *
+         * @env Client | Server
+         * @param {Client} pClient - Client to execute with.
+         */
 		execute(pClient: Client): void
 
         /**
-		 * returns an object {'x': x,'y': y} containing the x and y positions of the interface element on the screen
-		 * @env Client | Server
-		 * @returns {{'x': number,'y': number}} returns an object {'x': x,'y': y} containing the x and y positions of the interface element on the screen
-		 */
+         * Returns an object `{'x': x,'y': y}` containing the x and y positions of the interface element on the screen.
+         *
+         * @env Client | Server
+         * @returns {{'x': number,'y': number} } returns an object `{'x': x,'y': y}` containing the x and y positions of the interface element on the screen.
+         */
 		getPos(): {'x': number,'y': number}
 
         /**
-		 * string containing composite value that determines how this diob is drawn with other diobs on the same plane; possible values: source-over, source-atop, source-in, source-out, destination-over, destination-atop, destination-in, destination-out, lighter, copy, xor, multiply, screen, overlay, darken, lighten, color-dodge, color-burn, hard-light, soft-light, difference, exclusion, hue, saturation, color, luminosity
-		 * @env Client | Server
-		 */
+         * String containing composite value that determines how this diob is drawn with other diobs on the same plane. Possible values: source-over, source-atop, source-in, source-out, destination-over, destination-atop, destination-in, destination-out, lighter, copy, xor, multiply, screen, overlay, darken, lighten, color-dodge, color-burn, hard-light, soft-light, difference, exclusion, hue, saturation, color, luminosity.
+         *
+         * @env Client | Server
+         */
 		composite: 'source-over' | 'source-atop' | 'source-in' | 'source-out' | 'destination-over' | 'destination-atop' | 'destination-in' | 'destination-out' | 'lighter' | 'copy' | 'xor' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity'
 
         /**
-		 * returns the client this interface element belongs to, if there is one
-		 * @env Client | Server
-		 * @returns {void} returns the client this interface element belongs to, if there is one
-		 */
+         * Returns the client this interface element belongs to, if there is one.
+         *
+         * @env Client | Server
+         * @returns {void} Returns the client this interface element belongs to, if there is one.
+         */
 		getClient(): void
 
         /**
-		 * position on the y-axis from top to bottom of the interface element on the screen
-		 * @env Client | Server
-		 */
+         * Position on the y-axis from top to bottom of the interface element on the screen.
+         *
+         * @env Client | Server
+         */
 		yPos: number
 
         /**
-		 * locks the interface element to an edge of the screen; only works if preventAutoScale is enabled; possible values: top, top-left, top-right, right, left, bottom, bottom-right, bottom-left
-		 * @env Client | Server
-		 */
+         * Locks the interface element to an edge of the screen. Only works if preventAutoScale is enabled. Possible values: top, top-left, top-right, right, left, bottom, bottom-right, bottom-left.
+         *
+         * @env Client | Server
+         */
 		edgeLock: 'top' | 'top-left' | 'top-right' | 'right' | 'left' | 'bottom' | 'bottom-right' | 'bottom-left'
 
         /**
-		 * type of interface; TextBox/CommandInput/TextInput/PassInput/WebBox/TextArea/Default
-		 * @env Client | Server
-		 */
+         * Type of interface. TextBox/CommandInput/TextInput/PassInput/WebBox/TextArea/Default.
+         *
+         * @env Client | Server
+         */
 		interfaceType: string
 
         /**
-		 * moves the interface element to the specified screen location
-		 * @env Client | Server
-		 * @param {number} pX - position on the x-axis of the screen; from left to right
-		 * @param {number} pY - position on the y-axis of the screen; from top to bottom
-		 */
+         * Moves the interface element to the specified screen location.
+         *
+         * @env Client | Server
+         * @param {number} pX - Position on the x-axis of the screen. From left to right.
+         * @param {number} pY - Position on the y-axis of the screen. From top to bottom.
+         */
 		setPos(pX: number, pY: number): void
 
         /**
-		 * true if the interface is hidden; false otherwise
-		 * @env Client | Server
-		 */
+         * True if the interface is hidden. False otherwise.
+         *
+         * @env Client | Server
+         */
 		isHidden: boolean
 
         /**
-		 * returns the DOM/HTML element attached to this interface element, if there is one; access `innerBox` to get the box that `text` is added to
-		 * @env Client | Server
-		 * @returns {void} returns the DOM/HTML element attached to this interface element, if there is one; access `innerBox` to get the box that `text` is added to
-		 */
-		getDOM(): void
+         * Returns the DOM HTMLElement associated with this interface/webbox element, if running in browser/client.
+         * Access `innerBox` on the returned element for the child container holding text content.
+         *
+         * @env Client | Server
+         * @returns {HTMLElement | undefined} The underlying DOM element, or undefined on the server.
+         *
+         * @example
+         * ```ts
+         * const element = interfaceBox.getDOM();
+         * if (element) {
+         *     element.style.borderRadius = '8px';
+         * }
+         * ```
+         */
+		getDOM(): HTMLElement | undefined
 
         /**
-		 * hides the interface element
-		 * @env Client | Server
-		 */
+         * Hides the interface element.
+         *
+         * @env Client | Server
+         */
 		hide(): void
 
         /**
-		 * position on the x-axis from left to right of the interface element on the screen
-		 * @env Client | Server
-		 */
+         * Position on the x-axis from left to right of the interface element on the screen.
+         *
+         * @env Client | Server
+         */
 		xPos: number
-		[key: string]: any
-                
-	}
-            
-                
-	
-	/**The client object.*/
-	type Client = {
-                    
+
 		/**
-		 * stores pData as a string locally on the client's computer and can be referenced using pKey; leaving pKey and pData blank will clear all local storage; 3000 characters are allowed to be saved per game (keys and values combined)
+		 * Determines if the cursor executes mouse events on this interface element.
+		 *
+		 * - `MouseOpacity.Transparent` (`0`): Ignores mouse events.
+		 * - `MouseOpacity.Icon` (`1`): Uses icon bounds.
+		 * - `MouseOpacity.Bounds` (`2`): Uses element size bounds.
+		 *
 		 * @env Client | Server
-		 * @param {unknown} pKey - key used to reference the stored data
-		 * @param {unknown} pData - data as a string to store locally for the client
 		 */
-		setLocalStorage(pKey: unknown, pData: unknown): void
+		mouseOpacity?: MouseOpacity | 0 | 1 | 2;
+		[key: string]: any
+
+	}
+
+
+
+	/** The client object. */
+	interface Client {
+
+		/**
+		 * Stores `pData` as a string locally on the client's computer and can be referenced using `pKey`. Leaving `pKey` and `pData` blank will clear all local storage; 3000 characters are allowed to be saved per game (keys and values combined).
+		 *
+		 * @env Client | Server
+		 * @param {string} pKey - Key used to reference the stored data.
+		 * @param {string} pData - Data as a string to store locally for the client.
+		 */
+		setLocalStorage(pKey?: string, pData?: string): void
 
         /**
-		 * returns an object {'x': x, 'y': y} containing the x and y position on the map that currently matches the pX and pY position on the screen
-		 * @env Client | Server
-		 * @param {number} pX - x position on the screen
-		 * @param {number} pY - y position on the screen
-		 * @param {object} [pO] - optional; an existing object to set the x and y of
-		 * @returns {{'x': number, 'y': number}} returns an object {'x': x, 'y': y} containing the x and y position on the map that currently matches the pX and pY position on the screen
-		 */
+         * Returns an object `{'x': x, 'y': y}` containing the x and y position on the map that currently matches the `pX` and `pY` position on the screen.
+         *
+         * @env Client | Server
+         * @param {number} pX - X position on the screen.
+         * @param {number} pY - Y position on the screen.
+         * @param {object} [pO] - (Optional) An existing object to set the x and y of.
+         * @returns {{'x': number, 'y': number} } returns an object `{'x': x, 'y': y}` containing the x and y position on the map that currently matches the `pX` and `pY` position on the screen.
+         */
 		getPosFromScreen(pX: number, pY: number, pO?: object): {'x': number, 'y': number}
 
         /**
-		 * returns the interface element object of the specified interface
-		 * @env Client | Server
-		 * @param {string} pInterface - name of the interface to get element from
-		 * @param {Diob} pElement - name of the element to get
-		 * @returns {Diob} returns the interface element object of the specified interface
-		 */
+         * Returns the interface element object of the specified interface.
+         *
+         * @env Client | Server
+         * @param {string} pInterface - Name of the interface to get element from.
+         * @param {Diob} pElement - Name of the element to get.
+         * @returns {Diob} Returns the interface element object of the specified interface.
+         */
 		getInterfaceElement(pInterface: string, pElement: Diob): Diob
 
         /**
-		 * removes the specified filter
-		 * @env Client | Server
-		 * @param {string | number} pName - name of filter to remove
-		 */
+         * Removes the specified filter.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of filter to remove.
+         */
 		removeFilter(pName: string | number): void
 
         /**
-		 * sets the client's overlays to the array pOver
-		 * @env Client | Server
-		 * @param {Diob[]} pOver - array of overlays to set this client's overlays to
-		 */
+         * Sets the client's overlays to the array `pOver`.
+         *
+         * @env Client | Server
+         * @param {Diob[]} pOver - Array of overlays to set this client's overlays to.
+         */
 		setOverlays(pOver: Diob[]): void
 
         /**
-		 * brings up a confirm window asking the user to select "yes" or "no"; returns true or false
-		 * @env Client | Server
-		 * @param {string} pMes - message to display in the confirm window
-		 * @param {Function} pFunc - function to call after input; the first argument will be the input; can be a "callback array" containing the function, the 'this', and arguments; ex ( [this.someFunc, this] )
-		 * @returns {void} returns true or false
-		 */
+         * Brings up a confirm window asking the user to select "yes" or "no". Returns `true` or `false`.
+         *
+         * @env Client | Server
+         * @param {string} pMes - Message to display in the confirm window.
+         * @param {Function} pFunc - Function to call after input. The first argument will be the input. Can be a "callback array" containing the function, the `this`, and arguments. Example: ( [this.someFunc, this] ).
+         * @returns {void} Returns `true` or `false`.
+         */
 		confirm(pMes: string, pFunc: Function): void
 
         /**
-		 * amount of blank tiles that can be seen on the left and right of the view
-		 * @env Client | Server
-		 */
+         * Amount of blank tiles that can be seen on the left and right of the view.
+         *
+         * @env Client | Server
+         */
 		xEdgeLimit: number
 
         /**
-		 * performs the specified draw function using the specified pArgs object; ex ( {'type': 'image', 'image': this, 'x': 1, 'y': 1} )
-		 * @env Client | Server
-		 * @param {object | object[]} pArgs - an object or array of objects which determines the settings of the draw
-		 * @param {string | number} pName - type of draw
-		 */
-		topScreenDraw(pArgs: object | object[], pName: string | number): void
+         * Executes 2D canvas drawing commands onto the top screen surface named `pName`.
+         *
+         * @env Client | Server
+         * @param {DrawCommandArgs | DrawCommandArgs[]} pArgs - A draw command configuration object or array of draw commands.
+         * @param {string | number} pName - Target top screen identifier name or layer index.
+         *
+         * @example
+         * ```ts
+         * client.topScreenDraw({
+         *     type: 'fillRect',
+         *     color: '#ff0000',
+         *     x: 10,
+         *     y: 10,
+         *     width: 100,
+         *     height: 50
+         * }, 'hud');
+         * ```
+         */
+		topScreenDraw(pArgs: DrawCommandArgs | DrawCommandArgs[], pName: string | number): void
 
         /**
-		 * returns an object {'x': x, 'y': y} containing the x and y offsets of client's view eye
-		 * @env Client | Server
-		 * @returns {{'x': number, 'y': number}} returns an object {'x': x, 'y': y} containing the x and y offsets of client's view eye
-		 */
+         * Returns an object `{'x': x, 'y': y}` containing the x and y offsets of client's view eye.
+         *
+         * @env Client | Server
+         * @returns {{'x': number, 'y': number} } returns an object `{'x': x, 'y': y}` containing the x and y offsets of client's view eye.
+         */
 		getViewEyeOffsets(): {'x': number, 'y': number}
 
         /**
-		 * creates a new top screen named pName with the layer pLayer
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the top screen to create
-		 * @param {unknown} [pLayer] - optional; layer to give the screen
-		 * @param {object} [pSet] - optional; settings object; ex ( {'scaleType': 'nearest'} );
-		 */
-		createTopScreen(pName: string | number, pLayer?: unknown, pSet?: object): void
+         * Creates a new top screen named `pName` with the layer `pLayer`.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the top screen to create.
+         * @param {number} [pLayer] - (Optional) Layer to give the screen.
+         * @param {object} [pSet] - (Optional) Settings object. Example: ( `{'scaleType': 'nearest'}` ).
+         */
+		createTopScreen(pName: string | number, pLayer?: number, pSet?: object): void
 
         /**
-		 * returns an object containing the x and y of the game scale; ex: {'x': 2, 'y': 2}
-		 * @env Client | Server
-		 * @param {object} [pO] - optional; an existing object to set the x and y of
-		 * @returns {{'x': number, 'y': number}} returns an object containing the x and y of the game scale; ex: {'x': 2, 'y': 2}
-		 */
+         * Returns an object containing the x and y of the game scale. Example:: `{'x': 2, 'y': 2}`.
+         *
+         * @env Client | Server
+         * @param {object} [pO] - (Optional) An existing object to set the x and y of.
+         * @returns {{'x': number, 'y': number} } returns an object containing the x and y of the game scale. Example:: `{'x': 2, 'y': 2}`.
+         */
 		getScreenScale(pO?: object): {'x': number, 'y': number}
 
         /**
-		 * ends movement of client.playerMob in the direction of pDir
-		 * @env Client | Server
-		 * @param {string} pDir - name of direction to stop moving the client's playerMob in; pDir being undefined ends all movement
-		 */
+         * Ends movement of client.playerMob in the direction of `pDir`.
+         *
+         * @env Client | Server
+         * @param {string} pDir - Name of direction to stop moving the client's playerMob in. PDir being `undefined` ends all movement.
+         */
 		endMove(pDir: string): void
 
         /**
-		 * returns the name of the account the client is logged in with
-		 * @env Client | Server
-		 * @returns {string} returns the name of the account the client is logged in with
-		 */
+         * Returns the name of the account the client is logged in with.
+         *
+         * @env Client | Server
+         * @returns {string} Returns the name of the account the client is logged in with.
+         */
 		getAccountName(): string
 
         /**
-		 * adds the specified filter
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the filter; only one name may be used at a time, using the name will remove the old filter with that name
-		 * @param {string} pType - the type of filter to add; below is the types and their specific possible pArgs values
-		 * @param {unknown} pArgs - color-based filter
-		 */
+         * Adds the specified filter.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the filter. Only one name may be used at a time, using the name will remove the old filter with that name.
+         * @param {string} pType - The type of filter to add. Below is the types and their specific possible `pArgs` values.
+         * @param {unknown} pArgs - Color-based filter.
+         */
 		addFilter(pName: string | number, pType: string, pArgs: unknown): void
 
         /**
-		 * removes the client command from the client's commands
-		 * @env Client | Server
-		 * @param {string} pCommand - name of the client command to remove
-		 */
+         * Removes the client command from the client's commands.
+         *
+         * @env Client | Server
+         * @param {string} pCommand - Name of the client command to remove.
+         */
 		removeCommand(pCommand: string): void
 
         /**
-		 * sets the background of the client's screen background
-		 * @env Client | Server
-		 * @param {string} pBack - string containing a color, for example '#000' for black
-		 */
-		setScreenBackground(pBack: string): void
+         * Sets the background of the client's screen background.
+         *
+         * @env Client | Server
+         * @param {Direction | string} pDir - Direction to stop moving in.
+         */
+		endMove(pDir: Direction | string): void
 
         /**
-		 * sets the client's max FPS to pFPS
-		 * @env Client | Server
-		 * @param {unknown} pFPS - cap the amount the FPS the client will try to reach when drawing the screen; default 60
-		 */
-		setMaxFPS(pFPS: unknown): void
+         * Called when a key is pressed down.
+         *
+         * @env Client | Server
+         * @event
+         * @param {string} pKey - Name of key that was pressed.
+         * @param {KeyboardEvent} [pEvent] - (Optional) The native KeyboardEvent triggered on the browser screen.
+         */
+		onKeyDown?(pKey: string, pEvent?: KeyboardEvent): void
 
         /**
-		 * returns a reference to the web tag with the id pID
-		 * @env Client | Server
-		 * @param {string} pID - id of the web tag
-		 * @returns {HTMLElement} returns a reference to the web tag with the id pID
-		 */
+         * Called when a key is released.
+         *
+         * @env Client | Server
+         * @event
+         * @param {string} pKey - Name of key that was released.
+         * @param {KeyboardEvent} [pEvent] - (Optional) The native KeyboardEvent triggered on the browser screen.
+         */
+		onKeyUp?(pKey: string, pEvent?: KeyboardEvent): void
+
+        /**
+         * Returns an array of diobs that are currently on the screen.
+         *
+         * @env Client | Server
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @returns {Diob[]} Returns an array of diobs that are currently on the screen.
+         */
+		getScreenDiobs(pType?: string, pChild?: boolean): Diob[]
+
+        /**
+         * Name of the client's account.
+         *
+         * @env Client | Server
+         */
+		accountName: string
+
+        /**
+         * CLIENT-ONLY. Forces all tiles on the screen to be redrawn on the next frame.
+         *
+         * @env Client
+         */
+		refreshTiles(): void
+
+        /**
+         * Sets the max FPS of the client to `pFPS`.
+         *
+         * @env Client | Server
+         * @param {number} pFPS - Cap the amount the FPS the client will try to reach when drawing the screen. Default is `60`.
+         */
+		setMaxFPS(pFPS: number): void
+
+        /**
+         * Returns a reference to the web tag with the id `pID`.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the web tag.
+         * @returns {HTMLElement} Returns a reference to the web tag with the id `pID`.
+         */
 		getWebTag(pID: string): HTMLElement
 
         /**
-		 * sets the style of pStyle to the value of pValue of the web tag with the id pID
-		 * @env Client | Server
-		 * @param {string} pID - id of the web tag to set the style of
-		 * @param {unknown} pStyle - type of style to set
-		 * @param {string} pValue - value as a string to set the style to
-		 */
-		setWebTagStyle(pID: string, pStyle: unknown, pValue: string): void
+         * Sets the style of `pStyle` to the value of `pValue` of the web tag with the id `pID`.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the web tag to set the style of.
+         * @param {string} pStyle - Type of style to set.
+         * @param {string} pValue - Value as a string to set the style to.
+         */
+		setWebTagStyle(pID: string, pStyle: string, pValue: string): void
 
         /**
-		 * sets the HTML of the web box behind the game screen
-		 * @env Client | Server
-		 * @param {string} pBack - string containing HTML to set use in the web box behind the game screen
-		 */
+         * Sets the HTML of the web box behind the game screen.
+         *
+         * @env Client | Server
+         * @param {string} pBack - String containing HTML to set use in the web box behind the game screen.
+         */
 		setWebBackground(pBack: string): void
 
         /**
-		 * clears all the keys the client is holding and calls their key up events; if the client continues to hold the key and once the user manually releases the key, the key event may still continue to trigger, so take that into consideration
-		 * @env Client | Server
-		 */
+         * Clears all the keys the client is holding and calls their key up events. If the client continues to hold the key and once the user manually releases the key, the key event may still continue to trigger, so take that into consideration.
+         *
+         * @env Client | Server
+         */
 		clearKeyDownEvents(): void
 
         /**
-		 * focuses on the interface element object
-		 * @env Client | Server
-		 */
+         * Focuses on the interface element object.
+         *
+         * @env Client | Server
+         */
 		setFocus(): void
 
         /**
-		 * sets the variable pVar to pVal for the plane pPlane
-		 * @env Client | Server
-		 * @param {number} pPlane - value of plane to set
-		 * @param {string} pVar - string containing name of variable to set
-		 * @param {boolean} pVal - value to give this plane's pVar variable
-		 */
-		setPlane(pPlane: number, pVar: string, pVal: boolean): void
+         * Sets the variable `pVar` to `pVal` for the plane `pPlane`.
+         *
+         * @env Client | Server
+         * @param {number} pPlane - Value of plane to set.
+         * @param {string} [pVar] - (Optional) String containing name of variable to set.
+         * @param {boolean} [pVal] - (Optional) Value to give this plane's `pVar` variable.
+         */
+		setPlane(pPlane: number, pVar?: string, pVal?: boolean): void
 
         /**
-		 * sets the client's view eye offsets
-		 * @env Client | Server
-		 * @param {number} pX - amount of pixels for the screen to be offset from the client's view eye on the x-axis
-		 * @param {number} pY - amount of pixels for the screen to be offset from the client's view eye on the y-axis
-		 */
+         * Sets the client's view eye offsets.
+         *
+         * @env Client | Server
+         * @param {number} pX - Amount of pixels for the screen to be offset from the client's view eye on the x-axis.
+         * @param {number} pY - Amount of pixels for the screen to be offset from the client's view eye on the y-axis.
+         */
 		setViewEyeOffsets(pX: number, pY: number): void
 
         /**
-		 * plays a sound to this client; returns the Sound object
-		 * @env Client | Server
-		 * @param {string | {'soundName': string, 'volume': number}} pSound - either a string with the name of a sound file, or a string containing the path of a Sound object, or an actual Sound object, or a basic object with the proper information; ex ( {'soundName': 'name', 'volume': 50} )
-		 * @param {unknown} [pStart] - optional; time to start playing the sound at
-		 * @param {unknown} [pDuration] - optional; how long to play the sound for
-		 * @returns {void} returns the Sound object
-		 */
-		playSound(pSound: string | {'soundName': string, 'volume': number}, pStart?: unknown, pDuration?: unknown): void
+         * Plays a sound to this client. Returns the Sound object.
+         *
+         * @env Client | Server
+         * @param {string | {'soundName': string, 'volume': number}} pSound - either a string with the name of a sound file, or a string containing the path of a Sound object, or an actual Sound object, or a basic object with the proper information; ex ( {'soundName': 'name', 'volume': 50} )
+         * @param {number} [pStart] - (Optional) Time in seconds to start playing the sound at.
+         * @param {number} [pDuration] - (Optional) How long in seconds to play the sound for.
+         * @returns {void} Returns the Sound object.
+         */
+		playSound(pSound: string | {'soundName': string, 'volume': number}, pStart?: number, pDuration?: number): void
 
         /**
-		 * gets the data as a string that is stored with the key pKey on the client's computer
-		 * @env Client | Server
-		 * @param {unknown} pKey - key used to get data stored locally on the client's computer
-		 */
-		getLocalStorage(pKey: unknown): Storage
+         * Gets the data as a string that is stored with the key `pKey` on the client's computer.
+         *
+         * @env Client | Server
+         * @param {string} pKey - Key used to get data stored locally on the client's computer.
+         * @returns {string | null} Returns the stored string data or null if not found.
+         */
+		getLocalStorage(pKey: string): string | null
 
         /**
-		 * executes the event pEvent of the web tag with the id pID
-		 * @env Client | Server
-		 * @param {string} pID - id of the web tag to call the event of
-		 * @param {unknown} pEvent - name of the event to call; onMouseDown, onMouseUp, onMouseClick, onMouseDblClick, onMouseMove
-		 */
-		callWebTagEvent(pID: string, pEvent: unknown): void
+         * Executes the event `pEvent` of the web tag with the id `pID`.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the web tag to call the event of.
+         * @param {string} pEvent - Name of the event to call: onMouseDown, onMouseUp, onMouseClick, onMouseDblClick, onMouseMove.
+         */
+		callWebTagEvent(pID: string, pEvent: string): void
 
         /**
-		 * returns an array of names of all created interfaces
-		 * @env Client | Server
-		 * @returns {string[]} returns an array of names of all created interfaces
-		 */
+         * Returns an array of names of all created interfaces.
+         *
+         * @env Client | Server
+         * @returns {string[]} Returns an array of names of all created interfaces.
+         */
 		getInterfaceNames(): string[]
 
         /**
-		 * removes the script with the pName name from the game
-		 * @env Client | Server
-		 * @param {string | number} pName - name of script to remove
-		 */
+         * Removes the script with the `pName` name from the game.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of script to remove.
+         */
 		removeWebScript(pName: string | number): void
 
         /**
-		 * loads a JavaScript file into the project
-		 * @env Client | Server
-		 * @param {string | number} pName - name to give the script
-		 * @param {unknown} pLink - link to the JavaScript file to load
-		 * @param {unknown} [pModule] - optional; load script as a module
-		 * @param {Function} [pFunc] - optional; function to call after the JavaScript file has loaded
-		 */
-		addWebScript(pName: string | number, pLink: unknown, pModule?: unknown, pFunc?: Function): void
+         * Loads a JavaScript file into the project.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name to give the script.
+         * @param {string} pLink - Link to the JavaScript file to load.
+         * @param {boolean} [pModule] - (Optional) Load script as a module.
+         * @param {Function} [pFunc] - (Optional) Function to call after the JavaScript file has loaded.
+         */
+		addWebScript(pName: string | number, pLink: string, pModule?: boolean, pFunc?: Function): void
 
         /**
-		 * a string containing the HTML to display behind the game screen; #web_background to set the style of the entire background
-		 * @env Client | Server
-		 */
+         * A string containing the HTML to display behind the game screen; #web_background to set the style of the entire background.
+         *
+         * @env Client | Server
+         */
 		webBackground: string
 
         /**
-		 * sets the client's screenView to pView or default if pView is null
-		 * @env Client | Server
-		 * @param {object} pView - an object containing new information for the client's screenView; for example {'scaleTo': 'ratio', 'scaleNearest': true} would mean the client's screenView keeps its ratio and scales pixels to their nearest neighbor; 'scaleNearest' means pixels will stay pixelated and will not try to blend with other pixels, 'scaleTo': 'normal' means normal scaling, 'scaleTo': 'ratio' means the width and height of the window keep their aspect ratio when scaled, 'scaleTo': 'multiple' means the game will only show in scales that are multiples of two when scaled, 'scaleTo': 'none' prevents all scaling
-		 */
-		setScreenView(pView: object): void
+         * Configures the client's screenView settings (scaling policies, pixel ratio, rendering resolutions).
+         * Passing `null` restores default viewport scaling settings.
+         *
+         * @env Client | Server
+         * @param {Partial<ScreenView> | null} [pView] - Screen view viewport configuration options.
+         *
+         * @example
+         * ```ts
+         * client.setScreenView({
+         *     scaleTo: 'ratio',
+         *     scaleNearest: true,
+         *     disableImageSmoothing: true,
+         *     resolution: window.devicePixelRatio || 1
+         * });
+         * ```
+         */
+		setScreenView(pView?: Partial<ScreenView> | null): void
 
         /**
-		 * returns an object containing the cursor information; ex ( {'cursor': 'default', 'x': 0, 'y': 0} )
-		 * @env Client | Server
-		 * @returns {{'cursor': string, 'x': number, 'y': number}} returns an object containing the cursor information; ex ( {'cursor': 'default', 'x': 0, 'y': 0} )
-		 */
+         * Returns an object containing the cursor information. Example: ( `{'cursor': 'default', 'x': 0, 'y': 0}` ).
+         *
+         * @env Client | Server
+         * @returns {{'cursor': string, 'x': number, 'y': number} } returns an object containing the cursor information. Example: ( `{'cursor': 'default', 'x': 0, 'y': 0}` ).
+         */
 		getMouseCursor(): {'cursor': string, 'x': number, 'y': number}
 
         /**
-		 * returns a screenView object containing the information of the client's screenView; for example {'scaleTo': 'ratio', 'scaleNearest': true} would mean the client's screenView keeps its ratio and scales pixels to their nearest neighbor
-		 * @env Client | Server
-		 * @returns {object} returns a screenView object containing the information of the client's screenView; for example {'scaleTo': 'ratio', 'scaleNearest': true} would mean the client's screenView keeps its ratio and scales pixels to their nearest neighbor
-		 */
-		getScreenView(): object
+         * Returns the current screenView settings and state configuration object for this client.
+         *
+         * @env Client | Server
+         * @returns {ScreenView} The client's active screenView configuration.
+         *
+         * @example
+         * ```ts
+         * const view = client.getScreenView();
+         * console.log(`Scale mode: ${view.scaleTo}, Size: ${view.width}x${view.height}`);
+         * ```
+         */
+		getScreenView(): ScreenView
 
         /**
-		 * calls the client command of pCommand with the arguments of pArgs
-		 * @env Client
-		 * @param {string} pCommand - name of the client command to call
-		 * @param {unknown[]} pArgs - array of arguments to pass to the command
-		 * @param {unknown} [pSend] - CLIENT-ONLY; optional; if set the command will also be sent to the server
-		 */
-		callCommand(pCommand: string, pArgs: unknown[], pSend?: unknown): void
+         * Calls the client command of `pCommand` with the arguments of `pArgs`.
+         *
+         * @env Client
+         * @param {string} pCommand - Name of the client command to call.
+         * @param {unknown[]} pArgs - Array of arguments to pass to the command.
+         * @param {boolean} [pSend] - (Optional) If set the command will also be sent to the server.
+         */
+		callCommand(pCommand: string, pArgs: unknown[], pSend?: boolean): void
 
         /**
-		 * name of the interface element to send default messages to (ex: 'interface1.output1' )
-		 * @env Client | Server
-		 */
+         * Name of the interface element to send default messages to (ex: `interface1.output1` ).
+         *
+         * @env Client | Server
+         */
 		mainOutput: string
 
         /**
-		 * sets the focus on the web tag with the id pID
-		 * @env Client | Server
-		 * @param {string} pID - id of the web tag to set focus to
-		 */
+         * Sets the focus on the web tag with the id `pID`.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the web tag to set focus to.
+         */
 		setWebTagFocus(pID: string): void
 
         /**
-		 * hides the interface of pInterface if pElement is not specified, otherwise it only hides pElement
-		 * @env Client | Server
-		 * @param {string} pInterface - name of the interface to hide or the interface containing pElement
-		 * @param {Diob} [pElement] - optional; name of interface lement in pInterface to hide
-		 */
+         * Hides the interface of `pInterface` if `pElement` is not specified, otherwise it only hides `pElement`.
+         *
+         * @env Client | Server
+         * @param {string} pInterface - Name of the interface to hide or the interface containing `pElement`.
+         * @param {Diob} [pElement] - (Optional) Name of interface lement in `pInterface` to hide.
+         */
 		hideInterface(pInterface: string, pElement?: Diob): void
 
         /**
-		 * returns a mapView object containing the information of the client's mapView; for example {'width': 640, 'height': 640} would mean the client's mapView is 640 by 640 pixels in size
-		 * @env Client | Server
-		 * @returns {object} returns a mapView object containing the information of the client's mapView; for example {'width': 640, 'height': 640} would mean the client's mapView is 640 by 640 pixels in size
-		 */
-		getMapView(): object
+         * Returns the client's active MapView viewport instance (`MapViewInstance`).
+         *
+         * @env Client | Server
+         * @returns {MapViewInstance} The active MapView instance controlling map display, zoom, eye offsets, and bounds.
+         *
+         * @example
+         * ```ts
+         * const mapView = client.getMapView();
+         * mapView.setZoom(1.5, 1.5);
+         * console.log(`MapView dimensions: ${mapView.width}x${mapView.height}`);
+         * ```
+         */
+		getMapView(): MapViewInstance
 
         /**
-		 * toggles load screen on and off
-		 * @env Client | Server
-		 * @param {boolean} [pVal] - optional; true to show load screen, false to hide load screen
-		 */
+         * Toggles load screen on and off.
+         *
+         * @env Client | Server
+         * @param {boolean} [pVal] - (Optional) True to show load screen, `false` to hide load screen.
+         */
 		toggleLoadScreen(pVal?: boolean): void
 
         /**
-		 * toggles macro capturing on and off
-		 * @env Client | Server
-		 * @param {boolean} [pVal] - optional; true to resume capturing macros, false to pause capturing macros
-		 */
+         * Toggles macro capturing on and off.
+         *
+         * @env Client | Server
+         * @param {boolean} [pVal] - (Optional) True to resume capturing macros, `false` to pause capturing macros.
+         */
 		toggleMacroCapture(pVal?: boolean): void
 
         /**
-		 * removes a web tag with the id of pID from the client's screen
-		 * @env Client | Server
-		 * @param {string} pID - id of the web tag to remove from the client's screen
-		 */
+         * Removes a web tag with the id of `pID` from the client's screen.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the web tag to remove from the client's screen.
+         */
 		removeWebTag(pID: string): void
 
         /**
-		 * sets the view eye of the client to be centered on pDiob; the default is the player mob
-		 * @env Client | Server
-		 * @param {Diob} pDiob - diob to have the client's screen view centered on
-		 */
+         * Sets the view eye of the client to be centered on `pDiob`. The default is the player mob.
+         *
+         * @env Client | Server
+         * @param {Diob} pDiob - Diob to have the client's screen view centered on.
+         */
 		setViewEye(pDiob: Diob): void
 
         /**
-		 * returns an object containing the width and height of the game window; ex: {'width': 100, 'height': 100}
-		 * @env Client | Server
-		 * @param {object} [pO] - optional; an existing object to set the width and height of
-		 * @returns {{'width': number, 'height': number}} returns an object containing the width and height of the game window; ex: {'width': 100, 'height': 100}
-		 */
-		getWindowSize(pO?: object): {'width': number, 'height': number}
+         * Returns the pixel dimensions `{ width, height }` of the browser/game window.
+         *
+         * @env Client | Server
+         * @param {Partial<Size2D>} [pO] - Optional destination object to populate with width and height.
+         * @returns {Size2D} Dimensions containing `width` and `height` in pixels.
+         *
+         * @example
+         * ```ts
+         * const { width, height } = client.getWindowSize();
+         * console.log(`Window: ${width}x${height}`);
+         * ```
+         */
+		getWindowSize(pO?: Partial<Size2D>): Size2D
 
         /**
-		 * SERVER-ONLY; setting this will prevent the server from automatically loading interfaces on the server-side; if you want the server to have access, you will need to show the interface manually
-		 * @env Server
-		 */
+         * Setting this will prevent the server from automatically loading interfaces on the server-side. If you want the server to have access, you will need to show the interface manually.
+         *
+         * @env Server
+         */
 		preventServerInterfaces: boolean
 
         /**
-		 * adds a new command to the client's commands; if pFunc is null and pCommand is the name of an pre-defined command, that command will be added
-		 * @env Client | Server
-		 * @param {string} pCommand - name of the client command to be added
-		 * @param {Function} pFunc - function to be called when the command is executed
-		 */
+         * Adds a new command to the client's commands. If `pFunc` is `null` and `pCommand` is the name of an pre-defined command, that command will be added.
+         *
+         * @env Client | Server
+         * @param {string} pCommand - Name of the client command to be added.
+         * @param {Function} pFunc - Function to be called when the command is executed.
+         */
 		addCommand(pCommand: string, pFunc: Function): void
 
         /**
-		 * sets the client's mainOutput
-		 * @env Client | Server
-		 * @param {string} pOutput - name of the interface element to send default messages to (ex: 'interface1.output1' )
-		 */
+         * Sets the client's mainOutput.
+         *
+         * @env Client | Server
+         * @param {string} pOutput - Name of the interface element to send default messages to (ex: `interface1.output1` ).
+         */
 		setMainOutput(pOutput: string): void
 
         /**
-		 * creates a new custom macro named pName with the keyDown command of pDown and the keyUp command of pUp; custom macros override macro atlas macros
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the custom macro
-		 * @param {string} pKey - string of key that will execute the macro
-		 * @param {string} [pDown] - optional; string containing the command to be executed when the key is pushed down; example 'test(1)' would execute the 'test' client command with one parameter equal to '1'
-		 * @param {string} [pUp] - optional; string containing the command to be executed when the key is let go of; example 'test(1)' would execute the 'test' client command with one parameter equal to '1'
-		 */
+         * Creates a new custom macro named `pName` with the keyDown command of `pDown` and the keyUp command of `pUp`. Custom macros override macro atlas macros.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the custom macro.
+         * @param {string} pKey - String of key that will execute the macro.
+         * @param {string} [pDown] - (Optional) String containing the command to be executed when the key is pushed down. Example: `test(1)` would execute the `test` client command with one parameter equal to `1`.
+         * @param {string} [pUp] - (Optional) String containing the command to be executed when the key is let go of. Example: `test(1)` would execute the `test` client command with one parameter equal to `1`.
+         */
 		addCustomMacro(pName: string | number, pKey: string, pDown?: string, pUp?: string): void
 
         /**
-		 * returns an object containing information about the client's browser and operating system; example {'platform': 'Netscape', 'version': 'Chrome/38.0.2125.104', 'vendor': 'Google', 'language': 'en-US', 'system': 'Windows 95'}
-		 * @env Client | Server
-		 * @returns {Navigator} returns an object containing information about the client's browser and operating system; example {'platform': 'Netscape', 'version': 'Chrome/38.0.2125.104', 'vendor': 'Google', 'language': 'en-US', 'system': 'Windows 95'}
-		 */
+         * Returns an object containing information about the client's browser and operating system. Example: `{'platform': 'Netscape', 'version': 'Chrome/38.0.2125.104', 'vendor': 'Google', 'language': 'en-US', 'system': 'Windows 95'}`.
+         *
+         * @env Client | Server
+         * @returns {Navigator} Returns an object containing information about the client's browser and operating system. Example: `{'platform': 'Netscape', 'version': 'Chrome/38.0.2125.104', 'vendor': 'Google', 'language': 'en-US', 'system': 'Windows 95'}`.
+         */
 		getNavigator(): Navigator
 
         /**
-		 * true or false; true acts the same as 'scaleNearest' when scaling, but it also removes smoothing caused by other things
-		 * @env Client | Server
-		 */
-		screenView: unknown
+         * Current screenView viewport configuration and state object for this client.
+         *
+         * @env Client | Server
+         */
+		screenView: ScreenView
 
         /**
-		 * displays the interface of pInterface, if not already displayed, along with all elements of the interface with that are not hidden by default; if pElement is specified, it makes that element no longer hidden
-		 * @env Client | Server
-		 * @param {string} pInterface - name of interface to show
-		 * @param {Diob} [pElement] - optional; name of interface element in pInterface to show
-		 * @param {boolean} [pForce] - optional; if set, all hidden elements will be forced to be shown
-		 */
+         * Displays the interface of `pInterface`, if not already displayed, along with all elements of the interface with that are not hidden by default. If `pElement` is specified, it makes that element no longer hidden.
+         *
+         * @env Client | Server
+         * @param {string} pInterface - Name of interface to show.
+         * @param {Diob} [pElement] - (Optional) Name of interface element in `pInterface` to show.
+         * @param {boolean} [pForce] - (Optional) If set, all hidden elements will be forced to be shown.
+         */
 		showInterface(pInterface: string, pElement?: Diob, pForce?: boolean): void
 
         /**
-		 * moves the client.playerMob in the direction pDir until told to stop via endMove(pDir)
-		 * @env Client | Server
-		 * @param {string} pDir - name of direction to move client.playerMob
-		 */
+         * Moves the client.playerMob in the direction `pDir` until told to stop via endMove(`pDir`).
+         *
+         * @env Client | Server
+         * @param {string} pDir - Name of direction to move client.playerMob.
+         */
 		startMove(pDir: string): void
 
         /**
-		 * a string containing the address the client is connected to the server with (in format IP:port, or 'localhost' if not connected to a server)
-		 * @env Client | Server
-		 */
+         * A string containing the address the client is connected to the server with (in format IP:port, or `localhost` if not connected to a server).
+         *
+         * @env Client | Server
+         */
 		address: string
 
         /**
-		 * string containing CSS to be used as a web style (ex '.test{font-weight: bold;}.test2{color: #000;}' ); style can be referenced by the name 'default'
-		 * @env Client | Server
-		 */
+         * String containing CSS to be used as a web style (ex `.test`{font-weight: bold;}`.test2`{color: #000;}` ). Style can be referenced by the name `default`.
+         *
+         * @env Client | Server
+         */
 		mainWebStyle: string
 
         /**
-		 * returns the canvas element that this element is drawn on to
-		 * @env Client | Server
-		 * @param {unknown} pInt - name of the interface that element is on
-		 * @param {unknown} pEl - name of the element
-		 * @returns {HTMLCanvasElement} returns the canvas element that this element is drawn on to
-		 */
-		getInterfaceCanvas(pInt: unknown, pEl: unknown): HTMLCanvasElement
+         * Returns the canvas element that this element is drawn on to.
+         *
+         * @env Client | Server
+         * @param {string} pInt - Name of the interface that element is on.
+         * @param {string} pEl - Name of the element.
+         * @returns {HTMLCanvasElement} Returns the canvas element that this element is drawn on to.
+         */
+		getInterfaceCanvas(pInt: string, pEl: string): HTMLCanvasElement
 
         /**
-		 * adds a custom font
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the font
-		 * @param {string} pPath - url or path to the font file
-		 * @param {unknown} [pRemote] - optional; set this if the path is outside of the project
-		 * @param {object} [pStyle] - optional; custom style object to apply to the font; ex {'font-weight': bold}
-		 */
-		addCustomFont(pName: string | number, pPath: string, pRemote?: unknown, pStyle?: object): void
+         * Adds a custom font.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the font.
+         * @param {string} pPath - Url or path to the font file.
+         * @param {boolean} [pRemote] - (Optional) Set this if the path is outside of the project.
+         * @param {object} [pStyle] - (Optional) Custom style object to apply to the font. Example: `{'font-weight': bold}`.
+         */
+		addCustomFont(pName: string | number, pPath: string, pRemote?: boolean, pStyle?: object): void
 
         /**
-		 * sends a packet to a client or server, depending on where the code is executed; client code executing this will send the packet to the server; server code executing this will send the packet to the client; this will invoke Client/onPacket on client-side if the sendPacket is server-side and on the server-side if it is on the client-side
-		 * @env Client | Server
-		 * @param {string | number} pName - name of packet to send
-		 * @param {unknown} pData - an object containing data to be sent; ex {'a': 1, 'b': 2}
-		 * @param {boolean} [pForce] - optional; send the packet immediately instead of buffering it with the packet delay
-		 */
+         * Sends a packet to a client or server, depending on where the code is executed. Client code executing this will send the packet to the server. Server code executing this will send the packet to the client. This will invoke Client/onPacket on client-side if the sendPacket is server-side and on the server-side if it is on the client-side.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of packet to send.
+         * @param {unknown} pData - An object containing data to be sent. Example: `{'a': 1, 'b': 2}`.
+         * @param {boolean} [pForce] - (Optional) Send the packet immediately instead of buffering it with the packet delay.
+         */
 		sendPacket(pName: string | number, pData: unknown, pForce?: boolean): void
 
         /**
-		 * toggles screen drawing on and off
-		 * @env Client | Server
-		 * @param {boolean} [pVal] - optional; true to resume screen drawing, false to pause all screen drawing, 'map' to pause only the map drawing
-		 */
+         * Toggles screen drawing on and off.
+         *
+         * @env Client | Server
+         * @param {boolean} [pVal] - (Optional) True to resume screen drawing, `false` to pause all screen drawing, `map` to pause only the map drawing.
+         */
 		toggleScreenDrawing(pVal?: boolean): void
 
         /**
-		 * removes all overlays with the pOver type or the exact overlay matching pOver
-		 * @env Client | Server
-		 * @param {string | Diob | Object} pOver - string of the type of object or overlay to remove or actual overlay to remove
-		 */
+         * Removes all overlays with the `pOver` type or the exact overlay matching `pOver`.
+         *
+         * @env Client | Server
+         * @param {string | Diob | Object} pOver - String of the type of object or overlay to remove or actual overlay to remove.
+         */
 		removeOverlay(pOver: string | Diob | Object): void
 
         /**
-		 * adds an interface element to the interface and returns it
-		 * @env Client | Server
-		 * @param {string} pType - type of interface object to add
-		 * @param {string} pInterface - name of the interface to add the interface element to
-		 * @param {string | number} [pName] - optional; name to give the element being added
-		 * @param {number} [pX] - optional; x position to give the element
-		 * @param {number} [pY] - optional; y position to the give the element
-		 * @param {unknown[]} [pArgs] - optional; array of arguments to pass to the onNew event of the interface element being created
-		 * @returns {Diob} returns it
-		 */
+         * Adds an interface element to the interface and returns it.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type of interface object to add.
+         * @param {string} pInterface - Name of the interface to add the interface element to.
+         * @param {string | number} [pName] - (Optional) Name to give the element being added.
+         * @param {number} [pX] - (Optional) X position to give the element.
+         * @param {number} [pY] - (Optional) Y position to the give the element.
+         * @param {unknown[]} [pArgs] - (Optional) Array of arguments to pass to the onNew event of the interface element being created.
+         * @returns {Diob} Returns it.
+         */
 		addInterfaceElement(pType: string, pInterface: string, pName?: string | number, pX?: number, pY?: number, pArgs?: unknown[]): Diob
 
         /**
-		 * sets the content of the web tag with the id pID to the value of pContent
-		 * @env Client | Server
-		 * @param {string} pID - id of the web tag to set the content of
-		 * @param {string} pContent - string containing the content to change the web tag's content to
-		 */
+         * Sets the content of the web tag with the id `pID` to the value of `pContent`.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the web tag to set the content of.
+         * @param {string} pContent - String containing the content to change the web tag's content to.
+         */
 		setWebTagContent(pID: string, pContent: string): void
 
         /**
-		 * amount of pixels the client's view is offset by from the view eye on the y-axis
-		 * @env Client | Server
-		 */
+         * Amount of pixels the client's view is offset by from the view eye on the y-axis.
+         *
+         * @env Client | Server
+         */
 		yViewEyeOffset: number
 
         /**
-		 * a reference to the player mob of this client
-		 * @env Client | Server
-		 */
+         * A reference to the player mob of this client.
+         *
+         * @env Client | Server
+         */
 		mob: Diob
 
         /**
-		 * brings up an alert window with pMes in it
-		 * @env Client | Server
-		 * @param {string} pMes - message to show in the alert
-		 */
+         * Brings up an alert window with `pMes` in it.
+         *
+         * @env Client | Server
+         * @param {string} pMes - Message to show in the alert.
+         */
 		alert(pMes: string): void
 
         /**
-		 * returns the current FPS
-		 * @env Client | Server
-		 * @returns {number} returns the current FPS
-		 */
+         * Returns the current FPS.
+         *
+         * @env Client | Server
+         * @returns {number} Returns the current FPS.
+         */
 		getFPS(): number
 
         /**
-		 * set in order to tell the engine the client is in an input and key commands should be used as text input, false for normal; engine automatically sets this for most inputs
-		 * @env Client | Server
-		 */
+         * Set in order to tell the engine the client is in an input and key commands should be used as text input, `false` for normal. Engine automatically sets this for most inputs.
+         *
+         * @env Client | Server
+         */
 		inInput: boolean
 
         /**
-		 * returns the diob the client's screen eye is currently set to
-		 * @env Client | Server
-		 * @returns {Diob} returns the diob the client's screen eye is currently set to
-		 */
+         * Returns the diob the client's screen eye is currently set to.
+         *
+         * @env Client | Server
+         * @returns {Diob} Returns the diob the client's screen eye is currently set to.
+         */
 		getViewEye(): Diob
 
         /**
-		 * moves the client to a new server located at the address pAddress
-		 * @env Client | Server
-		 * @param {unknown} pAddres - address for the server to move the client to; example '127.0.0.1:1234'
-		 */
-		changeServer(pAddres: unknown): void
+         * Moves the client to a new server located at the address `pAddress`.
+         *
+         * @env Client | Server
+         * @param {string} pAddres - Address for the server to move the client to. Example: `127.0.0.1:1234`.
+         */
+		changeServer(pAddres: string): void
 
         /**
-		 * returns an array of interface elements on the interface pInterface depending on the provided arguments; if pType is not set, all elements on the interface will be returned; if pType is set but pChild is not, elements on the interface with the exact type of pType will be returned; if pType is set and pChild is set, all elements with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Interface/A' with pChild undefined, all elements with the exact type of 'Interface/A' will be returned, but if pChild is set, then all types starting with 'Interface/A' on the interface will be returned
-		 * @env Client | Server
-		 * @param {string} pInterface - name of the interface to get element from
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {Diob[]} returns an array of interface elements on the interface pInterface depending on the provided arguments; if pType is not set, all elements on the interface will be returned; if pType is set but pChild is not, elements on the interface with the exact type of pType will be returned; if pType is set and pChild is set, all elements with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Interface/A' with pChild undefined, all elements with the exact type of 'Interface/A' will be returned, but if pChild is set, then all types starting with 'Interface/A' on the interface will be returned
-		 */
+         * Returns an array of interface elements on the interface `pInterface` depending on the provided arguments. If `pType` is not set, all elements on the interface will be returned. If `pType` is set but `pChild` is not, elements on the interface with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all elements with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Interface/A` with `pChild` `undefined`, all elements with the exact type of `Interface/A` will be returned, but if `pChild` is set, then all types starting with `Interface/A` on the interface will be returned.
+         *
+         * @env Client | Server
+         * @param {string} pInterface - Name of the interface to get element from.
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @returns {Diob[]} Returns an array of interface elements on the interface `pInterface` depending on the provided arguments. If `pType` is not set, all elements on the interface will be returned. If `pType` is set but `pChild` is not, elements on the interface with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all elements with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Interface/A` with `pChild` `undefined`, all elements with the exact type of `Interface/A` will be returned, but if `pChild` is set, then all types starting with `Interface/A` on the interface will be returned.
+         */
 		getInterfaceElements(pInterface: string, pType?: string, pChild?: boolean): Diob[]
 
         /**
-		 * returns the content of the web tag with the id of pID
-		 * @env Client | Server
-		 * @param {string} pID - id of the web tag to get the content of
-		 * @returns {string} returns the content of the web tag with the id of pID
-		 */
+         * Returns the content of the web tag with the id of `pID`.
+         *
+         * @env Client | Server
+         * @param {string} pID - Id of the web tag to get the content of.
+         * @returns {string} Returns the content of the web tag with the id of `pID`.
+         */
 		getWebTagContent(pID: string): string
 
         /**
-		 * changes the name and layer of the top screen with the name pName; adding data optional
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the top screen to set
-		 * @param {unknown} pNewName - new name of the top screen
-		 * @param {unknown} pNewLayer - new layer of the top screen
-		 * @param {unknown} [pNewData] - optional; data to add to the screen
-		 * @param {unknown} [pNewSet] - optional; new settings object
-		 */
-		setTopScreen(pName: string | number, pNewName: unknown, pNewLayer: unknown, pNewData?: unknown, pNewSet?: unknown): void
+         * Changes the name and layer of the top screen with the name `pName`. Adding data optional.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the top screen to set.
+         * @param {string} pNewName - New name of the top screen.
+         * @param {number} pNewLayer - New layer of the top screen.
+         * @param {unknown} [pNewData] - (Optional) Data to add to the screen.
+         * @param {object} [pNewSet] - (Optional) New settings object.
+         */
+		setTopScreen(pName: string | number, pNewName: string, pNewLayer: number, pNewData?: any, pNewSet?: object): void
 
         /**
-		 * sets the edge limit of the map for the client
-		 * @env Client | Server
-		 * @param {number} pX - number of black tiles visible on the left and right edges of the map; -1 for default
-		 * @param {number} pY - number of black tiles visible on the top and bottom edges of the map; -1 for default
-		 */
+         * Sets the edge limit of the map for the client.
+         *
+         * @env Client | Server
+         * @param {number} pX - Number of black tiles visible on the left and right edges of the map; -1 for default.
+         * @param {number} pY - Number of black tiles visible on the top and bottom edges of the map; -1 for default.
+         */
 		setEdgeLimit(pX: number, pY: number): void
 
         /**
-		 * sets the client's mapView to pView or default if pView is null
-		 * @env Client | Server
-		 * @param {object} pView - an object containing new information for the client's mapView; for example {'width': 640, 'height': 640} would set the client's mapView to 640 by 640 pixels
-		 */
-		setMapView(pView: object): void
+         * Configures or updates the client's mapView viewport settings (dimensions, zoom bounds, padding).
+         * Passing `null` resets the mapView to default settings.
+         *
+         * @env Client | Server
+         * @param {Partial<MapViewConfig> | string | null} [pView] - MapView configuration options or preset string.
+         *
+         * @example
+         * ```ts
+         * client.setMapView({
+         *     width: 800,
+         *     height: 600,
+         *     zoom: { x: 1, y: 1 },
+         *     preventAutoScale: true
+         * });
+         * ```
+         */
+		setMapView(pView?: Partial<MapViewConfig> | string | null): void
 
         /**
-		 * brings up a prompt window to ask for text from the user
-		 * @env Client | Server
-		 * @param {unknown} pTitle - title of the prompt
-		 * @param {string} pMes - default text in the input
-		 * @param {Function} pFunc - function to call after input; the first argument will be the input; can be a "callback array" containing the function, the 'this', and arguments; ex ( [this.someFunc, this] )
-		 */
-		prompt(pTitle: unknown, pMes: string, pFunc: Function): void
+         * Brings up a prompt window to ask for text from the user.
+         *
+         * @env Client | Server
+         * @param {string} pTitle - Title of the prompt.
+         * @param {string} pMes - Default text in the input.
+         * @param {Function} pFunc - Function to call after input. The first argument will be the input. Can be a "callback array" containing the function, the `this`, and arguments. Example: ( [this.someFunc, this] ).
+         */
+		prompt(pTitle: string, pMes: string, pFunc: Function): void
 
         /**
-		 * amount of pixels the client's view is offset by from the view eye on the x-axis
-		 * @env Client | Server
-		 */
+         * Amount of pixels the client's view is offset by from the view eye on the x-axis.
+         *
+         * @env Client | Server
+         */
 		xViewEyeOffset: number
 
         /**
-		 * returns true if pInt is currently shown, false if not; if pEl is set, checks if the specified element is shown
-		 * @env Client | Server
-		 * @param {unknown} pInt - name of the interface
-		 * @param {unknown} [pEl] - optional; name of the element
-		 * @returns {boolean} returns true if pInt is currently shown, false if not; if pEl is set, checks if the specified element is shown
-		 */
-		checkInterfaceShown(pInt: unknown, pEl?: unknown): boolean
+         * Returns `true` if `pInt` is currently shown, `false` if not. If `pEl` is set, checks if the specified element is shown.
+         *
+         * @env Client | Server
+         * @param {string} pInt - Name of the interface.
+         * @param {string} [pEl] - (Optional) Name of the element.
+         * @returns {boolean} Returns `true` if `pInt` is currently shown, `false` if not. If `pEl` is set, checks if the specified element is shown.
+         */
+		checkInterfaceShown(pInt: string, pEl?: string): boolean
 
         /**
-		 * outputs text to an interface element; if pInt or pEl is not set or is invalid, text goes to client.mainOutput
-		 * @env Client | Server
-		 * @param {string} pText - text to be displayed
-		 * @param {string} pInt - string containing interface file name to output to
-		 * @param {string} pEl - string containing the interface element name to output to
-		 */
+         * Outputs text to an interface element. If `pInt` or `pEl` is not set or is invalid, text goes to client.mainOutput.
+         *
+         * @env Client | Server
+         * @param {string} pText - Text to be displayed.
+         * @param {string} pInt - String containing interface file name to output to.
+         * @param {string} pEl - String containing the interface element name to output to.
+         */
 		outputText(pText: string, pInt: string, pEl: string): void
 
         /**
-		 * returns an array of diobs on the screen that overlap the specified position box depending on the provided arguments; if pType is not set, all diobs in the position box will be returned; if pType is set but pChild is not, diobs in the position box with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Interface' with pChild undefined, all diobs with the exact type of 'Interface' will be returned, but if pChild is set, then all interfaces on the screen will be returned
-		 * @env Client | Server
-		 * @param {number} pX - starting x position
-		 * @param {number} pY - starting y position
-		 * @param {string} [pType] - optional; ending x position
-		 * @param {boolean} [pChild] - optional; ending y position
-		 * @param {string} [pPage] - optional; string containing type path to return
-		 * @returns {Diob[]} returns an array of diobs on the screen that overlap the specified position box depending on the provided arguments; if pType is not set, all diobs in the position box will be returned; if pType is set but pChild is not, diobs in the position box with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Interface' with pChild undefined, all diobs with the exact type of 'Interface' will be returned, but if pChild is set, then all interfaces on the screen will be returned
-		 */
+         * Returns an array of diobs on the screen that overlap the specified position box depending on the provided arguments. If `pType` is not set, all diobs in the position box will be returned. If `pType` is set but `pChild` is not, diobs in the position box with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Interface` with `pChild` `undefined`, all diobs with the exact type of `Interface` will be returned, but if `pChild` is set, then all interfaces on the screen will be returned.
+         *
+         * @env Client | Server
+         * @param {number} pX - Starting x position.
+         * @param {number} pY - Starting y position.
+         * @param {string} [pType] - (Optional) Ending x position.
+         * @param {boolean} [pChild] - (Optional) Ending y position.
+         * @param {string} [pPage] - (Optional) String containing type path to return.
+         * @returns {Diob[]} Returns an array of diobs on the screen that overlap the specified position box depending on the provided arguments. If `pType` is not set, all diobs in the position box will be returned. If `pType` is set but `pChild` is not, diobs in the position box with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Interface` with `pChild` `undefined`, all diobs with the exact type of `Interface` will be returned, but if `pChild` is set, then all interfaces on the screen will be returned.
+         */
 		getInterfaceElementsFromScreen(pX: number, pY: number, pType?: string, pChild?: boolean, pPage?: string): Diob[]
 
         /**
-		 * removes a font from being usable
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the font to remove
-		 */
+         * Removes a font from being usable.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the font to remove.
+         */
 		removeCustomFont(pName: string | number): void
 
         /**
-		 * string containing a color (null for transparent) to set the client's screen background to, for example '#000' for black; default is '#000'
-		 * @env Client | Server
-		 */
+         * String containing a color (`null` for transparent) to set the client's screen background to, for example `#000` for black. Default is `#000`.
+         *
+         * @env Client | Server
+         */
 		screenBackground: string | null
 
         /**
-		 * adds an overlay to the client which is a visual icon that always follows the screen; returns the new overlay; if pOver is already an overlay of a diob it will remove it form that diob and add it to this diob
-		 * @env Client | Server
-		 * @param {string | Diob | Object} pOver - string of the type of object or overlay to add an overlay of or actual diob to add
-		 * @param {number | boolean} [pAppearance] - optional; if true, this overlay will be be treated as if it is part of the the parent's actual appearance - appearance settings such as angle and alpha of the parent will be used for this overlay and the overlay will be drawn directly on top of the parent so no other diobs that are not an overlay of the parent can appear between it and the parent (it will basically be an extension of the parent's icon); if this is false, the overlay will be treated as an independent diob that just follows the parent around; instead of true or false this can be an object containing information on the appearMask, 'shareIcon' to have the overlay share the same iconName as the parent and 'isUnder' to make the overlay appear under the parent instead of above, 'ownState' to have this overlay not sync up with the parent's iconState; ex {'shareIcon': true, 'isUnder': true}
-		 * @param {boolean} [pSkipEvent] - optional; if true, the onAddOverlay event will not be called
-		 * @returns {Diob} returns the new overlay; if pOver is already an overlay of a diob it will remove it form that diob and add it to this diob
-		 */
-		addOverlay(pOver: string | Diob | Object, pAppearance?: number | boolean, pSkipEvent?: boolean): Diob
+         * Adds an overlay to the client which is a visual icon that always follows the screen. Returns the new overlay. If `pOver` is already an overlay of a diob it will remove it form that diob and add it to this diob.
+         *
+         * @env Client | Server
+         * @param {string | Diob | Object} pOver - String of the type of object or overlay to add an overlay of or actual diob to add.
+         * @param {number | boolean} [pAppearance] - (Optional) If `true`, this overlay will be be treated as if it is part of the the parent's actual appearance - appearance settings such as angle and alpha of the parent will be used for this overlay and the overlay will be drawn directly on top of the parent so no other diobs that are not an overlay of the parent can appear between it and the parent (it will basically be an extension of the parent's icon). If this is `false`, the overlay will be treated as an independent diob that just follows the parent around. Instead of `true` or `false` this can be an object containing information on the appearMask, `shareIcon` to have the overlay share the same iconName as the parent and `isUnder` to make the overlay appear under the parent instead of above, `ownState` to have this overlay not sync up with the parent's iconState. Example: `{'shareIcon': `true`, 'isUnder': `true`}`.
+         * @param {boolean} [pSkipEvent] - (Optional) If `true`, the onAddOverlay event will not be called.
+         * @returns {Diob} Returns the new overlay. If `pOver` is already an overlay of a diob it will remove it form that diob and add it to this diob.
+         */
+		addOverlay(pOver: string | Diob | Object, pAppearance?: AppearMask, pSkipEvent?: boolean): Diob
 
         /**
-		 * changes the macro file the client uses
-		 * @env Client | Server
-		 * @param {string} pMacro - name of macro file to set client macros to
-		 */
+         * Changes the macro file the client uses.
+         *
+         * @env Client | Server
+         * @param {string} pMacro - Name of macro file to set client macros to.
+         */
 		setMacroAtlas(pMacro: string): void
 
         /**
-		 * grabs an object with the screen name, layer, settings, and either an array of pixel data or a data url depending on pType for the entire screen named pName or the default top screen if no name is given. The array of pixel data can then be changed and used elsewhere or drawn onto another screen. To read the width and height you could use object.width and object.height, where object is the object returned by the function. The object data array is as follows: object.data[0] is the red value (0-255) of the pixel at 0,0, object.data[1] is the green value (0-255) of the pixel at 0,0, object.data[2] is the blue value (0-255) of the pixel at 0,0, and object.data[3] is the alpha value (0-255) of the pixel at 0,0. Then object.data[4], object.data[5], object.data[6], and object.data[7] are the respective values for the pixel at 1,0. This trend continues through the whole array for every pixel. object ex: {'name': '', 'layer': 1, 'data': ''}
-		 * @env Client | Server
-		 * @param {string | number} [pName] - optional; name of the top screen to get the data of
-		 * @param {string} [pType] - optional; type of data to get; 'url' or 'pixels' or 'canvas'
-		 */
-		getTopScreen(pName?: string | number, pType?: string): void
+         * Captures screen data for the entire top screen surface named `pName` (or default if omitted).
+         *
+         * @env Client | Server
+         * @param {string | number} [pName] - Optional identifier name of the top screen layer to capture.
+         * @param {'url' | 'pixels' | 'canvas'} [pType] - Type of representation: `'url'`, `'pixels'`, or `'canvas'`.
+         * @returns {ScreenCaptureData} Screen capture details and pixel/data payload.
+         *
+         * @example
+         * ```ts
+         * const capture = client.getTopScreen('hud', 'pixels');
+         * console.log('Top screen dimensions:', capture.width, capture.height);
+         * ```
+         */
+		getTopScreen(pName?: string | number, pType?: 'url' | 'pixels' | 'canvas'): ScreenCaptureData
 
         /**
-		 * sets the cursor of the client
-		 * @env Client | Server
-		 * @param {string} pCursor - a string containing the name of the cursor for built-in cursors, a URL path to an image, or a diob; built-in (auto, all-scroll, crosshair, default, help, inherit, move, pointer, progress, text, vertical-text, wait, no-drop, not-allowed, e-resize, n-resize, s-resize, w-resize, col-resize, row-resize, ne-resize, nw-resize, se-resize, sw-resize); passing a diob will use the diob's icon; blank for default
-		 * @param {number} [pX] - optional; offsets the icon left or right by pX pixels
-		 * @param {number} [pY] - optional; offsets the icon up or down by pY pixels
-		 */
+         * Sets the cursor of the client.
+         *
+         * @env Client | Server
+         * @param {string} pCursor - A string containing the name of the cursor for built-in cursors, a URL path to an image, or a diob. Built-in (auto, all-scroll, crosshair, default, help, inherit, move, pointer, progress, text, vertical-text, wait, no-drop, not-allowed, e-resize, n-resize, s-resize, w-resize, col-resize, row-resize, ne-resize, nw-resize, se-resize, sw-resize). Passing a diob will use the diob's icon. Blank for default.
+         * @param {number} [pX] - (Optional) Offsets the icon left or right by `pX` pixels.
+         * @param {number} [pY] - (Optional) Offsets the icon up or down by `pY` pixels.
+         */
 		setMouseCursor(pCursor: string, pX?: number, pY?: number): void
 
         /**
-		 * maximum number of frames the client will attempt to draw per second; default 60
-		 * @env Client | Server
-		 */
+         * Maximum number of frames the client will attempt to draw per second. Default is `60`.
+         *
+         * @env Client | Server
+         */
 		maxFPS: number
 
         /**
-		 * removes a CSS style with the name pName
-		 * @env Client | Server
-		 * @param {string | number} pName - unique name of style
-		 */
+         * Removes a CSS style with the name `pName`.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Unique name of style.
+         */
 		removeWebStyle(pName: string | number): void
 
         /**
-		 * returns an object {'step': step, 'max': {'x': x, 'y': y}} containing delay details of client's view eye
-		 * @env Client | Server
-		 * @returns {{'step': number, 'max': {'x': number, 'y': number}}} returns an object {'step': step, 'max': {'x': x, 'y': y}} containing delay details of client's view eye
-		 */
+         * Returns an object {`step`: step, `max`: `{'x': x, 'y': y}`} containing delay details of client's view eye.
+         *
+         * @env Client | Server
+         * @returns {{'step': number, 'max': {'x': number, 'y': number} }} returns an object {`step`: step, `max`: `{'x': x, 'y': y}`} containing delay details of client's view eye.
+         */
 		getViewEyeDelay(): {'step': number, 'max': {'x': number, 'y': number}}
 
         /**
-		 * returns address of the client, 'localhost' for local or 'ip:port' if connected to a server
-		 * @env Client | Server
-		 * @returns {string} returns address of the client, 'localhost' for local or 'ip:port' if connected to a server
-		 */
+         * Returns address of the client, `localhost` for local or `ip:port` if connected to a server.
+         *
+         * @env Client | Server
+         * @returns {string} Returns address of the client, `localhost` for local or `ip:port` if connected to a server.
+         */
 		getAddress(): string
 
         /**
-		 * returns an array of custom macro names
-		 * @env Client | Server
-		 * @returns {string[]} returns an array of custom macro names
-		 */
+         * Returns an array of custom macro names.
+         *
+         * @env Client | Server
+         * @returns {string[]} Returns an array of custom macro names.
+         */
 		getCustomMacroNames(): string[]
 
         /**
-		 * returns an object {'x': x, 'y': y} containing the x and y position of the client's screen on the map
-		 * @env Client | Server
-		 * @param {object} [pO] - optional; an existing object to set the x and y of
-		 * @returns {{'x': number, 'y': number}} returns an object {'x': x, 'y': y} containing the x and y position of the client's screen on the map
-		 */
-		getScreenPos(pO?: object): {'x': number, 'y': number}
+         * Returns the screen's top-left coordinates `{ x, y }` relative to the game map.
+         *
+         * @env Client | Server
+         * @param {Partial<Point2D>} [pO] - Optional destination object to populate with x and y coordinates.
+         * @returns {Point2D} Coordinates of the screen on the map.
+         *
+         * @example
+         * ```ts
+         * const screenPos = client.getScreenPos();
+         * console.log(`Screen map position: (${screenPos.x}, ${screenPos.y})`);
+         * ```
+         */
+		getScreenPos(pO?: Partial<Point2D>): Point2D
 
         /**
-		 * evaluates the JavaScript code in the pScript string; returns undefined on the server-side
-		 * @env Client | Server
-		 * @param {string} pScript - a string containing the JavaScript code to evaluate
-		 * @returns {void} returns undefined on the server-side
-		 */
+         * Evaluates the JavaScript code in the `pScript` string. Returns `undefined` on the server-side.
+         *
+         * @env Client | Server
+         * @param {string} pScript - A string containing the JavaScript code to evaluate.
+         * @returns {void} Returns `undefined` on the server-side.
+         */
 		evalWebScript(pScript: string): void
 
         /**
-		 * amount of blank tiles that can be seen on the top and bottom of the view
-		 * @env Client | Server
-		 */
+         * Amount of blank tiles that can be seen on the top and bottom of the view.
+         *
+         * @env Client | Server
+         */
 		yEdgeLimit: number
 
         /**
-		 * returns an object containing the mouse position; ex ( {'x': 0, 'y': 0} )
-		 * @env Client | Server
-		 * @returns {{'x': number, 'y': number}} returns an object containing the mouse position; ex ( {'x': 0, 'y': 0} )
-		 */
+         * Returns an object containing the mouse position. Example: ( `{'x': 0, 'y': 0}` ).
+         *
+         * @env Client | Server
+         * @returns {{'x': number, 'y': number} } returns an object containing the mouse position. Example: ( `{'x': 0, 'y': 0}` ).
+         */
 		getMousePos(): {'x': number, 'y': number}
 
         /**
-		 * returns object currently being focused by this client
-		 * @env Client | Server
-		 * @returns {object} returns object currently being focused by this client
-		 */
-		getFocus(): object
+         * Returns the Diob currently focused by this client (e.g. for input or camera tracking), or null if none.
+         *
+         * @env Client | Server
+         * @returns {Diob | null} The currently focused Diob instance, or null.
+         *
+         * @example
+         * ```ts
+         * const focusedDiob = client.getFocus();
+         * if (focusedDiob) {
+         *     console.log('Currently focused:', focusedDiob.tag);
+         * }
+         * ```
+         */
+		getFocus(): Diob | null
 
         /**
-		 * returns the diob plane pPlane ir specified, otherwise returns an array of existing planes; you can then alter it like any other diob and all visual changes will be applied to all diobs on this plane
-		 * @env Client | Server
-		 * @param {number} [pPlane] - optional; value of plane to get
-		 * @returns {Diob | Diob[]} returns the diob plane pPlane ir specified, otherwise returns an array of existing planes; you can then alter it like any other diob and all visual changes will be applied to all diobs on this plane
-		 */
+         * Returns the diob plane `pPlane` ir specified, otherwise returns an array of existing planes. You can then alter it like any other diob and all visual changes will be applied to all diobs on this plane.
+         *
+         * @env Client | Server
+         * @param {number} [pPlane] - (Optional) Value of plane to get.
+         * @returns {Diob | Diob[]} Returns the diob plane `pPlane` ir specified, otherwise returns an array of existing planes. You can then alter it like any other diob and all visual changes will be applied to all diobs on this plane.
+         */
 		getPlane(pPlane?: number): Diob | Diob[]
 
         /**
-		 * sets the client's game screen size to pWidth width and pHeight height
-		 * @env Client | Server
-		 * @param {number} pWidth - width as a number
-		 * @param {number} pHeight - height as a number
-		 */
+         * Sets the client's game screen size to `pWidth` width and `pHeight` height.
+         *
+         * @env Client | Server
+         * @param {number} pWidth - Width as a number.
+         * @param {number} pHeight - Height as a number.
+         */
 		setScreenSize(pWidth: number, pHeight: number): void
 
         /**
-		 * returns an array of filter names
-		 * @env Client | Server
-		 * @returns {string[]} returns an array of filter names
-		 */
+         * Returns an array of filter names.
+         *
+         * @env Client | Server
+         * @returns {string[]} Returns an array of filter names.
+         */
 		getFilters(): string[]
 
         /**
-		 * sets the client's view eye delay which is how many pixels the screen can be off center of the view eye and how quickly it catches up to the view eye; set step to 0 for no delay (the default)
-		 * @env Client | Server
-		 * @param {number} pDelay - object containing eye delay information; possible values 'step' (determines number of pixels the eye moves per frame; default 0) and 'max' (object determining maximum distance in pixels the screen can be from the eye {'x': 100, 'y': 100}); ex {'step': 2, 'max': {'x': 100, 'y': 100}}
-		 */
+         * Sets the client's view eye delay which is how many pixels the screen can be off center of the view eye and how quickly it catches up to the view eye. Set step to 0 for no delay (the default).
+         *
+         * @env Client | Server
+         * @param {number} pDelay - Object containing eye delay information. Possible values `step` (determines number of pixels the eye moves per frame. Default 0) and `max` (object determining maximum distance in pixels the screen can be from the eye `{'x': 100, 'y': 100}`). Example: {`step`: 2, `max`: `{'x': 100, 'y': 100}`}.
+         */
 		setViewEyeDelay(pDelay: number): void
 
         /**
-		 * removes an interface element from the interface
-		 * @env Client | Server
-		 * @param {string} pInterface - name of the interface to remove an interface element from
-		 * @param {string | number} pName - name of the interface element to remove
-		 */
+         * Removes an interface element from the interface.
+         *
+         * @env Client | Server
+         * @param {string} pInterface - Name of the interface to remove an interface element from.
+         * @param {string | number} pName - Name of the interface element to remove.
+         */
 		removeInterfaceElement(pInterface: string, pName: string | number): void
 
         /**
-		 * returns an object containing the width and height of the game screen; ex: {'width': 100, 'height': 100}
-		 * @env Client | Server
-		 * @param {object} [pO] - optional; an existing object to set the width and height of
-		 * @returns {{'width': number, 'height': number}} returns an object containing the width and height of the game screen; ex: {'width': 100, 'height': 100}
-		 */
-		getScreenSize(pO?: object): {'width': number, 'height': number}
+         * Returns the dimensions `{ width, height }` of the client's render screen canvas in pixels.
+         *
+         * @env Client | Server
+         * @param {Partial<Size2D>} [pO] - Optional destination object to populate with width and height.
+         * @returns {Size2D} Dimensions containing `width` and `height` in pixels.
+         *
+         * @example
+         * ```ts
+         * const { width, height } = client.getScreenSize();
+         * console.log(`Screen canvas: ${width}x${height}`);
+         * ```
+         */
+		getScreenSize(pO?: Partial<Size2D>): Size2D
 
         /**
-		 * hex, rgb, rgba, color matrix value, or a tint object; applies color filter to diob; ex ( '#000000' ); ex ( 'rgb(10, 20, 30)' ); ex ( {'tint': 0x444444} )
-		 * @env Client | Server
-		 */
+         * Hex, rgb, rgba, color matrix value, or a tint object. Applies color filter to diob. Example: ( `#000000` ). Example: ( `rgb(10, 20, 30)` ). Example: ( `{'tint': 0x444444}` ).
+         *
+         * @env Client | Server
+         */
 		color: string | number[] | {'tint': number}
 
         /**
-		 * creates a new interface file named pName
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the interface to create
-		 */
+         * Creates a new interface file named `pName`.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the interface to create.
+         */
 		createInterface(pName: string | number): void
 
         /**
-		 * sends the data for the pD diob to the client, if pVar is set it will send only those variables, if it is not set it will only send built-in engine variables
-		 * @env Server
-		 * @param {Diob} pD - reference to the diob to send
-		 * @param {unknown[]} [pVar] - optional; variable name or array of variable names
-		 */
-		sendDiob(pD: Diob, pVar?: unknown[]): void
+         * Sends the data for the `pD` diob to the client, if `pVar` is set it will send only those variables, if it is not set it will only send built-in engine variables.
+         *
+         * @env Server
+         * @param {Diob} pD - Reference to the diob to send.
+         * @param {string[]} [pVar] - (Optional) Variable name or array of variable names.
+         */
+		sendDiob(pD: Diob, pVar?: string[]): void
 
         /**
-		 * adds CSS style
-		 * @env Client | Server
-		 * @param {string | number} pName - unique name of style
-		 * @param {unknown} pStyle - text as CSS to add to the client
-		 */
-		addWebStyle(pName: string | number, pStyle: unknown): void
+         * Adds CSS style.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Unique name of style.
+         * @param {string} pStyle - Text as CSS to add to the client.
+         */
+		addWebStyle(pName: string | number, pStyle: string): void
 
         /**
-		 * removes the custom macro pName from the client's custom macros
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the custom macro
-		 */
+         * Removes the custom macro `pName` from the client's custom macros.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the custom macro.
+         */
 		removeCustomMacro(pName: string | number): void
 
         /**
-		 * object containing eye delay information; possible values 'step' (determines number of pixels the eye moves per frame; default 1) and 'max' (object determining maximum distance in pixels the screen can be from the eye {'x': 100, 'y': 100}); ex {'step': 2, 'max': {'x': 100, 'y': 100}}
-		 * @env Client | Server
-		 */
+         * Object containing eye delay information. Possible values `step` (determines number of pixels the eye moves per frame. Default 1) and `max` (object determining maximum distance in pixels the screen can be from the eye `{'x': 100, 'y': 100}`). Example: {`step`: 2, `max`: `{'x': 100, 'y': 100}`}.
+         *
+         * @env Client | Server
+         */
 		viewEyeDelay: {'step': number, 'max': {'x': number, 'y': number}}
 
         /**
-		 * sets the client's playerMob to pMob
-		 * @env Client | Server
-		 * @param {Diob} pMob - reference to a Mob diob to give this client control of
-		 */
+         * Sets the client's playerMob to `pMob`.
+         *
+         * @env Client | Server
+         * @param {Diob} pMob - Reference to a Mob diob to give this client control of.
+         */
 		setPlayerMob(pMob: Diob): void
 
         /**
-		 * returns an array of diobs that are overlays of this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
-		 * @env Client | Server
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @returns {Diob[]} returns an array of diobs that are overlays of this diob using the provided arguments; if pType is not set, all diobs will be returned; if pType is set but pChild is not, all diobs with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs will be returned
-		 */
+         * Returns an array of diobs that are overlays of this diob using the provided arguments. If `pType` is not set, all diobs will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs will be returned.
+         *
+         * @env Client | Server
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @returns {Diob[]} Returns an array of diobs that are overlays of this diob using the provided arguments. If `pType` is not set, all diobs will be returned. If `pType` is set but `pChild` is not, all diobs with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs will be returned.
+         */
 		getOverlays(pType?: string, pChild?: boolean): Diob[]
 
         /**
-		 * optional; if set, the map will not scale based on the window size
-		 * @env Client | Server
-		 */
-		mapView: object
-		[key: string]: any
-                
-	}
-            
-                
-	
-	/**The resource object.*/
-	type Resource = {
-                    
-		/**
-		 * sets a game resource to use the resource file located at pPath
-		 * @env Client | Server
-		 * @param {string} pType - type of file to set
-		 * @param {string | number} pName - name of file to set; this will be referenced in the project; example if pName was set to 'my_atlas' ( atlasName = 'my_atlas' )
-		 * @param {string} pPath - path to the file; if not a remote file this will be the name of the file (or path if any sub directories were added) inside resources/files/ for the game, otherwise it will be a web URL path to the file
-		 * @param {unknown} [pRemote] - optional; if set the pPath file will be treated like a web URL
-		 */
-		setResource(pType: string, pName: string | number, pPath: string, pRemote?: unknown): void
+         * Active MapView viewport controller instance for this client, or a configuration object when configuring the type.
+         *
+         * @env Client | Server
+         */
+		mapView: MapViewInstance | MapViewConfig
 
         /**
-		 * returns the direct path to the resource
+         * Called when a mouse button is pressed by this client anywhere on screen or over a diob.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob instance underneath the cursor, or `0` if clicked on empty screen/map space.
+         * @param {number} pX - Horizontal coordinate of the cursor on the screen viewport.
+         * @param {number} pY - Vertical coordinate of the cursor on the screen viewport.
+         * @param {MouseButton} pButton - The mouse button that was pressed (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         *
+         * @example
+         * ```ts
+         * client.onMouseDown = (pDiob, pX, pY, pButton) => {
+         *     if (pButton === MouseButton.Right) {
+         *         console.log(`Right click at viewport (${pX}, ${pY})`);
+         *     }
+         * };
+         * ```
+         */
+		onMouseDown?(pDiob: Diob | 0, pX: number, pY: number, pButton: MouseButton): void
+
+        /**
+         * Called when a mouse button is released by this client.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob instance underneath the cursor, or `0` if released over empty screen/map space.
+         * @param {number} pX - Horizontal coordinate of the cursor on the screen viewport.
+         * @param {number} pY - Vertical coordinate of the cursor on the screen viewport.
+         * @param {MouseButton} pButton - The mouse button that was released (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         */
+		onMouseUp?(pDiob: Diob | 0, pX: number, pY: number, pButton: MouseButton): void
+
+        /**
+         * Called when a mouse button is clicked (press and release sequence) by this client.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob clicked, or `0` if clicked over empty space.
+         * @param {number} pX - Horizontal coordinate of the click on the screen viewport.
+         * @param {number} pY - Vertical coordinate of the click on the screen viewport.
+         * @param {MouseButton} pButton - The mouse button clicked (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         */
+		onMouseClick?(pDiob: Diob | 0, pX: number, pY: number, pButton: MouseButton): void
+
+        /**
+         * Called when a mouse button is double clicked by this client.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob double clicked, or `0` if double clicked over empty space.
+         * @param {number} pX - Horizontal coordinate of the double click on the screen viewport.
+         * @param {number} pY - Vertical coordinate of the double click on the screen viewport.
+         * @param {MouseButton} pButton - The mouse button clicked (`MouseButton.Left`, `MouseButton.Middle`, or `MouseButton.Right`).
+         */
+		onMouseDblClick?(pDiob: Diob | 0, pX: number, pY: number, pButton: MouseButton): void
+
+        /**
+         * Called when the mouse moves within the game window.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob currently hovered over, or `0` if none.
+         * @param {number} pX - Horizontal viewport position of the mouse.
+         * @param {number} pY - Vertical viewport position of the mouse.
+         */
+		onMouseMove?(pDiob: Diob | 0, pX: number, pY: number): void
+
+        /**
+         * Called when the mouse enters the bounding area of a diob.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob entered.
+         * @param {number} pX - Horizontal viewport coordinate of the cursor.
+         * @param {number} pY - Vertical viewport coordinate of the cursor.
+         */
+		onMouseEnter?(pDiob: Diob | 0, pX: number, pY: number): void
+
+        /**
+         * Called when the mouse exits the bounding area of a diob.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob exited.
+         * @param {number} pX - Horizontal viewport coordinate of the cursor.
+         * @param {number} pY - Vertical viewport coordinate of the cursor.
+         */
+		onMouseExit?(pDiob: Diob | 0, pX: number, pY: number): void
+
+        /**
+         * Called when the mouse wheel is scrolled upwards.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob underneath the cursor, or `0`.
+         * @param {number} pX - Horizontal viewport coordinate of the cursor.
+         * @param {number} pY - Vertical viewport coordinate of the cursor.
+         */
+		onMouseWheelScrollUp?(pDiob: Diob | 0, pX: number, pY: number): void
+
+        /**
+         * Called when the mouse wheel is scrolled downwards.
+         *
+         * @env Client | Server
+         * @event
+         * @param {Diob | 0} pDiob - The diob underneath the cursor, or `0`.
+         * @param {number} pX - Horizontal viewport coordinate of the cursor.
+         * @param {number} pY - Vertical viewport coordinate of the cursor.
+         */
+		onMouseWheelScrollDown?(pDiob: Diob | 0, pX: number, pY: number): void
+		[key: string]: any
+
+	}
+
+
+
+	/** The resource object. */
+	type Resource = {
+
+		/**
+		 * Sets a game resource to use the resource file located at `pPath`.
+		 *
 		 * @env Client | Server
-		 * @param {string} pType - type of file to get
-		 * @param {string | number} pName - name of file to get
-		 * @returns {string} returns the direct path to the resource
+		 * @param {string} pType - Type of file to set.
+		 * @param {string | number} pName - Name of file to set. This will be referenced in the project. Example: if `pName` was set to `my_atlas` ( atlasName = `my_atlas` ).
+		 * @param {string} pPath - Path to the file. If not a remote file this will be the name of the file (or path if any sub directories were added) inside resources/files/ for the game, otherwise it will be a web URL path to the file.
+		 * @param {boolean} [pRemote] - (Optional) If set the `pPath` file will be treated like a web URL.
 		 */
+		setResource(pType: string, pName: string | number, pPath: string, pRemote?: boolean): void
+
+        /**
+         * Returns the direct path to the resource.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type of file to get.
+         * @param {string | number} pName - Name of file to get.
+         * @returns {string} Returns the direct path to the resource.
+         */
 		getResourcePath(pType: string, pName: string | number): string
 
         /**
-		 * loads the resource of type pType with the name pName and then calls the function pFunc
-		 * @env Client | Server
-		 * @param {string} pType - type of file to load
-		 * @param {string | number} pName - name of file to load
-		 * @param {Function} pFunc - function to call after the resource has finished loading or failed to load
-		 */
+         * Loads the resource of type `pType` with the name `pName` and then calls the function `pFunc`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type of file to load.
+         * @param {string | number} pName - Name of file to load.
+         * @param {Function} pFunc - Function to call after the resource has finished loading or failed to load.
+         */
 		loadResource(pType: string, pName: string | number, pFunc: Function): void
 
         /**
-		 * returns a string containing the text inside of a loaded non-VS text file; the file must already be loaded to get the text
-		 * @env Client | Server
-		 * @param {string | number} pName - name of loaded file to get text of
-		 * @returns {string} returns a string containing the text inside of a loaded non-VS text file; the file must already be loaded to get the text
-		 */
+         * Returns a string containing the text inside of a loaded non-VS text file. The file must already be loaded to get the text.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of loaded file to get text of.
+         * @returns {string} Returns a string containing the text inside of a loaded non-VS text file. The file must already be loaded to get the text.
+         */
 		getFileText(pName: string | number): string
-                
+
 	}
-            
-                
-	
-	/**The util object.*/
+
+
+
+	/** The util object. */
 	type Util = {
-                    
+
 		/**
-		 * returns pVal converted to a float number
+		 * Returns `pVal` converted to a float number.
+		 *
 		 * @env Client | Server
-		 * @param {boolean} pVal - value to get number from
-		 * @returns {number} returns pVal converted to a float number
+		 * @param {string | number} pVal - Value to get number from.
+		 * @returns {number} Returns `pVal` converted to a float number.
 		 */
-		parseFloat(pVal: boolean): number
+		parseFloat(pVal: string | number): number
 
         /**
-		 * unzips gzipped data and returns the unzipped data
-		 * @env Client | Server
-		 * @param {unknown} pData - gzipped data
-		 * @returns {string} returns the unzipped data
-		 */
-		gzUnzip(pData: unknown): string
+         * Unzips gzipped data and returns the unzipped data.
+         *
+         * @env Client | Server
+         * @param {string | Uint8Array | ArrayBuffer} pData - Gzipped data.
+         * @returns {string} Returns the unzipped data.
+         */
+		gzUnzip(pData: string | Uint8Array | ArrayBuffer): string
 
         /**
-		 * returns a string containing the type of variable
-		 * @env Client | Server
-		 * @param {unknown} pVar - variable to check
-		 * @returns {string} returns a string containing the type of variable
-		 */
-		getVariableType(pVar: unknown): string
+         * Returns a string containing the type of variable.
+         *
+         * @env Client | Server
+         * @param {any} pVar - Variable to check.
+         * @returns {string} Returns a string containing the type of variable.
+         */
+		getVariableType(pVar: any): string
 
         /**
-		 * handles either a stored callback function or a "callback array" and returns the results
-		 * @env Client | Server
-		 * @param {[Function, this: Diob | Object, [arg1: unknown, arg2: unknown]]} [pCallback] - reference to a function or a "callback array" which contains the reference to the callback function, followed by the call owner (the `this` of the function call), then an optional array of arguments; ex ( [this.func, this, [arg1, arg2]] )
-		 * @returns {void} returns the results
-		 */
-		handleCallback(pCallback?: [Function, this: Diob | Object, [arg1: unknown, arg2: unknown]]): void
+         * Handles either a stored callback function or a "callback array" and returns the results.
+         *
+         * @env Client | Server
+         * @param {Function | [Function, any, any[]?]} [pCallback] - (Optional) Reference to a function or a "callback array" which contains the reference to the callback function, followed by the call owner (the `this` of the function call), then an optional array of arguments. Example: `[this.func, this, [arg1, arg2]]`.
+         * @returns {any} Returns the results.
+         */
+		handleCallback(pCallback?: Function | [Function, any, any[]?]): any
 
         /**
-		 * converts pRad into degrees and returns the number
-		 * @env Client | Server
-		 * @param {unknown} pRad - radians to convert
-		 * @returns {number} returns the number
-		 */
-		toDegrees(pRad: unknown): number
+         * Converts `pRad` into degrees and returns the number.
+         *
+         * @env Client | Server
+         * @param {number} pRad - Radians to convert.
+         * @returns {number} Returns the number in degrees.
+         */
+		toDegrees(pRad: number): number
 
         /**
-		 * returns pVal converted to a number value
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to get number from
-		 * @returns {number} returns pVal converted to a number value
-		 */
-		toNumber(pVal: boolean): number
+         * Returns `pVal` converted to a number value.
+         *
+         * @env Client | Server
+         * @param {any} pVal - Value to get number from.
+         * @returns {number} Returns `pVal` converted to a number value.
+         */
+		toNumber(pVal: any): number
 
         /**
-		 * creates an object from pString and returns it if the string is a valid object format
-		 * @env Client | Server
-		 * @param {string} pString - string to create an object from; ex ( "{'name': 'test', 'value1': 1}" )
-		 * @returns {object | undefined} returns it if the string is a valid object format
-		 */
-		stringToObject(pString: string): object | undefined
+         * Creates an object from `pString` and returns it if the string is a valid object format.
+         *
+         * @env Client | Server
+         * @param {string} pString - String to create an object from. Example: ( "`{'name': 'test', 'value1': 1}`" ).
+         * @returns {object | undefined} Returns it if the string is a valid object format.
+         */
+		stringToObject<T = Record<string, any>>(pString: string): T | undefined
 
         /**
-		 * returns new text that has been encoded to make it a valid URI component
-		 * @env Client | Server
-		 * @param {string} pText - text to encode
-		 * @returns {string} returns new text that has been encoded to make it a valid URI component
-		 */
+         * Returns new text that has been encoded to make it a valid URI component.
+         *
+         * @env Client | Server
+         * @param {string} pText - Text to encode.
+         * @returns {string} Returns new text that has been encoded to make it a valid URI component.
+         */
 		encodeURIComponent(pText: string): string
 
         /**
-		 * returns true if value is a string; returns false if value is not a string
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to check for string
-		 * @returns {string} returns true if value is a string; returns false if value is not a string
-		 */
-		isString(pVal: boolean): string
+         * Returns `true` if value is a string. Returns `false` if value is not a string.
+         *
+         * @env Client | Server
+         * @param {unknown} pVal - Value to check for string.
+         * @returns {boolean} Returns `true` if value is a string. Returns `false` if value is not a string.
+         */
+		isString(pVal: unknown): pVal is string
 
         /**
-		 * returns true if value is an object; returns false if value is not an object
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to check for object
-		 * @returns {boolean} returns true if value is an object; returns false if value is not an object
-		 */
-		isObject(pVal: boolean): boolean
+         * Returns `true` if value is an object. Returns `false` if value is not an object.
+         *
+         * @env Client | Server
+         * @param {unknown} pVal - Value to check for object.
+         * @returns {boolean} Returns `true` if value is an object. Returns `false` if value is not an object.
+         */
+		isObject(pVal: unknown): pVal is object
 
         /**
-		 * text to encode HTML tags of
-		 * @env Client | Server
-		 * @param {string} pText - text to encode HTML tags of
-		 * @returns {string} returns a new text with HTML tags encoded; '<' becomes '&amp;lt;', '>' becomes '&amp;gt;', '/' becomes '&amp;#47;'
-		 */
+         * Text to encode HTML tags of.
+         *
+         * @env Client | Server
+         * @param {string} pText - Text to encode HTML tags of.
+         * @returns {string} Returns a new text with HTML tags encoded; `<` becomes `&lt;`, `>` becomes `&gt;`, `/` becomes `&#47;`.
+         */
 		encodeWebTags(pText: string): string
 
         /**
-		 * returns new text that has been decoded
-		 * @env Client | Server
-		 * @param {string} pText - text to decode
-		 * @returns {string} returns new text that has been decoded
-		 */
+         * Returns new text that has been decoded.
+         *
+         * @env Client | Server
+         * @param {string} pText - Text to decode.
+         * @returns {string} Returns new text that has been decoded.
+         */
 		decodeURI(pText: string): string
 
         /**
-		 * converts pDeg into radians and returns the number
-		 * @env Client | Server
-		 * @param {unknown} pDeg - degrees to convert
-		 * @returns {number} returns the number
-		 */
-		toRadians(pDeg: unknown): number
+         * Converts `pDeg` into radians and returns the number.
+         *
+         * @env Client | Server
+         * @param {number} pDeg - Degrees to convert.
+         * @returns {number} Returns the number in radians.
+         */
+		toRadians(pDeg: number): number
 
         /**
-		 * returns true if value is an array; returns false if value is not an array
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to check for array
-		 * @returns {boolean} returns true if value is an array; returns false if value is not an array
-		 */
-		isArray(pVal: boolean): boolean
+         * Returns `true` if value is an array. Returns `false` if value is not an array.
+         *
+         * @env Client | Server
+         * @param {unknown} pVal - Value to check for array.
+         * @returns {boolean} Returns `true` if value is an array. Returns `false` if value is not an array.
+         */
+		isArray(pVal: unknown): pVal is any[]
 
         /**
-		 * returns an array containing the values of pO
-		 * @env Client | Server
-		 * @param {object} pO - object to get values from
-		 * @returns {unknown[]} returns an array containing the values of pO
-		 */
-		getObjectValues(pO: object): unknown[]
+         * Returns an array containing the values of `pO`.
+         *
+         * @env Client | Server
+         * @param {object} pO - Object to get values from.
+         * @returns {any[]} Returns an array containing the values of `pO`.
+         */
+		getObjectValues<T = any>(pO: object): T[]
 
         /**
-		 * copies all variables from pC and gives them to pO; warning: trying to copy an object that has recursive references will reach a stack limit and throw an error
-		 * @env Client | Server
-		 * @param {object} pO - object to set variables of
-		 * @param {object} pC - object to copy variables from
-		 * @param {boolean} [pD] - optional; set this if copying from a Vylocity Object or an object that references another Vylocity Object
-		 */
-		copyObject(pO: object, pC: object, pD?: boolean): void
+         * Copies all variables from `pC` and gives them to `pO`. Warning: trying to copy an object that has recursive references will reach a stack limit and throw an error.
+         *
+         * @env Client | Server
+         * @param {object} pO - Object to set variables of.
+         * @param {object} pC - Object to copy variables from.
+         * @param {boolean} [pD] - (Optional) Set this if copying from a Vylocity Object or an object that references another Vylocity Object.
+         */
+		copyObject<T extends object = object>(pO: T, pC: object, pD?: boolean): T
 
         /**
-		 * returns new text that has been encoded to make it a valid URI
-		 * @env Client | Server
-		 * @param {string} pText - text to encode
-		 * @returns {string} returns new text that has been encoded to make it a valid URI
-		 */
+         * Returns new text that has been encoded to make it a valid URI.
+         *
+         * @env Client | Server
+         * @param {string} pText - Text to encode.
+         * @returns {string} Returns new text that has been encoded to make it a valid URI.
+         */
 		encodeURI(pText: string): string
 
         /**
-		 * returns a randomly picked item from pVal1 (if an array and pVal2 is not set) or all the arguments provided
-		 * @env Client | Server
-		 * @param {unknown[]} pValn - first value to pick from or an array to pick from
-		 * @returns {unknown} returns a randomly picked item from pVal1 (if an array and pVal2 is not set) or all the arguments provided
-		 */
-		pick(pValn: unknown[]): unknown
+         * Returns a randomly picked item from `pVal1` (if an array and `pVal2` is not set) or all the arguments provided.
+         *
+         * @env Client | Server
+         * @param {T[] | T} pVal1 - First value to pick from or an array to pick from.
+         * @param {...T[]} [pValN] - Additional values to pick from.
+         * @returns {T} Returns a randomly picked item.
+         */
+		pick<T = any>(pVal1: T[] | T, ...pValN: T[]): T
 
         /**
-		 * returns pVal converted to a whole number
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to get number from
-		 * @param {number} pRadix - number between 2 and 36 to use as the base for the supplied number; 10 for normal base (0-9), 16 for hex (0-F)
-		 * @returns {number} returns pVal converted to a whole number
-		 */
-		parseInt(pVal: boolean, pRadix: number): number
+         * Returns `pVal` converted to a whole number.
+         *
+         * @env Client | Server
+         * @param {string | number} pVal - Value to get number from.
+         * @param {number} [pRadix] - Number between 2 and 36 to use as the base for the supplied number; 10 for normal base (0-9), 16 for hex (0-F).
+         * @returns {number} Returns `pVal` converted to a whole number.
+         */
+		parseInt(pVal: string | number, pRadix?: number): number
 
         /**
-		 * returns a regular expression pattern from the pPattern string using the pFlags flag
-		 * @env Client | Server
-		 * @param {unknown} pPattern - regular expression (regex) pattern string
-		 * @param {unknown} [pFlags] - optional; 'g' = global match; 'i' = ignore case; 'm' = multiline, treat start and end characters (^ and $) as working over multiple lines;
-		 * @returns {RegExp} returns a regular expression pattern from the pPattern string using the pFlags flag
-		 */
-		regExp(pPattern: unknown, pFlags?: unknown): RegExp
+         * Returns a regular expression pattern from the `pPattern` string using the `pFlags` flag.
+         *
+         * @env Client | Server
+         * @param {string | RegExp} pPattern - Regular expression (regex) pattern string.
+         * @param {string} [pFlags] - (Optional) `g` = global match; `i` = ignore case; `m` = multiline, treat start and end characters (^ and $) as working over multiple lines.
+         * @returns {RegExp} Returns a regular expression pattern from the `pPattern` string using the `pFlags` flag.
+         */
+		regExp(pPattern: string | RegExp, pFlags?: string): RegExp
 
         /**
-		 * returns char or string associated with the code pCode
-		 * @env Client | Server
-		 * @param {unknown} pCode - code to get character of; can use multiple codes separated by commas which returns the codes as a string
-		 * @returns {string} returns the codes as a string<br />
-				called: returns char or string associated with the code pCode
-		 */
-		getCharFromCode(pCode: unknown): string
+         * Returns char or string associated with the code `pCode`.
+         *
+         * @env Client | Server
+         * @param {...number[]} pCodes - Code(s) to get character of. Can use multiple codes which returns the codes as a string.
+         * @returns {string} Returns the codes as a string.
+         */
+		getCharFromCode(...pCodes: number[]): string
 
         /**
-		 * returns true if value is a number; returns false if value is not a number
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to check for number
-		 * @returns {boolean} returns true if value is a number; returns false if value is not a number
-		 */
-		isNumber(pVal: boolean): boolean
+         * Returns `true` if value is a number. Returns `false` if value is not a number.
+         *
+         * @env Client | Server
+         * @param {unknown} pVal - Value to check for number.
+         * @returns {boolean} Returns `true` if value is a number. Returns `false` if value is not a number.
+         */
+		isNumber(pVal: unknown): pVal is number
 
         /**
-		 * returns new style as text after being processed by the engine, translating vyi: and vyf: tags and so on
-		 * @env Client | Server
-		 * @param {string} pStyle - string containing web styles
-		 * @returns {void} returns new style as text after being processed by the engine, translating vyi: and vyf: tags and so on
-		 */
-		getWebStyle(pStyle: string): void
+         * Returns new style as text after being processed by the engine, translating vyi: and vyf: tags and so on.
+         *
+         * @env Client | Server
+         * @param {string} pStyle - String containing web styles.
+         * @returns {string} Returns new style as text after being processed by the engine, translating vyi: and vyf: tags and so on.
+         */
+		getWebStyle(pStyle: string): string
 
         /**
-		 * returns true if value is a function; returns false if value is not a function
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to check for function
-		 * @returns {boolean} returns true if value is a function; returns false if value is not a function
-		 */
-		isFunction(pVal: boolean): boolean
+         * Returns `true` if value is a function. Returns `false` if value is not a function.
+         *
+         * @env Client | Server
+         * @param {unknown} pVal - Value to check for function.
+         * @returns {boolean} Returns `true` if value is a function. Returns `false` if value is not a function.
+         */
+		isFunction(pVal: unknown): pVal is (...args: any[]) => any
 
         /**
-		 * returns an array containing the values all of key names (variable names) of pO
-		 * @env Client | Server
-		 * @param {object} pO - object to get key names from
-		 * @returns {string[]} returns an array containing the values all of key names (variable names) of pO
-		 */
+         * Returns an array containing the values all of key names (variable names) of `pO`.
+         *
+         * @env Client | Server
+         * @param {object} pO - Object to get key names from.
+         * @returns {string[]} Returns an array containing the values all of key names (variable names) of `pO`.
+         */
 		getObjectKeys(pO: object): string[]
 
         /**
-		 * converts an ArrayBuffer to a base64 string
-		 * @env Client | Server
-		 * @param {unknown} pArrBuff - ArrayBuffer to convert to base64
-		 */
-		arrayBufferToBase64(pArrBuff: unknown): void
+         * Converts an ArrayBuffer to a base64 string.
+         *
+         * @env Client | Server
+         * @param {ArrayBuffer} pArrBuff - ArrayBuffer to convert to base64.
+         * @returns {string} Base64 string.
+         */
+		arrayBufferToBase64(pArrBuff: ArrayBuffer): string
 
         /**
-		 * returns pVal converted to a string value
-		 * @env Client | Server
-		 * @param {boolean} pVal - value to get string from
-		 * @returns {string} returns pVal converted to a string value
-		 */
-		toString(pVal: boolean): string
+         * Returns `pVal` converted to a string value.
+         *
+         * @env Client | Server
+         * @param {any} pVal - Value to get string from.
+         * @returns {string} Returns `pVal` converted to a string value.
+         */
+		toString(pVal: any): string
 
         /**
-		 * returns new text that has been decoded
-		 * @env Client | Server
-		 * @param {string} pText - text to decode
-		 * @returns {string} returns new text that has been decoded
-		 */
+         * Returns new text that has been decoded.
+         *
+         * @env Client | Server
+         * @param {string} pText - Text to decode.
+         * @returns {string} Returns new text that has been decoded.
+         */
 		decodeURIComponent(pText: string): string
 
         /**
-		 * gets all the variables that can be saved and returns a new object that contains those values which can then be saved (no internal engine variables, no functions, no references to Vylocity Objects)
-		 * @env Client | Server
-		 * @param {object} pS - object to get saveable values from
-		 * @param {object} [pO] - optional; alter this object and return it as the return object
-		 * @returns {object} returns a new object that contains those values which can then be saved (no internal engine variables, no functions, no references to Vylocity Objects)
-		 */
-		getSaveObject(pS: object, pO?: object): object
-                
+         * Gets all the variables that can be saved and returns a new object that contains those values which can then be saved (no internal engine variables, no functions, no references to Vylocity Objects).
+         *
+         * @env Client | Server
+         * @param {object} pS - Object to get saveable values from.
+         * @param {object} [pO] - (Optional) Alter this object and return it as the return object.
+         * @returns {Record<string, any>} Returns a new object that contains those values which can then be saved (no internal engine variables, no functions, no references to Vylocity Objects).
+         */
+		getSaveObject<T extends object = Record<string, any>>(pS: object, pO?: object): T
+
+        /**
+         * Returns the numeric compass index of the specified direction name in the engine's direction lookup table.
+         *
+         * @env Client | Server
+         * @param {Direction | string} pDir - Direction name.
+         * @returns {number} Numeric compass index of direction.
+         */
+		getDirNum(pDir: Direction | string): number
+
 	}
-            
-                
-	
-	/**The event object.*/
+
+
+
+	/** The event object. */
 	type Event = {
-                    
+
 		/**
-		 * remove pO to the ticker
+		 * Remove `pO` to the ticker.
+		 *
 		 * @env Client | Server
-		 * @param {unknown} pO - reference to the object
+		 * @param {Diob} pO - Reference to the object.
 		 */
-		removeTicker(pO: unknown): void
+		removeTicker(pO: Diob | Object | object): void
 
         /**
-		 * add pO to the ticker
-		 * @env Client | Server
-		 * @param {unknown} pO - reference to the object
-		 * @param {object} [pS] - optional; an object containing settings for this object's ticker
-		 */
-		addTicker(pO: unknown, pS?: object): void
+         * Add `pO` to the ticker.
+         *
+         * @env Client | Server
+         * @param {Diob | Object | object} pO - Reference to the object.
+         * @param {object} [pS] - (Optional) An object containing settings for this object's ticker.
+         */
+		addTicker(pO: Diob | Object | object, pS?: object): void
 
         /**
-		 * forces a thread to stop doing its executions
-		 * @env Client | Server
-		 * @param {boolean} pVal - variable linking to the thread to be interrupted
-		 */
+         * Forces a thread to stop doing its executions.
+         *
+         * @env Client | Server
+         * @param {boolean} pVal - Variable linking to the thread to be interrupted.
+         */
 		interruptThread(pVal: boolean): void
 
         /**
-		 * returns an array of all active objects with tickers running
-		 * @env Client | Server
-		 * @returns {Diob[] | Object[]} returns an array of all active objects with tickers running
-		 */
+         * Returns an array of all active objects with tickers running.
+         *
+         * @env Client | Server
+         * @returns {Diob[] | Object[]} Returns an array of all active objects with tickers running.
+         */
 		getTickers(): Diob[] | Object[]
 
         /**
-		 * prevents a specific spawn from occuring
-		 * @env Client | Server
-		 * @param {boolean} pVal - variable linking to the spawn to be interrupted
-		 */
+         * Prevents a specific spawn from occuring.
+         *
+         * @env Client | Server
+         * @param {boolean} pVal - Variable linking to the spawn to be interrupted.
+         */
 		interruptSpawn(pVal: boolean): void
 
         /**
-		 * pauses or resumes all tickers
-		 * @env Client | Server
-		 * @param {boolean} [pBool] - optional; true or false
-		 */
+         * Pauses or resumes all tickers.
+         *
+         * @env Client | Server
+         * @param {boolean} [pBool] - (Optional) True or `false`.
+         */
 		toggleTicker(pBool?: boolean): void
-                
+
 	}
-            
-                
-	
-	/**The file object.*/
+
+
+
+	/** The file object. */
 	type File = {
-                    
+
 		/**
-		 * checks if pFile exists
+		 * Checks if `pFile` exists.
+		 *
 		 * @env Server
-		 * @param {string} pFile - path to the file or directory to check
-		 * @param {Function} pFunc - function to call after pPath has been checked; first argument pExists determines if pPath exists or not
+		 * @param {string} pFile - Path to the file or directory to check.
+		 * @param {Function} pFunc - Function to call after `pPath` has been checked. First argument `pExists` determines if `pPath` exists or not.
 		 */
 		exists(pFile: string, pFunc: Function): void
 
         /**
-		 * returns an object containing stat information for the file at pPath and calls pFunc with the first argument being the stat object and the second being an error (if any)
-		 * @env Server
-		 * @param {string} pPath - path to the file to get stats for
-		 * @param {Function} pFunc - function to call after
-		 * @returns {object} returns an object containing stat information for the file at pPath and calls pFunc with the first argument being the stat object and the second being an error (if any)
-		 */
-		getStats(pPath: string, pFunc: Function): object
+         * Asynchronously retrieves filesystem metadata and statistics for the file or directory located at `pPath`.
+         *
+         * @env Server
+         * @param {string} pPath - Path to the file or directory (relative to the game `files/` root).
+         * @param {(pStats?: FileStats, pErr?: any) => void} pFunc - Callback invoked with the `FileStats` object and any error encountered.
+         *
+         * @example
+         * ```ts
+         * VYLO.File.getStats('saves/player1.json', (stats, err) => {
+         *     if (!err && stats) {
+         *         console.log('File size in bytes:', stats.size);
+         *     }
+         * });
+         * ```
+         */
+		getStats(pPath: string, pFunc: (pStats?: FileStats, pErr?: any) => void): void
 
         /**
-		 * reads the data and returns the data in pFunc
-		 * @env Server
-		 * @param {string} pFile - path to the file
-		 * @param {Function} pFunc - function to call after reading is complete; first argument pData is set to the data read; second arg pErr is set if an error has occured
-		 * @returns {void} returns the data in pFunc
-		 */
+         * Reads the data and returns the data in `pFunc`.
+         *
+         * @env Server
+         * @param {string} pFile - Path to the file.
+         * @param {Function} pFunc - Function to call after reading is complete. First argument `pData` is set to the data read. Second arg `pErr` is set if an error has occured.
+         * @returns {void} Returns the data in `pFunc`.
+         */
 		readText(pFile: string, pFunc: Function): void
 
         /**
-		 * creates pFile if it does not exist and then saves the pSave object to the file; overwrites existing data
-		 * @env Server
-		 * @param {string} pFile - path to the file
-		 * @param {object} pSave - object to save to the file for example ( {'value1': 1, 'value2': 2} )
-		 * @param {Function} pFunc - function to call after writing is complete; first argument pErr is set if an error has occured
-		 */
+         * Creates `pFile` if it does not exist and then saves the `pSave` object to the file. Overwrites existing data.
+         *
+         * @env Server
+         * @param {string} pFile - Path to the file.
+         * @param {object} pSave - Object to save to the file for example ( `{'value1': 1, 'value2': 2}` ).
+         * @param {Function} pFunc - Function to call after writing is complete. First argument `pErr` is set if an error has occured.
+         */
 		writeSave(pFile: string, pSave: object, pFunc: Function): void
 
         /**
-		 * creates pFile if needed and then add pData to the end of the file
-		 * @env Server
-		 * @param {string} pFile - path to the file
-		 * @param {unknown} pData - text to add to the end of pFile
-		 * @param {Function} pFunc - function to call after appending is complete; first argument pErr is set if an error has occured
-		 */
-		appendText(pFile: string, pData: unknown, pFunc: Function): void
+         * Creates `pFile` if needed and then add `pData` to the end of the file.
+         *
+         * @env Server
+         * @param {string} pFile - Path to the file.
+         * @param {string} pData - Text to add to the end of `pFile`.
+         * @param {Function} pFunc - Function to call after appending is complete. First argument `pErr` is set if an error has occured.
+         */
+		appendText(pFile: string, pData: string, pFunc: Function): void
 
         /**
-		 * provides an array of files in pPath directory
-		 * @env Server
-		 * @param {string} pPath - path to the directory
-		 * @param {Function} pFunc - function to call after the directory has been read; first argument pFiles is an array of the files in the directory, second argument pErr is an error if there is one
-		 */
+         * Provides an array of files in `pPath` directory.
+         *
+         * @env Server
+         * @param {string} pPath - Path to the directory.
+         * @param {Function} pFunc - Function to call after the directory has been read. First argument `pFiles` is an array of the files in the directory, second argument `pErr` is an error if there is one.
+         */
 		readDir(pPath: string, pFunc: Function): void
 
         /**
-		 * deletes the file or directory at pPath; all child files are also deleted
-		 * @env Server
-		 * @param {string} pPath - path to the file or directory to delete
-		 * @param {Function} pFunc - function to call after pPath has been removed
-		 */
+         * Deletes the file or directory at `pPath`. All child files are also deleted.
+         *
+         * @env Server
+         * @param {string} pPath - Path to the file or directory to delete.
+         * @param {Function} pFunc - Function to call after `pPath` has been removed.
+         */
 		remove(pPath: string, pFunc: Function): void
 
         /**
-		 * provides a stat object which contains information on the file; you can use isFile() and isDirectory() on the object to check if they are files or directories
-		 * @env Server
-		 * @param {string} pPath - path to the file or directory
-		 * @param {Function} pFunc - function to call after pPath has been checked; first argument pStat is an object containing stat information for the file, second argument pErr is an error if there is one
-		 */
-		stat(pPath: string, pFunc: Function): void
+         * Inspects `pPath` and invokes `pFunc` with a `FileStats` object describing file attributes and directory status.
+         *
+         * @env Server
+         * @param {string} pPath - Path to the file or directory to inspect.
+         * @param {(pStat?: FileStats, pErr?: any) => void} pFunc - Callback invoked with `FileStats` and error object.
+         *
+         * @example
+         * ```ts
+         * VYLO.File.stat('data', (stat, err) => {
+         *     if (stat?.isDirectory()) {
+         *         console.log('Path is a directory');
+         *     }
+         * });
+         * ```
+         */
+		stat(pPath: string, pFunc: (pStat?: FileStats, pErr?: any) => void): void
 
         /**
-		 * creates a new directory at the location of pPath
-		 * @env Server
-		 * @param {string} pPath - path to create the new directory
-		 * @param {Function} pFunc - function to call after the directory has been made
-		 */
+         * Creates a new directory at the location of `pPath`.
+         *
+         * @env Server
+         * @param {string} pPath - Path to create the new directory.
+         * @param {Function} pFunc - Function to call after the directory has been made.
+         */
 		makeDir(pPath: string, pFunc: Function): void
 
         /**
-		 * returns an array of file names inside the pPath dir and calls pFunc with the first argument being the array and the second being an error (if any)
-		 * @env Server
-		 * @param {string} pPath - path to the directory to get contents of
-		 * @param {Function} pFunc - function to call after
-		 * @returns {string[]} returns an array of file names inside the pPath dir and calls pFunc with the first argument being the array and the second being an error (if any)
-		 */
+         * Returns an array of file names inside the `pPath` dir and calls `pFunc` with the first argument being the array and the second being an error (if any).
+         *
+         * @env Server
+         * @param {string} pPath - Path to the directory to get contents of.
+         * @param {Function} pFunc - Function to call after.
+         * @returns {string[]} Returns an array of file names inside the `pPath` dir and calls `pFunc` with the first argument being the array and the second being an error (if any).
+         */
 		getDir(pPath: string, pFunc: Function): string[]
 
         /**
-		 * reads pFile and returns an object from the data in pFunc
-		 * @env Server
-		 * @param {string} pFile - path to the file
-		 * @param {Function} pFunc - function to call after reading is complete; first argument pData is set to the data read; second arg pErr is set if an error has occured
-		 * @returns {object} returns an object from the data in pFunc
-		 */
-		readSave(pFile: string, pFunc: Function): object
+         * Reads `pFile` JSON save data and passes the parsed object to `pFunc`.
+         *
+         * @env Server
+         * @param {string} pFile - Path to the file.
+         * @param {(pData?: Record<string, any>, pErr?: any) => void} pFunc - Callback receiving the parsed data object or error.
+         *
+         * @example
+         * ```ts
+         * VYLO.File.readSave('saves/profile.json', (data, err) => {
+         *     if (!err && data) {
+         *         console.log('Loaded save profile:', data);
+         *     }
+         * });
+         * ```
+         */
+		readSave(pFile: string, pFunc: (pData?: Record<string, any>, pErr?: any) => void): void
 
         /**
-		 * creates pFile if needed and then writes pData to the file; overwrites existing data
-		 * @env Server
-		 * @param {string} pFile - path to the file
-		 * @param {unknown} pData - text to put into the file
-		 * @param {Function} pFunc - function to call after writing is complete; first argument pErr is set if an error occurs
-		 */
-		writeText(pFile: string, pData: unknown, pFunc: Function): void
-                
+         * Creates `pFile` if needed and then writes `pData` to the file. Overwrites existing data.
+         *
+         * @env Server
+         * @param {string} pFile - Path to the file.
+         * @param {string} pData - Text to put into the file.
+         * @param {Function} pFunc - Function to call after writing is complete. First argument `pErr` is set if an error occurs.
+         */
+		writeText(pFile: string, pData: string, pFunc?: (pErr?: any) => void): void
+
 	}
-            
-                
-	
-	/**The icon object.*/
+
+
+
+	/** The icon object. */
 	type Icon = {
-                    
+
 		/**
-		 * creates a new blank icon named pIcon inside of the atlas pAtlas
+		 * Creates a new blank icon named `pIcon` inside of the atlas `pAtlas`.
+		 *
 		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas to add the icon to
-		 * @param {string} pIcon - name of the new icon
-		 * @param {number} [pWidth] - optional; width of the new icon; uses tileWidth if not defined
-		 * @param {number} [pHeight] - optional; height of the new icon; uses tileHeight if not defined
+		 * @param {string} pAtlas - Name of the icon atlas to add the icon to.
+		 * @param {string} pIcon - Name of the new icon.
+		 * @param {number} [pWidth] - (Optional) Width of the new icon. Uses tileWidth if not defined.
+		 * @param {number} [pHeight] - (Optional) Height of the new icon. Uses tileHeight if not defined.
 		 */
 		newIcon(pAtlas: string, pIcon: string, pWidth?: number, pHeight?: number): void
 
         /**
-		 * alters color of the specified icon(s) based on the specified info; For example {'type': 'normal', 'red': 100} or just {'red': 100} would add 100 red to all pixels; {'red': -100} would reduce 100 red from all pixels; {'type': 'swap', 'red': 100, 'blue': 100, 'green': 100, 'newRed': 200} would find all pixels with the color rgb(100, 100, 100) and replace it with rgb(200, 100, 100); If any of the colors are not included, such as 'alpha', it will ignore that color, otherwise if it is set, it will take that color into account; {'type': 'multiply', 'hex': '#FFF'} would multiply blend white onto the icon, you can use 'hex' for the red, green, and blue values; for 'swap' you can use 'colors' which should equal an array of objects containing all of the color swaps you want to do if there is more than one
-		 * @env Client | Server
-		 * @param {object} pInfo - an object containing information to be used for the color alteration
-		 * @param {string} pAtlas - name of the icon atlas involved
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} [pState] - optional; name of the icon state involved
-		 * @param {number} [pFrame] - optional; number of the frame involved
-		 * @param {Function} [pFunc] - optional; function to call after the icon has changed; passes an error as the first argument if there was en error
-		 */
+         * Alters color of the specified icon(s) based on the specified info. For example `{'type': 'normal', 'red': 100}` or just `{'red': 100}` would add 100 red to all pixels; `{'red': -100}` would reduce 100 red from all pixels; `{'type': 'swap', 'red': 100, 'blue': 100, 'green': 100, 'newRed': 200}` would find all pixels with the color rgb(100, 100, 100) and replace it with rgb(200, 100, 100). If any of the colors are not included, such as `alpha`, it will ignore that color, otherwise if it is set, it will take that color into account; `{'type': 'multiply', 'hex': '#FFF'}` would multiply blend white onto the icon, you can use `hex` for the red, green, and blue values. For `swap` you can use `colors` which should equal an array of objects containing all of the color swaps you want to do if there is more than one.
+         *
+         * @env Client | Server
+         * @param {object} pInfo - An object containing information to be used for the color alteration.
+         * @param {string} pAtlas - Name of the icon atlas involved.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} [pState] - (Optional) Name of the icon state involved.
+         * @param {number} [pFrame] - (Optional) Number of the frame involved.
+         * @param {Function} [pFunc] - (Optional) Function to call after the icon has changed. Passes an error as the first argument if there was en error.
+         */
 		alterColor(pInfo: object, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
 
         /**
-		 * returns object containing the width and height of the icon; ex {'width': 100, 'height': 100}
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas
-		 * @param {string} pIcon - name of the icon
-		 * @param {string} [pState] - optional; name of the state
-		 * @param {number} [pFrame] - optional; number of the frame
-		 * @returns {object} returns object containing the width and height of the icon; ex {'width': 100, 'height': 100}
-		 */
-		getIconSize(pAtlas: string, pIcon: string, pState?: string, pFrame?: number): object
+         * Returns the pixel dimensions `{ width, height }` of the specified icon/state/frame, or undefined if not found.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas.
+         * @param {string} pIcon - Name of the icon.
+         * @param {string} [pState] - (Optional) Name of the icon state.
+         * @param {number} [pFrame] - (Optional) 1-based frame number index.
+         * @returns {Size2D | undefined} Dimensions containing `width` and `height` in pixels, or undefined if the icon does not exist.
+         *
+         * @example
+         * ```ts
+         * const size = VYLO.Icon.getIconSize('players', 'warrior', 'walk', 1);
+         * if (size) {
+         *     console.log(`Icon frame dimensions: ${size.width}x${size.height}`);
+         * }
+         * ```
+         */
+		getIconSize(pAtlas: string, pIcon: string, pState?: string, pFrame?: number): Size2D | undefined
 
         /**
-		 * returns a string containing the base64 data url for the icon which can then be used to display the icon as an image in HTML
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas
-		 * @param {string} pIcon - name of the icon
-		 * @param {string} [pState] - optional; name of the state
-		 * @param {number} [pFrame] - optional; number of the frame
-		 * @returns {string} returns a string containing the base64 data url for the icon which can then be used to display the icon as an image in HTML
-		 */
+         * Returns a string containing the base64 data url for the icon which can then be used to display the icon as an image in HTML.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas.
+         * @param {string} pIcon - Name of the icon.
+         * @param {string} [pState] - (Optional) Name of the state.
+         * @param {number} [pFrame] - (Optional) Number of the frame.
+         * @returns {string} Returns a string containing the base64 data url for the icon which can then be used to display the icon as an image in HTML.
+         */
 		getDataURL(pAtlas: string, pIcon: string, pState?: string, pFrame?: number): string
 
         /**
-		 * grabs an object with the width and height of the icon and an array of pixel data for the entire icon. The array of pixel data can then be changed and used elsewhere or drawn onto another icon. To read the width and height you could use object.width and object.height, where object is the object returned by the function. The object data array is as follows: object.data[0] is the red value (0-255) of the pixel at 0,0, object.data[1] is the green value (0-255) of the pixel at 0,0, object.data[2] is the blue value (0-255) of the pixel at 0,0, and object.data[3] is the alpha value (0-255) of the pixel at 0,0. Then object.data[4], object.data[5], object.data[6], and object.data[7] are the respective values for the pixel at 1,0. This trend continues through the whole array for every pixel.
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas involved
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} [pState] - optional; name of the icon state involved
-		 * @param {number} [pFrame] - optional; number of the frame involved
-		 */
+         * Grabs an object with the width and height of the icon and an array of pixel data for the entire icon. The array of pixel data can then be changed and used elsewhere or drawn onto another icon. To read the width and height you could use object.width and object.height, where object is the object returned by the function. The object data array is as follows: object.data[0] is the red value (0-255) of the pixel at 0,0, object.data[1] is the green value (0-255) of the pixel at 0,0, object.data[2] is the blue value (0-255) of the pixel at 0,0, and object.data[3] is the alpha value (0-255) of the pixel at 0,0. Then object.data[4], object.data[5], object.data[6], and object.data[7] are the respective values for the pixel at 1,0. This trend continues through the whole array for every pixel.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas involved.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} [pState] - (Optional) Name of the icon state involved.
+         * @param {number} [pFrame] - (Optional) Number of the frame involved.
+         */
 		getRawData(pAtlas: string, pIcon: string, pState?: string, pFrame?: number): ArrayBuffer
 
         /**
-		 * change frame pFrame delay to pDelay
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas to add the frame to
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} pState - name of the icon state involved
-		 * @param {number} pFrame - frame number
-		 * @param {number} pDelay - delay number
-		 */
+         * Change frame `pFrame` delay to `pDelay`.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas to add the frame to.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} pState - Name of the icon state involved.
+         * @param {number} pFrame - Frame number.
+         * @param {number} pDelay - Delay number.
+         */
 		setFrameDelay(pAtlas: string, pIcon: string, pState: string, pFrame: number, pDelay: number): void
 
         /**
-		 * get delay of pFrame
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas to add the frame to
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} pState - name of the icon state involved
-		 * @param {number} pFrame - frame number
-		 */
+         * Get delay of `pFrame`.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas to add the frame to.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} pState - Name of the icon state involved.
+         * @param {number} pFrame - Frame number.
+         */
 		getFrameDelay(pAtlas: string, pIcon: string, pState: string, pFrame: number): void
 
         /**
-		 * loads all the images for each specified icon; icon images are loaded when an icon or state is shown to a client, if you plan on altering an icon that the client hasn't seen yet, you'll want to use this function to cache it first
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas
-		 * @param {string} [pIcon] - optional; name of the icon
-		 * @param {Function} [pFunc] - optional; function called after the images have been loaded and cached
-		 */
+         * Loads all the images for each specified icon. Icon images are loaded when an icon or state is shown to a client, if you plan on altering an icon that the client hasn't seen yet, you'll want to use this function to cache it first.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas.
+         * @param {string} [pIcon] - (Optional) Name of the icon.
+         * @param {Function} [pFunc] - (Optional) Function called after the images have been loaded and cached.
+         */
 		cacheImage(pAtlas: string, pIcon?: string, pFunc?: Function): void
 
         /**
-		 * returns an array of strings containing the names of all the icons in pAtlas
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas
-		 * @returns {string[]} returns an array of strings containing the names of all the icons in pAtlas
-		 */
+         * Returns an array of strings containing the names of all the icons in `pAtlas`.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas.
+         * @returns {string[]} Returns an array of strings containing the names of all the icons in `pAtlas`.
+         */
 		getIconNames(pAtlas: string): string[]
 
         /**
-		 * returns number of frames the icon has
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas to add the frame to
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} pState - name of the icon state involved
-		 * @returns {number} returns number of frames the icon has
-		 */
+         * Returns number of frames the icon has.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas to add the frame to.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} pState - Name of the icon state involved.
+         * @returns {number} Returns number of frames the icon has.
+         */
 		getFrameCount(pAtlas: string, pIcon: string, pState: string): number
 
         /**
-		 * creates a new blank frame; if pState is defined the frame is added to the state, otherwise it is added to pIcon
-		 * @env Client | Server
-		 * @param {number} pDelay - number of milliseconds to give the frame delay; null for default, which is 100
-		 * @param {string} pAtlas - name of the icon atlas to add the frame to
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} [pState] - optional; name of the icon state involved
-		 */
+         * Creates a new blank frame. If `pState` is defined the frame is added to the state, otherwise it is added to `pIcon`.
+         *
+         * @env Client | Server
+         * @param {number} pDelay - Number of milliseconds to give the frame delay. Null for default, which is 100.
+         * @param {string} pAtlas - Name of the icon atlas to add the frame to.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} [pState] - (Optional) Name of the icon state involved.
+         */
 		newFrame(pDelay: number, pAtlas: string, pIcon: string, pState?: string): void
 
         /**
-		 * creates a clone of an atlas, icon, icon state, or frame
-		 * @env Client | Server
-		 * @param {object} pArgs - an object containing the information for the clone; useable varables: 'atlas', 'newAtlas', 'icon', 'newIcon', 'state', 'newState', and 'frame'
-		 */
+         * Creates a clone of an atlas, icon, icon state, or frame.
+         *
+         * @env Client | Server
+         * @param {object} pArgs - An object containing the information for the clone. Useable varables: `atlas`, `newAtlas`, `icon`, `newIcon`, `state`, `newState`, and `frame`.
+         */
 		clone(pArgs: object): void
 
         /**
-		 * creates a new blank icon state named pState for pIcon in the atlas pAtlas
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas to add the icon state to
-		 * @param {string} pIcon - name of the icon to add the icon state to
-		 * @param {string} pState - name of the new icon state
-		 */
+         * Creates a new blank icon state named `pState` for `pIcon` in the atlas `pAtlas`.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas to add the icon state to.
+         * @param {string} pIcon - Name of the icon to add the icon state to.
+         * @param {string} pState - Name of the new icon state.
+         */
 		newIconState(pAtlas: string, pIcon: string, pState: string): void
 
         /**
-		 * performs the specified draw function on the specified icon using the specified pArgs object; ex ( {'type': 'image', 'image': this, 'x': 1, 'y': 1} )
-		 * @env Client | Server
-		 * @param {object | object[]} pArgs - an object or array of objects which determines the settings of the draw
-		 * @param {string} pAtlas - type of draw
-		 * @param {string} pIcon - draw an image
-		 * @param {string} pState - either a path to an image or a diob (in which case the diob's icon will be used) or an object containing icon information (ex {'atlasName': 'test', 'iconName': 'a', 'iconState': 's', 'frame': 2} )
-		 * @param {number} pFrame - x position to draw the image
-		 * @param {Function} pFunc - y position to draw the image
-		 */
-		draw(pArgs: object | object[], pAtlas: string, pIcon: string, pState: string, pFrame: number, pFunc: Function): void
+         * Executes 2D canvas drawing commands onto an icon, state, or frame image.
+         *
+         * @env Client | Server
+         * @param {DrawCommandArgs | DrawCommandArgs[]} pArgs - A draw command configuration object or array of command objects.
+         * @param {string} pAtlas - Target icon atlas name.
+         * @param {string} pIcon - Target icon name.
+         * @param {string} [pState] - Target icon state name (empty string for root).
+         * @param {number} [pFrame] - Optional 1-based frame number index.
+         * @param {Function} [pFunc] - Optional callback invoked when drawing is complete.
+         *
+         * @example
+         * ```ts
+         * VYLO.Icon.draw({
+         *     type: 'fillRect',
+         *     color: '#00ff00',
+         *     x: 0,
+         *     y: 0,
+         *     width: 16,
+         *     height: 16
+         * }, 'items', 'potion', '', 1, () => {
+         *     console.log('Icon draw completed');
+         * });
+         * ```
+         */
+		draw(pArgs: DrawCommandArgs | DrawCommandArgs[], pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
 
         /**
-		 * changes the icon to match the pixel data given with pData
-		 * @env Client | Server
-		 * @param {unknown} pData - pixel data object to use
-		 * @param {string} pAtlas - name of the icon atlas involved
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} [pState] - optional; name of the icon state involved
-		 * @param {number} [pFrame] - optional; number of the frame involved
-		 * @param {Function} [pFunc] - optional; function to call after the icon data has changed and loaded
-		 */
+         * Changes the icon to match the pixel data given with `pData`.
+         *
+         * @env Client | Server
+         * @param {unknown} pData - Pixel data object to use.
+         * @param {string} pAtlas - Name of the icon atlas involved.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} [pState] - (Optional) Name of the icon state involved.
+         * @param {number} [pFrame] - (Optional) Number of the frame involved.
+         * @param {Function} [pFunc] - (Optional) Function to call after the icon data has changed and loaded.
+         */
 		setRawData(pData: unknown, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
 
         /**
-		 * returns an array of strings containing the names of all the icon states belonging to the icon pIcon in icon atlas pAtlas
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the icon atlas
-		 * @param {string} pIcon - name of the icon
-		 * @returns {string[]} returns an array of strings containing the names of all the icon states belonging to the icon pIcon in icon atlas pAtlas
-		 */
+         * Returns an array of strings containing the names of all the icon states belonging to the icon `pIcon` in icon atlas `pAtlas`.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the icon atlas.
+         * @param {string} pIcon - Name of the icon.
+         * @returns {string[]} Returns an array of strings containing the names of all the icon states belonging to the icon `pIcon` in icon atlas `pAtlas`.
+         */
 		getIconStateNames(pAtlas: string, pIcon: string): string[]
 
         /**
-		 * create a new icon atlas with the name pAtlas
-		 * @env Client | Server
-		 */
+         * Create a new icon atlas with the name `pAtlas`.
+         *
+         * @env Client | Server
+         */
 		newAtlas(): void
 
         /**
-		 * sets the image of the specified icon using the pData data URL
-		 * @env Client | Server
-		 * @param {unknown} pData - text containing data URL
-		 * @param {string} pAtlas - name of the icon atlas
-		 * @param {string} pIcon - name of the icon
-		 * @param {string} [pState] - optional; name of the state
-		 * @param {number} [pFrame] - optional; number of the frame
-		 * @param {Function} [pFunc] - optional; function to call after the icon has changed; passes an error as the first argument if there was en error
-		 */
-		setDataURL(pData: unknown, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
+         * Sets the image of the specified icon using the `pData` data URL.
+         *
+         * @env Client | Server
+         * @param {string} pData - Text containing data URL.
+         * @param {string} pAtlas - Name of the icon atlas.
+         * @param {string} pIcon - Name of the icon.
+         * @param {string} [pState] - (Optional) Name of the state.
+         * @param {number} [pFrame] - (Optional) Number of the frame.
+         * @param {Function} [pFunc] - (Optional) Function to call after the icon has changed. Passes an error as the first argument if there was en error.
+         */
+		setDataURL(pData: string, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
 
         /**
-		 * applies a filter to the icon(s) involved; possible filter types: 'grayscale', 'invert', 'darken', 'lighten'
-		 * @env Client | Server
-		 * @param {object} pFilter - an object containing needed information for filter; {'type': 'darken', 'value': 10} would darken the image by 10;
-		 * @param {string} pAtlas - name of the icon atlas involved
-		 * @param {string} pIcon - name of the icon involved
-		 * @param {string} [pState] - optional; name of the icon state involved
-		 * @param {number} [pFrame] - optional; number of the frame involved
-		 * @param {Function} [pFunc] - optional; function to call after the icon has changed; passes an error as the first argument if there was en error
-		 */
+         * Applies a filter to the icon(s) involved. Possible filter types: `grayscale`, `invert`, `darken`, `lighten`.
+         *
+         * @env Client | Server
+         * @param {object} pFilter - An object containing needed information for filter; `{'type': 'darken', 'value': 10}` would darken the image by 10.
+         * @param {string} pAtlas - Name of the icon atlas involved.
+         * @param {string} pIcon - Name of the icon involved.
+         * @param {string} [pState] - (Optional) Name of the icon state involved.
+         * @param {number} [pFrame] - (Optional) Number of the frame involved.
+         * @param {Function} [pFunc] - (Optional) Function to call after the icon has changed. Passes an error as the first argument if there was en error.
+         */
 		applyFilter(pFilter: object, pAtlas: string, pIcon: string, pState?: string, pFrame?: number, pFunc?: Function): void
-                
+
 	}
-            
-                
-	
-	/**The map object.*/
+
+
+
+	/** The map object. */
 	type Map = {
-                    
+
 		/**
-		 * returns number of tiles between pA and pB
+		 * Returns number of tiles between `pA` and `pB`.
+		 *
 		 * @env Client | Server
-		 * @param {Diob | Object} pA - Diob reference or object containing location information; ex {'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}
-		 * @param {Diob | Object} pB - Diob reference or object containing location information; ex {'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}
-		 * @returns {number} returns number of tiles between pA and pB
+		 * @param {Diob | Object} pA - Diob reference or object containing location information. Example: `{'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}`.
+		 * @param {Diob | Object} pB - Diob reference or object containing location information. Example: `{'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}`.
+		 * @returns {number} Returns number of tiles between `pA` and `pB`.
 		 */
 		getTileDist(pA: Diob | Object, pB: Diob | Object): number
 
         /**
-		 * returns an array of diobs on the map pMap depending on the provided arguments; if pType is not set, all diobs on the map will be returned; if pType is set but pChild is not, diobs on the map with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs on the map will be returned
-		 * @env Client | Server
-		 * @param {string} pMap - name of the map to get diobs from
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @param {Diob[]} [pAdd] - optional; if set, tiles and regions on the map will also be returned
-		 * @returns {Diob[]} returns an array of diobs on the map pMap depending on the provided arguments; if pType is not set, all diobs on the map will be returned; if pType is set but pChild is not, diobs on the map with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs on the map will be returned
-		 */
+         * Returns an array of diobs on the map `pMap` depending on the provided arguments. If `pType` is not set, all diobs on the map will be returned. If `pType` is set but `pChild` is not, diobs on the map with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs on the map will be returned.
+         *
+         * @env Client | Server
+         * @param {string} pMap - Name of the map to get diobs from.
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @param {Diob[]} [pAdd] - (Optional) If set, tiles and regions on the map will also be returned.
+         * @returns {Diob[]} Returns an array of diobs on the map `pMap` depending on the provided arguments. If `pType` is not set, all diobs on the map will be returned. If `pType` is set but `pChild` is not, diobs on the map with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs on the map will be returned.
+         */
 		getDiobs(pMap: string, pType?: string, pChild?: boolean, pAdd?: Diob[]): Diob[]
 
         /**
-		 * changes the sized of pMap to the width and height of pW and pH; reducing the size will delete diobs that are no longer within the map size
-		 * @env Client | Server
-		 * @param {string} pMap - name of the map to set the size of
-		 * @param {number} pW - width in tiles to give the map
-		 * @param {number} pH - height in tiles to give the map
-		 * @param {string} pTile - tile object type to use as the default tiles for newly created tiles
-		 */
+         * Changes the sized of `pMap` to the width and height of `pW` and `pH`. Reducing the size will delete diobs that are no longer within the map size.
+         *
+         * @env Client | Server
+         * @param {string} pMap - Name of the map to set the size of.
+         * @param {number} pW - Width in tiles to give the map.
+         * @param {number} pH - Height in tiles to give the map.
+         * @param {string} pTile - Tile object type to use as the default tiles for newly created tiles.
+         */
 		setMapSize(pMap: string, pW: number, pH: number, pTile: string): void
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible to the diob
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible to the diob
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible to the diob.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible to the diob.
+         */
 		getTileRangeView(pO: Diob | Object, pOmit: boolean): Diob[]
 
         /**
-		 * sets the Tile at pLoc to pT and returns the new tile
-		 * @env Client | Server
-		 * @param {Diob | Object} pLoc - either a Tile reference or an object containing location information; ex {'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}
-		 * @param {string} pT - either a type string containing the type of a new Tile or a reference to a Tile that does not already have a location on the map
-		 * @returns {Diob} returns the new tile
-		 */
+         * Sets the Tile at `pLoc` to `pT` and returns the new tile.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pLoc - Either a Tile reference or an object containing location information. Example: `{'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}`.
+         * @param {string} pT - Either a type string containing the type of a new Tile or a reference to a Tile that does not already have a location on the map.
+         * @returns {Diob} Returns the new tile.
+         */
 		setLoc(pLoc: Diob | Object, pT: string): Diob
 
         /**
-		 * returns the tiles on pMap within the specified area; if no area is specified, all tiles will be returned
-		 * @env Client | Server
-		 * @param {string} pMap - name of the map to get tiles from
-		 * @param {number} [pX] - optional; starting x coordinate
-		 * @param {number} [pY] - optional; starting y coordinate
-		 * @param {number} [pW] - optional; number of tiles to get from the right of pX; negative numbers to get tiles from the left
-		 * @param {number} [pH] - optional; number of tiles to get from below pY; negative numbers to get tiles from above
-		 * @returns {Diob[]} returns the tiles on pMap within the specified area; if no area is specified, all tiles will be returned
-		 */
+         * Returns the tiles on `pMap` within the specified area. If no area is specified, all tiles will be returned.
+         *
+         * @env Client | Server
+         * @param {string} pMap - Name of the map to get tiles from.
+         * @param {number} [pX] - (Optional) Starting x coordinate.
+         * @param {number} [pY] - (Optional) Starting y coordinate.
+         * @param {number} [pW] - (Optional) Number of tiles to get from the right of `pX`. Negative numbers to get tiles from the left.
+         * @param {number} [pH] - (Optional) Number of tiles to get from below `pY`. Negative numbers to get tiles from above.
+         * @returns {Diob[]} Returns the tiles on `pMap` within the specified area. If no area is specified, all tiles will be returned.
+         */
 		getTiles(pMap: string, pX?: number, pY?: number, pW?: number, pH?: number): Diob[]
 
         /**
-		 * returns an array of diobs on the map pMap that have the tag pTag
-		 * @env Client | Server
-		 * @param {string} pTag - string containing tag to look for
-		 * @param {string} [pMap] - optional; name of map to search
-		 * @returns {Diob[]} returns an array of diobs on the map pMap that have the tag pTag
-		 */
+         * Returns an array of diobs on the map `pMap` that have the tag `pTag`.
+         *
+         * @env Client | Server
+         * @param {string} pTag - String containing tag to look for.
+         * @param {string} [pMap] - (Optional) Name of map to search.
+         * @returns {Diob[]} Returns an array of diobs on the map `pMap` that have the tag `pTag`.
+         */
 		getDiobsByTag(pTag: string, pMap?: string): Diob[]
 
         /**
-		 * returns number of pixels between the center of pA and the center of pB; you can change the origin by passing custom objects and changing the width and height by double of the amount to offset
-		 * @env Client | Server
-		 * @param {Diob | Object} pA - Diob reference or object containing location and size information; ex {'xPos': 1, 'yPos': 1, 'mapName': 'map', 'width': 32, 'height': 32}
-		 * @param {Diob | Object} pB - Diob reference or object containing location and size information; ex {'xPos': 1, 'yPos': 1, 'mapName': 'map', 'width': 32, 'height': 32}
-		 * @param {boolean} [pEdge] - optional; if set, the edges of the diobs will be used instead of the center
-		 * @returns {number} returns number of pixels between the center of pA and the center of pB; you can change the origin by passing custom objects and changing the width and height by double of the amount to offset
-		 */
+         * Returns number of pixels between the center of `pA` and the center of `pB`. You can change the origin by passing custom objects and changing the width and height by double of the amount to offset.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pA - Diob reference or object containing location and size information. Example: `{'xPos': 1, 'yPos': 1, 'mapName': 'map', 'width': 32, 'height': 32}`.
+         * @param {Diob | Object} pB - Diob reference or object containing location and size information. Example: `{'xPos': 1, 'yPos': 1, 'mapName': 'map', 'width': 32, 'height': 32}`.
+         * @param {boolean} [pEdge] - (Optional) If set, the edges of the diobs will be used instead of the center.
+         * @returns {number} Returns number of pixels between the center of `pA` and the center of `pB`. You can change the origin by passing custom objects and changing the width and height by double of the amount to offset.
+         */
 		getDist(pA: Diob | Object, pB: Diob | Object, pEdge?: boolean): number
 
         /**
-		 * returns a the angle in radians between pA and pB
-		 * @env Client | Server
-		 * @param {Diob | Object} pA - first diob
-		 * @param {Diob | Object} pB - second diob
-		 * @param {boolean} pCenter - set to get angle from the centers
-		 * @returns {number} returns a the angle in radians between pA and pB
-		 */
+         * Returns a the angle in radians between `pA` and `pB`.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pA - First diob.
+         * @param {Diob | Object} pB - Second diob.
+         * @param {boolean} pCenter - Set to get angle from the centers.
+         * @returns {number} Returns a the angle in radians between `pA` and `pB`.
+         */
 		getAngle(pA: Diob | Object, pB: Diob | Object, pCenter: boolean): number
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {string} pType - type or parent type of diobs to get
-		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {string} pType - Type or parent type of diobs to get.
+         * @param {boolean} pChild - True to include all child diobs. False to include only diobs with the exact type of `pType`.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         */
 		getRangeViewByType(pO: Diob | Object, pType: string, pChild: boolean, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {string} pType - type or parent type of diobs to get
-		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {string} pType - Type or parent type of diobs to get.
+         * @param {boolean} pChild - True to include all child diobs. False to include only diobs with the exact type of `pType`.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         */
 		getTileRangeViewersByType(pO: Diob | Object, pType: string, pChild: boolean, pOmit: boolean): Diob[]
 
         /**
-		 * reference to a tile that exists in the void, this tile is used if a movable interacts with the edge of the map
-		 * @env Client | Server
-		 */
+         * Reference to a tile that exists in the void, this tile is used if a movable interacts with the edge of the map.
+         *
+         * @env Client | Server
+         */
 		void: Diob
 
         /**
-		 * array containing all the direction strings; ['east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', 'southeast']
-		 * @env Client | Server
-		 */
+         * Array containing all the direction strings; [`east`, `northeast`, `north`, `northwest`, `west`, `southwest`, `south`, `southeast`].
+         *
+         * @env Client | Server
+         */
 		dirs: ['east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', 'southeast']
 
         /**
-		 * returns an array containing all the tiles on the map within x and y pixels around the specified diob
-		 * @env Client | Server
-		 * @param {Diob | Object} pD - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {string} pType - either x distance or x and y distance
-		 * @param {boolean} pChild - if set, y distance
-		 * @param {boolean} pOmit - type or parent type of tiles to get
-		 * @returns {Diob[]} returns an array containing all the tiles on the map within x and y pixels around the specified diob
-		 */
+         * Returns an array containing all the tiles on the map within x and y pixels around the specified diob.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pD - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {string} pType - Either x distance or x and y distance.
+         * @param {boolean} pChild - If set, y distance.
+         * @param {boolean} pOmit - Type or parent type of tiles to get.
+         * @returns {Diob[]} Returns an array containing all the tiles on the map within x and y pixels around the specified diob.
+         */
 		getTilesByRange(pD: Diob | Object, pType: string, pChild: boolean, pOmit: boolean): Diob[]
 
         /**
-		 * returns a tile of a given location; if pVal1 and pVal2 are numbers and pVal3 is a string, it returns the tile at the coordinates pVal1, pVal2 on the map pVal3; if pVal1 is an object and not a tile, it returns the object's location; if pVal1 is a tile, it returns the tile back
-		 * @env Client | Server
-		 * @returns {Diob} returns a tile of a given location; if pVal1 and pVal2 are numbers and pVal3 is a string, it returns the tile at the coordinates pVal1, pVal2 on the map pVal3; if pVal1 is an object and not a tile, it returns the object's location; if pVal1 is a tile, it returns the tile back
-		 */
+         * Returns a tile of a given location. If `pVal1` and `pVal2` are numbers and `pVal3` is a string, it returns the tile at the coordinates `pVal1`, `pVal2` on the map `pVal3`. If `pVal1` is an object and not a tile, it returns the object's location. If `pVal1` is a tile, it returns the tile back.
+         *
+         * @env Client | Server
+         * @returns {Diob} Returns a tile of a given location. If `pVal1` and `pVal2` are numbers and `pVal3` is a string, it returns the tile at the coordinates `pVal1`, `pVal2` on the map `pVal3`. If `pVal1` is an object and not a tile, it returns the object's location. If `pVal1` is a tile, it returns the tile back.
+         */
 		getLoc(): Diob
 
         /**
-		 * returns the Tile next to the location of pL based on the direction of pDir
-		 * @env Client | Server
-		 * @param {Diob | Object} pL - reference to Diob or location object; ex {'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}
-		 * @param {string} pDir - string containing direction
-		 * @returns {Diob} returns the Tile next to the location of pL based on the direction of pDir
-		 */
+         * Returns the Tile next to the location of `pL` based on the direction of `pDir`.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pL - Reference to Diob or location object. Example: `{'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}`.
+         * @param {string} pDir - String containing direction.
+         * @returns {Diob} Returns the Tile next to the location of `pL` based on the direction of `pDir`.
+         */
 		getLocByDir(pL: Diob | Object, pDir: string): Diob
 
         /**
-		 * deletes the map and all diobs on it
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the map to delete
-		 */
+         * Deletes the map and all diobs on it.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the map to delete.
+         */
 		deleteMap(pName: string | number): void
 
         /**
-		 * returns the Tile by the position pX, pY on the map pMap
-		 * @env Client | Server
-		 * @param {number} pX - x position
-		 * @param {number} pY - y position
-		 * @param {string} pMap - map name
-		 * @returns {Diob} returns the Tile by the position pX, pY on the map pMap
-		 */
+         * Returns the Tile by the position `pX`, `pY` on the map `pMap`.
+         *
+         * @env Client | Server
+         * @param {number} pX - X position.
+         * @param {number} pY - Y position.
+         * @param {string} pMap - Map name.
+         * @returns {Diob} Returns the Tile by the position `pX`, `pY` on the map `pMap`.
+         */
 		getLocByPos(pX: number, pY: number, pMap: string): Diob
 
         /**
-		 * returns an array of all map names of maps currently loaded
-		 * @env Client | Server
-		 * @returns {string[]} returns an array of all map names of maps currently loaded
-		 */
+         * Returns an array of all map names of maps currently loaded.
+         *
+         * @env Client | Server
+         * @returns {string[]} Returns an array of all map names of maps currently loaded.
+         */
 		getMaps(): string[]
 
         /**
-		 * returns a string containing the direction from pA to pB from their origins
-		 * @env Client | Server
-		 * @param {Diob | Object} pA - first diob
-		 * @param {Diob | Object} pB - second diob
-		 * @param {boolean} pCenter - set to get dir from the centers
-		 * @param {boolean} pCard - if set, only cardinal directions will be returned (north, south, east, west)
-		 * @returns {string[]} returns a string containing the direction from pA to pB from their origins
-		 */
+         * Returns a string containing the direction from `pA` to `pB` from their origins.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pA - First diob.
+         * @param {Diob | Object} pB - Second diob.
+         * @param {boolean} pCenter - Set to get dir from the centers.
+         * @param {boolean} pCard - If set, only cardinal directions will be returned (north, south, east, west).
+         * @returns {string[]} Returns a string containing the direction from `pA` to `pB` from their origins.
+         */
 		getDir(pA: Diob | Object, pB: Diob | Object, pCenter: boolean, pCard: boolean): string[]
 
         /**
-		 * returns an array of diobs in the Region pR on all loaded maps or on the map pMap if specified with a type of pType (if specified) or a child of pType if pChild is set
-		 * @env Client | Server
-		 * @param {string} pR - either a type string containing the type of Region or a reference to a Region
-		 * @param {string} pType - type or parent type of diobs to get
-		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
-		 * @param {string} [pMap] - optional; name of the map to check the Region of; if not set all loaded maps with the specified Region will be used
-		 * @returns {unknown[]} returns an array of diobs in the Region pR on all loaded maps or on the map pMap if specified with a type of pType (if specified) or a child of pType if pChild is set
-		 */
-		getDiobsByRegion(pR: string, pType: string, pChild: boolean, pMap?: string): unknown[]
+         * Returns an array of diobs in the Region `pR` on all loaded maps or on the map `pMap` if specified with a type of `pType` (if specified) or a child of `pType` if `pChild` is set.
+         *
+         * @env Client | Server
+         * @param {string} pR - Either a type string containing the type of Region or a reference to a Region.
+         * @param {string} pType - Type or parent type of diobs to get.
+         * @param {boolean} pChild - True to include all child diobs. False to include only diobs with the exact type of `pType`.
+         * @param {string} [pMap] - (Optional) Name of the map to check the Region of. If not set all loaded maps with the specified Region will be used.
+         * @returns {Diob[]} Returns an array of diobs in the Region `pR` on all loaded maps or on the map `pMap` if specified with a type of `pType` (if specified) or a child of `pType` if `pChild` is set.
+         */
+		getDiobsByRegion(pR: string, pType: string, pChild: boolean, pMap?: string): Diob[]
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are able to see the diob.
+         */
 		getTileRangeViewers(pO: Diob | Object, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array of diobs on the map pMap that overlap the specified position box depending on the provided arguments; if pType is not set, all diobs in the position box will be returned; if pType is set but pChild is not, diobs in the position box with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs on the map will be returned
-		 * @env Client | Server
-		 * @param {string} pMap - name of the map to get diobs from
-		 * @param {number} pX - starting x position
-		 * @param {number} pY - starting y position
-		 * @param {string} [pType] - optional; ending x position
-		 * @param {boolean} [pChild] - optional; ending y position
-		 * @param {string} [pAdd] - optional; string containing type path to return
-		 * @returns {unknown[]} returns an array of diobs on the map pMap that overlap the specified position box depending on the provided arguments; if pType is not set, all diobs in the position box will be returned; if pType is set but pChild is not, diobs in the position box with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all mobs on the map will be returned
-		 */
-		getDiobsByPos(pMap: string, pX: number, pY: number, pType?: string, pChild?: boolean, pAdd?: string): unknown[]
+         * Returns an array of diobs on the map `pMap` that overlap the specified position box depending on the provided arguments. If `pType` is not set, all diobs in the position box will be returned. If `pType` is set but `pChild` is not, diobs in the position box with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs on the map will be returned.
+         *
+         * @env Client | Server
+         * @param {string} pMap - Name of the map to get diobs from.
+         * @param {number} pX - Starting x position.
+         * @param {number} pY - Starting y position.
+         * @param {string} [pType] - (Optional) Ending x position.
+         * @param {boolean} [pChild] - (Optional) Ending y position.
+         * @param {string} [pAdd] - (Optional) String containing type path to return.
+         * @returns {Diob[]} Returns an array of diobs on the map `pMap` that overlap the specified position box depending on the provided arguments. If `pType` is not set, all diobs in the position box will be returned. If `pType` is set but `pChild` is not, diobs in the position box with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all mobs on the map will be returned.
+         */
+		getDiobsByPos(pMap: string, pX: number, pY: number, pType?: string, pChild?: boolean, pAdd?: string): Diob[]
 
         /**
-		 * creates a new map which is a clone of a map file
-		 * @env Client | Server
-		 * @param {string} pMap - name of the map file to clone
-		 * @param {string | number} pName - name to give the new cloned map
-		 * @param {Function} [pFunc] - optional; function to call once the clone is finished
-		 */
+         * Creates a new map which is a clone of a map file.
+         *
+         * @env Client | Server
+         * @param {string} pMap - Name of the map file to clone.
+         * @param {string | number} pName - Name to give the new cloned map.
+         * @param {Function} [pFunc] - (Optional) Function to call once the clone is finished.
+         */
 		cloneMap(pMap: string, pName: string | number, pFunc?: Function): void
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob.
+         */
 		getRangeViewers(pO: Diob | Object, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob.
+         */
 		getRange(pO: Diob | Object, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that have the same type as pType or a parent type of pType if pChild is enabled
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {string} pType - type or parent type of diobs to get
-		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that have the same type as pType or a parent type of pType if pChild is enabled
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {string} pType - Type or parent type of diobs to get.
+         * @param {boolean} pChild - True to include all child diobs. False to include only diobs with the exact type of `pType`.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         */
 		getRangeByType(pO: Diob | Object, pType: string, pChild: boolean, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that have the same type as pType or a parent type of pType if pChild is enabled
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {string} pType - type or parent type of diobs to get
-		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that have the same type as pType or a parent type of pType if pChild is enabled
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {string} pType - Type or parent type of diobs to get.
+         * @param {boolean} pChild - True to include all child diobs. False to include only diobs with the exact type of `pType`.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         */
 		getTileRangeByType(pO: Diob | Object, pType: string, pChild: boolean, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {string} pType - type or parent type of diobs to get
-		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {string} pType - Type or parent type of diobs to get.
+         * @param {boolean} pChild - True to include all child diobs. False to include only diobs with the exact type of `pType`.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are able to see the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         */
 		getRangeViewersByType(pO: Diob | Object, pType: string, pChild: boolean, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array active clients that have player mobs on the map pMap
-		 * @env Client | Server
-		 * @param {string} pMap - name of the map to get clients from
-		 * @returns {Client[]} returns an array active clients that have player mobs on the map pMap
-		 */
+         * Returns an array active clients that have player mobs on the map `pMap`.
+         *
+         * @env Client | Server
+         * @param {string} pMap - Name of the map to get clients from.
+         * @returns {Client[]} Returns an array active clients that have player mobs on the map `pMap`.
+         */
 		getClients(pMap: string): Client[]
 
         /**
-		 * returns the region based on the type pType
-		 * @env Client | Server
-		 * @param {string} pType - type of the region to grab
-		 * @returns {Diob} returns the region based on the type pType
-		 */
+         * Returns the region based on the type `pType`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type of the region to grab.
+         * @returns {Diob} Returns the region based on the type `pType`.
+         */
 		getRegionByType(pType: string): Diob
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible by the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {string} pType - type or parent type of diobs to get
-		 * @param {boolean} pChild - true to include all child diobs; false to include only diobs with the exact type of pType
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible by the diob and that have the same type as pType or a parent type of pType if pChild is enabled
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible by the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {string} pType - Type or parent type of diobs to get.
+         * @param {boolean} pChild - True to include all child diobs. False to include only diobs with the exact type of `pType`.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob that are visible by the diob and that have the same type as `pType` or a parent type of `pType` if `pChild` is enabled.
+         */
 		getTileRangeViewByType(pO: Diob | Object, pType: string, pChild: boolean, pOmit: boolean): Diob[]
 
         /**
-		 * sets the Region at pLoc to pR and returns the Region
-		 * @env Client | Server
-		 * @param {Diob | Object} pLoc - either a Tile reference or an object containing location information; ex {'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}
-		 * @param {string} pR - either a type string containing the type of a new Region or a reference to a Region
-		 * @returns {Diob} returns the Region
-		 */
+         * Sets the Region at `pLoc` to `pR` and returns the Region.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pLoc - Either a Tile reference or an object containing location information. Example: `{'xCoord': 1, 'yCoord': 1, 'mapName': 'map'}`.
+         * @param {string} pR - Either a type string containing the type of a new Region or a reference to a Region.
+         * @returns {Diob} Returns the Region.
+         */
 		setRegion(pLoc: Diob | Object, pR: string): Diob
 
         /**
-		 * returns an array of diobs on the map and screen depending on the provided arguments; if pType is not set, all map diobs on the screen will be returned; if pType is set but pChild is not, map diobs on the screen with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all map mobs on the screen will be returned
-		 * @env Client
-		 * @param {string} [pType] - optional; string containing type path to return
-		 * @param {boolean} [pChild] - optional; boolean that determines if child types are included
-		 * @param {Diob[]} [pAdd] - optional; if set, tiles and regions on the screen will also be returned
-		 * @returns {Diob[]} returns an array of diobs on the map and screen depending on the provided arguments; if pType is not set, all map diobs on the screen will be returned; if pType is set but pChild is not, map diobs on the screen with the exact type of pType will be returned; if pType is set and pChild is set, all diobs with the type pType or a parent type of pType will be returned; for example, if pType is set to 'Mob' with pChild undefined, all diobs with the exact type of 'Mob' will be returned, but if pChild is set, then all map mobs on the screen will be returned
-		 */
+         * Returns an array of diobs on the map and screen depending on the provided arguments. If `pType` is not set, all map diobs on the screen will be returned. If `pType` is set but `pChild` is not, map diobs on the screen with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all map mobs on the screen will be returned.
+         *
+         * @env Client
+         * @param {string} [pType] - (Optional) String containing type path to return.
+         * @param {boolean} [pChild] - (Optional) Boolean that determines if child types are included.
+         * @param {Diob[]} [pAdd] - (Optional) If set, tiles and regions on the screen will also be returned.
+         * @returns {Diob[]} Returns an array of diobs on the map and screen depending on the provided arguments. If `pType` is not set, all map diobs on the screen will be returned. If `pType` is set but `pChild` is not, map diobs on the screen with the exact type of `pType` will be returned. If `pType` is set and `pChild` is set, all diobs with the type `pType` or a parent type of `pType` will be returned. For example, if `pType` is set to `Mob` with `pChild` `undefined`, all diobs with the exact type of `Mob` will be returned, but if `pChild` is set, then all map mobs on the screen will be returned.
+         */
 		getScreenDiobs(pType?: string, pChild?: boolean, pAdd?: Diob[]): Diob[]
 
         /**
-		 * returns the direction string if pD.dir was rotated by pAngle radians; set pD to {'dir': 'east'} to find the raw direction from a raw angle, defaults to east if nothing passed in
-		 * @env Client | Server
-		 * @param {Diob} [pD] - optional; reference to diob or direction object; ex {'dir': 'east'}
-		 * @param {number} [pAngle] - optional; angle in radians
-		 * @returns {string} returns the direction string if pD.dir was rotated by pAngle radians; set pD to {'dir': 'east'} to find the raw direction from a raw angle, defaults to east if nothing passed in
-		 */
+         * Returns the direction string if `pD`.dir was rotated by `pAngle` radians. Set `pD` to `{'dir': 'east'}` to find the raw direction from a raw angle, defaults to east if nothing passed in.
+         *
+         * @env Client | Server
+         * @param {Diob} [pD] - (Optional) Reference to diob or direction object. Example: `{'dir': 'east'}`.
+         * @param {number} [pAngle] - (Optional) Angle in radians.
+         * @returns {string} Returns the direction string if `pD`.dir was rotated by `pAngle` radians. Set `pD` to `{'dir': 'east'}` to find the raw direction from a raw angle, defaults to east if nothing passed in.
+         */
 		getDirByAngle(pD?: Diob, pAngle?: number): string
 
         /**
-		 * creates a new map with the name pName and a size of pX, pY
-		 * @env Client | Server
-		 * @param {string | number} pName - unique name of the map
-		 * @param {number} pX - amount of tiles on the x-axis
-		 * @param {number} pY - amount of tiles on the y-axis
-		 * @param {string} pTile - tile object type to use as the default tiles
-		 */
+         * Creates a new map with the name `pName` and a size of `pX`, `pY`.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Unique name of the map.
+         * @param {number} pX - Amount of tiles on the x-axis.
+         * @param {number} pY - Amount of tiles on the y-axis.
+         * @param {string} pTile - Tile object type to use as the default tiles.
+         */
 		createMap(pName: string | number, pX: number, pY: number, pTile: string): void
 
         /**
-		 * sends the data for the pD diob to all clients on the pMap map, if pVar is set it will send only those variables, if it is not set it will only send built-in engine variables
-		 * @env Server
-		 * @param {string} pMap - name of the map
-		 * @param {Diob} pD - reference to the diob to send
-		 * @param {unknown[]} [pVar] - optional; variable name or array of variable names
-		 */
-		sendDiob(pMap: string, pD: Diob, pVar?: unknown[]): void
+         * Sends the data for the `pD` diob to all clients on the `pMap` map, if `pVar` is set it will send only those variables, if it is not set it will only send built-in engine variables.
+         *
+         * @env Server
+         * @param {string} pMap - Name of the map.
+         * @param {Diob} pD - Reference to the diob to send.
+         * @param {string | string[]} [pVar] - (Optional) Variable name or array of variable names.
+         */
+		sendDiob(pMap: string, pD: Diob, pVar?: string | string[]): void
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y positional units around the specified diob that are visible to the diob.
+         */
 		getRangeView(pO: Diob | Object, pOmit: boolean): Diob[]
 
         /**
-		 * returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob
-		 * @env Client | Server
-		 * @param {Diob | Object} pO - diob or range object to get range from; range object example {'map': 'name', 'x': 1, 'y': 1}; using a range object will use the tile at the specified location for the reference diob
-		 * @param {boolean} pOmit - either x distance or x and y distance
-		 * @returns {Diob[]} returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob
-		 */
+         * Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob.
+         *
+         * @env Client | Server
+         * @param {Diob | Object} pO - Diob or range object to get range from. Range object example `{'map': 'name', 'x': 1, 'y': 1}`. Using a range object will use the tile at the specified location for the reference diob.
+         * @param {boolean} pOmit - Either x distance or x and y distance.
+         * @returns {Diob[]} Returns an array containing all the non-tile diobs on the map within x and y tiles around the specified diob.
+         */
 		getTileRange(pO: Diob | Object, pOmit: boolean): Diob[]
 
         /**
-		 * returns an object {'x': x, 'y': y, 'xPos': xPos, 'yPos': yPos} containing the number of x and y tiles on the map and the physical size of the map
-		 * @env Client | Server
-		 * @param {string} pMap - name of the map to get the size of
-		 * @returns {{'x': number, 'y': number, 'xPos': number, 'yPos': number}} returns an object {'x': x, 'y': y, 'xPos': xPos, 'yPos': yPos} containing the number of x and y tiles on the map and the physical size of the map
-		 */
+         * Returns an object `{'x': x, 'y': y, 'xPos': xPos, 'yPos': yPos}` containing the number of x and y tiles on the map and the physical size of the map.
+         *
+         * @env Client | Server
+         * @param {string} pMap - Name of the map to get the size of.
+         * @returns {{'x': number, 'y': number, 'xPos': number, 'yPos': number} } returns an object `{'x': x, 'y': y, 'xPos': xPos, 'yPos': yPos}` containing the number of x and y tiles on the map and the physical size of the map.
+         */
 		getMapSize(pMap: string): {'x': number, 'y': number, 'xPos': number, 'yPos': number}
-                
+
 	}
-            
-                
-	
-	/**The macro object.*/
+
+
+
+	/** The macro object. */
 	type Macro = {
-                    
+
 		/**
-		 * creates a new blank macro atlas named pName
+		 * Creates a new blank macro atlas named `pName`.
+		 *
 		 * @env Client | Server
-		 * @param {string | number} pName - name of the new macro atlas
+		 * @param {string | number} pName - Name of the new macro atlas.
 		 */
 		newMacroAtlas(pName: string | number): void
 
         /**
-		 * creates a new macro with the keyUp command pUp, and keyDown command pDown, and the name pName and adds it to the macro atlas pAtlas
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the macro to create
-		 * @param {string} pAtlas - name of the macro atlas to add the new macro to
-		 * @param {string} pKey - string of key that will execute this macro
-		 * @param {string} [pDown] - optional; string containing the command to execute when the key is pushed down; example 'test(1)' would execute the client command 'test' with one parameter that is equal to '1'
-		 * @param {string} [pUp] - optional; string containing the command to execute when the key is let go of; example 'test(1)' would execute the client command 'test' with one parameter that is equal to '1'
-		 */
+         * Creates a new macro with the keyUp command `pUp`, and keyDown command `pDown`, and the name `pName` and adds it to the macro atlas `pAtlas`.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the macro to create.
+         * @param {string} pAtlas - Name of the macro atlas to add the new macro to.
+         * @param {string} pKey - String of key that will execute this macro.
+         * @param {string} [pDown] - (Optional) String containing the command to execute when the key is pushed down. Example: `test(1)` would execute the client command `test` with one parameter that is equal to `1`.
+         * @param {string} [pUp] - (Optional) String containing the command to execute when the key is let go of. Example: `test(1)` would execute the client command `test` with one parameter that is equal to `1`.
+         */
 		newMacro(pName: string | number, pAtlas: string, pKey: string, pDown?: string, pUp?: string): void
 
         /**
-		 * returns an array containing the names of all the macros in the macro atlas pAtlas
-		 * @env Client | Server
-		 * @param {string} pAtlas - name of the macro atlas
-		 * @returns {string[]} returns an array containing the names of all the macros in the macro atlas pAtlas
-		 */
+         * Returns an array containing the names of all the macros in the macro atlas `pAtlas`.
+         *
+         * @env Client | Server
+         * @param {string} pAtlas - Name of the macro atlas.
+         * @returns {string[]} Returns an array containing the names of all the macros in the macro atlas `pAtlas`.
+         */
 		getMacroNames(pAtlas: string): string[]
 
         /**
-		 * returns an array containing the names of all the currently loaded macro atlases
-		 * @env Client | Server
-		 * @returns {string[]} returns an array containing the names of all the currently loaded macro atlases
-		 */
+         * Returns an array containing the names of all the currently loaded macro atlases.
+         *
+         * @env Client | Server
+         * @returns {string[]} Returns an array containing the names of all the currently loaded macro atlases.
+         */
 		getMacroAtlasNames(): string[]
 
         /**
-		 * removes the macro pName from the macro atlas pAtlas
-		 * @env Client | Server
-		 * @param {string | number} pName - name of the macro to remove
-		 * @param {string} pAtlas - name of the macro atlas to remove the macro from
-		 */
+         * Removes the macro `pName` from the macro atlas `pAtlas`.
+         *
+         * @env Client | Server
+         * @param {string | number} pName - Name of the macro to remove.
+         * @param {string} pAtlas - Name of the macro atlas to remove the macro from.
+         */
 		removeMacro(pName: string | number, pAtlas: string): void
-                
+
 	}
-            
-                
-	
-	/**The type object.*/
+
+
+
+	/** The type object. */
 	type Type = {
-                    
+
 		/**
-		 * returns an object containing all the default variables belonging to the type pType
+		 * Returns an object containing all the default variables belonging to the type `pType`.
+		 *
 		 * @env Client | Server
-		 * @param {string} pType - type to get variables of
-		 * @param {unknown} [pAll] - optional; if set every variable this type has will be returned, if false only variables belonging directly to this type will be returned
-		 * @returns {unknown[]} returns an object containing all the default variables belonging to the type pType
+		 * @param {string} pType - Type to get variables of.
+		 * @param {boolean} [pAll] - (Optional) If set every variable this type has will be returned, if `false` only variables belonging directly to this type will be returned.
+		 * @returns {Record<string, unknown>} Returns an object containing all the default variables belonging to the type `pType`.
 		 */
-		getVariables(pType: string, pAll?: unknown): unknown[]
+		getVariables(pType: string, pAll?: boolean): Record<string, unknown>
 
         /**
-		 * returns the default value of the pVar variable belonging to the type pType
-		 * @env Client | Server
-		 * @param {string} pType - type to get variable of
-		 * @param {unknown} pVar - name of the variable to get
-		 * @param {unknown} [pOwn] - optional; if set the returned value will be undefined if the variable belongs to an inherited object
-		 * @returns {unknown} returns the default value of the pVar variable belonging to the type pType
-		 */
-		getVariable(pType: string, pVar: unknown, pOwn?: unknown): unknown
+         * Returns the default value of the `pVar` variable belonging to the type `pType`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to get variable of.
+         * @param {string} pVar - Name of the variable to get.
+         * @param {boolean} [pOwn] - (Optional) If set the returned value will be `undefined` if the variable belongs to an inherited object.
+         * @returns {unknown} Returns the default value of the `pVar` variable belonging to the type `pType`.
+         */
+		getVariable(pType: string, pVar: string, pOwn?: boolean): unknown
 
         /**
-		 * sets the type pType's default variables specified within the pVars object; example {'a': 1, 'b': 2} would set this type's 'a' and 'b' variables respectively
-		 * @env Client | Server
-		 * @param {string} pType - type to set variables for
-		 * @param {object} pVars - object containing new variables and their values
-		 */
+         * Sets the type `pType`'s default variables specified within the `pVars` object. Example: `{'a': 1, 'b': 2}` would set this type's `a` and `b` variables respectively.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to set variables for.
+         * @param {object} pVars - Object containing new variables and their values.
+         */
 		setVariables(pType: string, pVars: object): void
 
         /**
-		 * makes the type pType inherit from the type pInherit; this change only works for newly created objects, objects already in existence will not change
-		 * @env Client | Server
-		 * @param {string} pType - type to add inheritance to
-		 * @param {unknown} pInherit - type to inherit from
-		 */
-		addInheritance(pType: string, pInherit: unknown): void
+         * Makes the type `pType` inherit from the type `pInherit`. This change only works for newly created objects, objects already in existence will not change.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to add inheritance to.
+         * @param {string} pInherit - Type to inherit from.
+         */
+		addInheritance(pType: string, pInherit: string): void
 
         /**
-		 * creates a new type called pType
-		 * @env Client | Server
-		 * @param {string} pType - type to create
-		 */
+         * Creates a new type called `pType`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to create.
+         */
 		newType(pType: string): void
 
         /**
-		 * returns the default value of the pName function belonging to the type pType
-		 * @env Client | Server
-		 * @param {string} pType - type to get function of
-		 * @param {string | number} pName - name of the function to get
-		 * @returns {Function} returns the default value of the pName function belonging to the type pType
-		 */
+         * Returns the default value of the `pName` function belonging to the type `pType`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to get function of.
+         * @param {string | number} pName - Name of the function to get.
+         * @returns {Function} Returns the default value of the `pName` function belonging to the type `pType`.
+         */
 		getFunction(pType: string, pName: string | number): Function
 
         /**
-		 * returns an array of the type pType custom inheritances
-		 * @env Client | Server
-		 * @param {string} pType - type to get inheritances of
-		 * @returns {string[]} returns an array of the type pType custom inheritances
-		 */
+         * Returns an array of the type `pType` custom inheritances.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to get inheritances of.
+         * @returns {string[]} Returns an array of the type `pType` custom inheritances.
+         */
 		getInheritances(pType: string): string[]
 
         /**
-		 * sets the pVal value of the pVar static variable belonging to the type pType; static variables are variables that belong to all Objects of this type collectively and are different than normal variables, usually static variables can only be set once, but VyScript static variables may be changed if that is what the developer wants; these variables are not inherited by child types
-		 * @env Client | Server
-		 * @param {string} pType - type to set static variable of
-		 * @param {unknown} pVar - name of the static variable to set
-		 * @param {boolean} pVal - value to give to the static variable
-		 */
-		setStaticVariable(pType: string, pVar: unknown, pVal: boolean): void
+         * Sets the `pVal` value of the `pVar` static variable belonging to the type `pType`. Static variables are variables that belong to all Objects of this type collectively and are different than normal variables, usually static variables can only be set once, but VyScript static variables may be changed if that is what the developer wants. These variables are not inherited by child types.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to set static variable of.
+         * @param {string} pVar - Name of the static variable to set.
+         * @param {boolean} pVal - Value to give to the static variable.
+         */
+		setStaticVariable(pType: string, pVar: string, pVal: boolean): void
 
         /**
-		 * sets the type pType's pName function to pFunc; this change only works for newly created objects, objects already in existence will not change
-		 * @env Client | Server
-		 * @param {string} pType - type to set function for
-		 * @param {string | number} pName - string containing the name of the function
-		 * @param {Function} pFunc - function
-		 */
+         * Sets the type `pType`'s `pName` function to `pFunc`. This change only works for newly created objects, objects already in existence will not change.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to set function for.
+         * @param {string | number} pName - String containing the name of the function.
+         * @param {Function} pFunc - Function.
+         */
 		setFunction(pType: string, pName: string | number, pFunc: Function): void
 
         /**
-		 * returns the static variable value belonging to the type pType
-		 * @env Client | Server
-		 * @param {string} pType - type to get static variable of
-		 * @param {unknown} pVar - name of the static variable to get
-		 * @returns {unknown} returns the static variable value belonging to the type pType
-		 */
-		getStaticVariable(pType: string, pVar: unknown): unknown
+         * Returns the static variable value belonging to the type `pType`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to get static variable of.
+         * @param {string} pVar - Name of the static variable to get.
+         * @returns {unknown} Returns the static variable value belonging to the type `pType`.
+         */
+		getStaticVariable(pType: string, pVar: string): unknown
 
         /**
-		 * returns an array of all Object types in the game; if pParent is set, only child types of pParent are returned
-		 * @env Client | Server
-		 * @param {unknown} [pParent] - optional; parent type to start with
-		 * @param {boolean} [pOmit] - optional; if set will not return the included path, only the children
-		 * @returns {string[]} returns an array of all Object types in the game; if pParent is set, only child types of pParent are returned
-		 */
-		getTypes(pParent?: unknown, pOmit?: boolean): string[]
+         * Returns an array of all Object types in the game. If `pParent` is set, only child types of `pParent` are returned.
+         *
+         * @env Client | Server
+         * @param {string} [pParent] - (Optional) Parent type to start with.
+         * @param {boolean} [pOmit] - (Optional) If set will not return the included path, only the children.
+         * @returns {string[]} Returns an array of all Object types in the game. If `pParent` is set, only child types of `pParent` are returned.
+         */
+		getTypes(pParent?: string, pOmit?: boolean): string[]
 
         /**
-		 * removes the inheritance pInherit from the type pType; this change only works for newly created objects, objects already in existence will not change
-		 * @env Client | Server
-		 * @param {string} pType - type to remove inheritance from
-		 * @param {unknown} pInherit - type of inheritance
-		 */
-		removeInheritance(pType: string, pInherit: unknown): void
+         * Removes the inheritance `pInherit` from the type `pType`. This change only works for newly created objects, objects already in existence will not change.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to remove inheritance from.
+         * @param {string} pInherit - Type of inheritance.
+         */
+		removeInheritance(pType: string, pInherit: string): void
 
         /**
-		 * calls the function pFunc attached to the type pType as if the function belonged to the object pDiob using the arguments pArgs
-		 * @env Client | Server
-		 * @param {string} pType - type to call function of
-		 * @param {Function} pFunc - name of function to call
-		 * @param {Diob} pDiob - array of arguments to pass in
-		 * @param {unknown[]} pArgs - calls the function pFunc attached to the type pType as if the function belonged to the object pDiob using the arguments pArgs
-		 */
+         * Calls the function `pFunc` attached to the type `pType` as if the function belonged to the object `pDiob` using the arguments `pArgs`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to call function of.
+         * @param {Function} pFunc - Name of function to call.
+         * @param {Diob} pDiob - Array of arguments to pass in.
+         * @param {unknown[]} pArgs - Calls the function `pFunc` attached to the type `pType` as if the function belonged to the object `pDiob` using the arguments `pArgs`.
+         */
 		callFunction(pType: string, pFunc: Function, pDiob: Diob, pArgs: unknown[]): void
 
         /**
-		 * checks to see if pType is a valid type that exists in the game; if pType2 is defined, checks if pType is pType2 or a child of pType2
-		 * @env Client | Server
-		 * @param {string} pType - type to check
-		 */
+         * Checks to see if `pType` is a valid type that exists in the game. If `pType2` is defined, checks if `pType` is `pType2` or a child of `pType2`.
+         *
+         * @env Client | Server
+         * @param {string} pType - Type to check.
+         */
 		isType(pType: string): boolean
-                
+
 	}
-            
-            
-	/**The vylo type*/
+
+
+	/** The vylo type. */
 	type VyloType = {
-                
-		/**The world object.*/
+
+		/** The world object. */
 		World: World
-		/**The client object.*/
+		/** The client object. */
 		Client: Client
-		/**The resource object.*/
+		/** The resource object. */
 		Resource: Resource
-		/**The util object.*/
+		/** The util object. */
 		Util: Util
-		/**The event object.*/
+		/** The event object. */
 		Event: Event
-		/**The file object.*/
+		/** The file object. */
 		File: File
-		/**The icon object.*/
+		/** The icon object. */
 		Icon: Icon
-		/**The map object.*/
+		/** The map object. */
 		Map: Map
-		/**The type object.*/
+		/** The type object. */
 		Type: Type
 
         /**
          * The global object referencing all global variables in VyScript.
+         *
          * @env Client | Server
          */
         global: { [key: string]: unknown };
 
         /**
          * Loads the engine. When using loadResource before this is called, the resources will be treated as preloaded resources.
+         *
          * @env Client | Server
          * @returns {Promise<void>}
          */
         load: () => Promise<void>;
 
         /**
-         * Deletes the Diob referenced by pDiob.
+         * Deletes the Diob referenced by `pDiob`.
+         *
          * @env Client | Server
          * @param {Diob} pDiob - A reference to the Diob to delete.
-         * @param {...unknown[]} [pArgN - Optional parameters to pass as arguments into the Diob's onDel() event function.
+         * @param {...unknown[]} [pArgN - (Optional) Parameters to pass as arguments into the Diob's onDel() event function.
          * @template T - The type of additional arguments.
          * @returns {void}
          */
         delDiob: <T = unknown>(pDiob: Diob, ...pArgN: T[]) => void;
 
         /**
-         * Creates a new Diob with the specified Object type of pType and returns it.
+         * Creates a new Diob with the specified Object type of `pType` and returns it.
+         *
          * @env Client | Server
          * @param pType - A string containing the type path of the Object to be created as a Diob.
-         * @param {...unknown[]} [pArgN] - optional; Parameters to pass as arguments into the Diob's onNew() event function.
+         * @param {...unknown[]} [pArgN] - (Optional) Parameters to pass as arguments into the Diob's onNew() event function.
          * @template T - The type of additional arguments.
          * @returns {Diob} - The newly created Diob.
          */
         newDiob: <T = unknown>(pType: string, ...pArgN: T[]) => Diob;
 
         /**
-         * Creates a new type called pType.
+         * Creates a new type called `pType`.
+         *
          * @env Client | Server
          * @param {string} pType - Type to alter /create.
-         * @param {object} [pVars] - optional; object containing variables to give the type.
-         * @param {string[]} [pInherits] - optional; array of type strings to inherit.
+         * @param {object} [pVars] - (Optional) Object containing variables to give the type.
+         * @param {string[]} [pInherits] - (Optional) Array of type strings to inherit.
          * @returns {void}
          */
-        setType: (pType: string, pVars: object, pInherits?: string[]) => void
-        
-	}
-        
+        setType: {
+            <T extends new (...pArgs: any[]) => any>(pType: string, pConstructor: T, pInherits?: string[]): InstanceType<T>;
+            <T extends Record<string, any>, Base = Diob & Mob>(pType: string, pVars: T & ThisType<T & Base>, pInherits?: string[]): void;
+        }
 
-export { VyloType, World, Diob, Movable, Particle, Tile, Region, Mob, Overlay, Sound, Interface, Client, Resource, Util, Icon, Macro, Type };
+	}
+}
+
+
+export { VyloType, World, Diob, Movable, Particle, Tile, Region, Mob, Overlay, Sound, Interface, Client, Resource, Util, Icon, Macro, Type, MouseButton, MouseOpacity, Direction, Directions, MoveSettingsConfig, AppearMask, AppearMaskConfig };
