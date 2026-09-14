@@ -14,6 +14,9 @@
     "./camera": {
       "import": "./lib/plugins/camera/index.js",
       "types": "./lib/plugins/camera/index.d.ts"
+    },
+    "./types/vylo": {
+      "types": "./lib/types/vylo.d.ts"
     }
   },
   "description": "A single-player/multiplayer framework for the Vylocity Game Engine.",
