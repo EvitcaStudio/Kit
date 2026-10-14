@@ -3,6 +3,7 @@ import { join, dirname, extname, resolve } from 'node:path';
 import chalk from 'chalk';
 import Bun from 'bun';
 import { theme } from './theme';
+import { copyAtomic } from './build-io';
 
 export type ProjectArchitecture = 'single' | 'multi' | 'none';
 
@@ -57,7 +58,7 @@ async function copyDirectoryRecursive(pSourceDir: string, pDestDir: string): Pro
         if (entry.isDirectory()) {
             await copyDirectoryRecursive(srcPath, destPath);
         } else {
-            await fs.copyFile(srcPath, destPath);
+            copyAtomic(srcPath, destPath);
         }
     }
 }
@@ -86,14 +87,14 @@ async function copyStaticWebFiles(pSourceDir: string, pDestDir: string, pBaseDir
                 const relativePath = fullPath.slice(pBaseDir.length).replace(/^[/\\]+/, '');
                 const targetPath = join(pDestDir, relativePath);
                 await fs.mkdir(dirname(targetPath), { recursive: true });
-                await fs.copyFile(fullPath, targetPath);
+                copyAtomic(fullPath, targetPath);
 
                 // If the asset is located in a nested directory, also provide a copy at destination root
                 // to support projects where root HTML references sub-folder styles directly
                 if (['.css', '.ico'].includes(ext)) {
                     const rootTargetPath = join(pDestDir, entry.name);
                     if (targetPath !== rootTargetPath && !existsSync(rootTargetPath)) {
-                        await fs.copyFile(fullPath, rootTargetPath);
+                        copyAtomic(fullPath, rootTargetPath);
                     }
                 }
             }
@@ -190,7 +191,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
 
             const rootFavicon = join(pProjectRoot, 'favicon.ico');
             if (existsSync(rootFavicon)) {
-                await fs.copyFile(rootFavicon, join(pOutDir, 'favicon.ico'));
+                copyAtomic(rootFavicon, join(pOutDir, 'favicon.ico'));
             }
 
             const vendorDir = join(srcDir, 'vendor');
@@ -305,7 +306,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
 
                 const settingsFile = join(srcDir, 'server', 'settings.json');
                 if (existsSync(settingsFile)) {
-                    await fs.copyFile(settingsFile, join(pOutDir, 'settings.json'));
+                    copyAtomic(settingsFile, join(pOutDir, 'settings.json'));
                 }
 
                 serverElapsed = Date.now() - serverStart;
@@ -313,7 +314,7 @@ export async function bundleApp(pProjectRoot: string, pOutDir: string, pOptions:
 
             const rootFavicon = join(pProjectRoot, 'favicon.ico');
             if (existsSync(rootFavicon)) {
-                await fs.copyFile(rootFavicon, join(pOutDir, 'favicon.ico'));
+                copyAtomic(rootFavicon, join(pOutDir, 'favicon.ico'));
             }
 
             if (isVerbose) {

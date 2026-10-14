@@ -11,7 +11,8 @@ const outDir = join(tempDir, 'dist');
 
 async function createFile(pName: string, pExtension: string): Promise<string> {
     const filePath = join(inDir, `${pName}.${pExtension}`);
-    await writeFile(filePath, '');
+    await writeFile(filePath, pExtension === 'vyint' ? JSON.stringify({ width: 640, height: 360, elements: [] }) :
+        pExtension === 'vyi' ? JSON.stringify({ v: 1, i: [] }) : '');
     return filePath;
 }
 

@@ -1,6 +1,7 @@
 import type { ProcessOptions } from './types';
-import { promises as fs, existsSync } from 'fs';
-import { join, extname, basename, resolve, relative } from 'path';
+import { promises as fs, existsSync, readFileSync } from 'fs';
+import { join, extname, basename, resolve, relative, dirname, isAbsolute } from 'path';
+import { copyAtomic, writeAtomic, withBuildLock, publishBuild } from './build-io';
 import chalk from 'chalk';
 import { watch as chokidarWatch } from 'chokidar';
 import { v4 as uuidv4 } from 'uuid';
@@ -21,12 +22,15 @@ const VALID_EXTENSIONS = ['vyint', 'vyi', 'vym', 'vymac', 'mp3', 'aac', 'wav', '
 
 type ResourceJSON = Record<typeof RESOURCE_TYPES[number], { resourceIdentifier: string; fileName: string }[]>;
 
+/** Each invocation owns its state; concurrent API calls cannot mix manifests. */
+function createResourceBuilder() {
 // State variables
 let resourceJSON: ResourceJSON = initializeResourceJSON();
 let isVerbose: boolean | undefined = false;
 let ignoringSound: boolean | undefined = false;
 let resourceInDirectory = '';
 let resourceOutDirectory = '';
+let publishedOutDirectory = '';
 let customManifestPath: string | undefined = undefined;
 const resourcesToProcess: { filePath: string; type: typeof RESOURCE_TYPES[number] }[] = [];
 const subdirectoriesToMirror: string[] = [];
@@ -57,6 +61,9 @@ function prepareFileForProcessing(pFilePath: string): void {
         return;
     }
 
+    if (resourceJSON[type].some(resource => resource.fileName === fileName)) {
+        throw new Error(`Duplicate resource basename: ${fileName}; resource names must be unique.`);
+    }
     resourcesToProcess.push({ filePath: pFilePath, type });
     resourceJSON[type].push({ resourceIdentifier, fileName });
 }
@@ -90,7 +97,7 @@ async function processDirectory(pDirectoryPath: string): Promise<void> {
         for (const item of contents) {
             const itemPath = join(pDirectoryPath, item);
             // Skip the output directory if it is inside the input directory
-            if (resolve(itemPath) === resourceOutDirectory) {
+            if (resolve(itemPath) === resourceOutDirectory || resolve(itemPath) === publishedOutDirectory) {
                 continue;
             }
 
@@ -108,6 +115,7 @@ async function processDirectory(pDirectoryPath: string): Promise<void> {
         }
     } catch (pError) {
         logError(`[Error] Processing directory: ${pError}`);
+        throw pError;
     }
 }
 
@@ -151,8 +159,7 @@ async function mirrorDirectory(pSourceDir: string, pDestDir: string): Promise<vo
             const ext = extname(entry.name).slice(1);
             // Copy all assets except internal Vylocity engine binary formats
             if (!isEngineExtension(ext)) {
-                const data = await fs.readFile(srcPath);
-                await fs.writeFile(destPath, data);
+                copyAtomic(srcPath, destPath);
             }
         }
     }
@@ -199,6 +206,7 @@ async function processAllFiles(): Promise<void> {
     } catch (pError) {
         const errorMessage = pError instanceof Error ? pError.message : String(pError);
         logError(`[Error] Processing files in batch: ${errorMessage}`);
+        throw pError;
     }
 }
 
@@ -212,7 +220,7 @@ async function buildBoundsJSON(): Promise<Record<string, unknown>> {
         if (type !== 'icon') continue;
 
         try {
-            const fileBuffer = await fs.readFile(filePath);
+            const fileBuffer = readFileSync(filePath);
             const vyi = new VYI().parse(fileBuffer);
             const atlasName = basename(filePath, '.vyi');
             const atlasEntry: Record<string, unknown> = {};
@@ -252,6 +260,7 @@ async function buildBoundsJSON(): Promise<Record<string, unknown>> {
             }
         } catch (pError) {
             logError(`[Error] Failed to parse bounds from ${filePath}: ${pError}`);
+            throw pError;
         }
     }
 
@@ -264,9 +273,10 @@ async function buildBoundsJSON(): Promise<Record<string, unknown>> {
 async function saveBoundsJSON(pBoundsData: Record<string, unknown>): Promise<void> {
     const filePath = 'bounds.json';
     try {
-        await fs.writeFile(filePath, JSON.stringify(pBoundsData));
+        writeAtomic(filePath, JSON.stringify(pBoundsData));
     } catch (pError) {
         logError(`[Error] Saving bounds JSON: ${pError}`);
+        throw pError;
     }
 }
 
@@ -280,7 +290,7 @@ async function buildIconPointsJSON(): Promise<Record<string, unknown>> {
         if (type !== 'icon') continue;
 
         try {
-            const fileBuffer = await fs.readFile(filePath);
+            const fileBuffer = readFileSync(filePath);
             const vyi = new VYI().parse(fileBuffer);
             const atlasName = basename(filePath, '.vyi');
             const atlasEntry: Record<string, unknown> = {};
@@ -338,6 +348,7 @@ async function buildIconPointsJSON(): Promise<Record<string, unknown>> {
             }
         } catch (pError) {
             logError(`[Error] Failed to parse icon points from ${filePath}: ${pError}`);
+            throw pError;
         }
     }
 
@@ -350,9 +361,10 @@ async function buildIconPointsJSON(): Promise<Record<string, unknown>> {
 async function saveIconPointsJSON(pPointsData: Record<string, unknown>): Promise<void> {
     const filePath = 'icon-points.json';
     try {
-        await fs.writeFile(filePath, JSON.stringify(pPointsData));
+        writeAtomic(filePath, JSON.stringify(pPointsData));
     } catch (pError) {
         logError(`[Error] Saving icon points JSON: ${pError}`);
+        throw pError;
     }
 }
 
@@ -366,7 +378,7 @@ async function buildSizesJSON(): Promise<Record<string, unknown>> {
         if (type !== 'icon') continue;
 
         try {
-            const fileBuffer = await fs.readFile(filePath);
+            const fileBuffer = readFileSync(filePath);
             const vyi = new VYI().parse(fileBuffer);
             const atlasName = basename(filePath, '.vyi');
             const atlasEntry: Record<string, { width: number; height: number }> = {};
@@ -383,6 +395,7 @@ async function buildSizesJSON(): Promise<Record<string, unknown>> {
             }
         } catch (pError) {
             logError(`[Error] Failed to parse sizes from ${filePath}: ${pError}`);
+            throw pError;
         }
     }
 
@@ -395,9 +408,10 @@ async function buildSizesJSON(): Promise<Record<string, unknown>> {
 async function saveSizesJSON(pSizesData: Record<string, unknown>): Promise<void> {
     const filePath = 'sizes.json';
     try {
-        await fs.writeFile(filePath, JSON.stringify(pSizesData));
+        writeAtomic(filePath, JSON.stringify(pSizesData));
     } catch (pError) {
         logError(`[Error] Saving sizes JSON: ${pError}`);
+        throw pError;
     }
 }
 
@@ -423,16 +437,7 @@ async function clearResourceTypeDirectories(pBaseDirectory: string): Promise<voi
  * Copies a file to the specified directory.
  */
 async function copyFile(pSource: string, pDestinationDir: string, pNewName: string): Promise<void> {
-    try {
-        await fs.mkdir(pDestinationDir, { recursive: true });
-        // Use readFile + writeFile instead of fs.copyFile to avoid macOS APFS
-        // clone operations, which emit phantom FSEvents on the source file and
-        // cause external editors (e.g. Viewer) to falsely detect modifications.
-        const data = await fs.readFile(pSource);
-        await fs.writeFile(join(pDestinationDir, pNewName), data);
-    } catch (pError) {
-        logError(`[Error] Copying file ${pSource}: ${pError}`);
-    }
+    copyAtomic(pSource, join(pDestinationDir, pNewName));
 }
 
 /**
@@ -440,12 +445,16 @@ async function copyFile(pSource: string, pDestinationDir: string, pNewName: stri
  */
 async function saveResourceJSON(): Promise<void> {
     const jsonContent = JSON.stringify(resourceJSON, null, 4);
-    const targetPath = customManifestPath || 'resource.json';
+    const requestedPath = resolve(customManifestPath || 'resource.json');
+    const insideOutput = relative(publishedOutDirectory, requestedPath);
+    const targetPath = !insideOutput.startsWith('..') && !isAbsolute(insideOutput)
+        ? join(resourceOutDirectory, insideOutput) : requestedPath;
 
     try {
-        await fs.writeFile(targetPath, jsonContent, 'utf8');
+        writeAtomic(targetPath, jsonContent);
     } catch (pError) {
         logError(`[Error] Saving resource JSON to ${targetPath}: ${pError}`);
+        throw pError;
     }
 }
 
@@ -462,7 +471,7 @@ let appBundleOptions: {
 /**
  * Executes a single build pass over the input assets.
  */
-async function runBuild(): Promise<void> {
+async function runBuildPass(): Promise<void> {
     resourceJSON = initializeResourceJSON();
     resourcesToProcess.length = 0;
     subdirectoriesToMirror.length = 0;
@@ -483,21 +492,49 @@ async function runBuild(): Promise<void> {
 
     // If app bundling is requested or enabled by default, compile app and copy web assets
     if (shouldBundleApp && projectRootDirectory) {
-        await bundleApp(projectRootDirectory, resourceOutDirectory, {
+        const result = await bundleApp(projectRootDirectory, resourceOutDirectory, {
             ...appBundleOptions,
             verbose: Boolean(isVerbose)
         });
+        if (!result.success) throw new Error('Application build failed; previous output was kept.');
     }
 
-    logVerbose(`[Kit CLI] Resources built successfully.`);
+}
+
+/** Build privately, keeping live output unchanged until every operation succeeds. */
+async function runBuild(): Promise<void> {
+    await withBuildLock(projectRootDirectory, async () => {
+        const output = publishedOutDirectory;
+        await fs.mkdir(dirname(output), { recursive: true });
+        const metadata = ['bounds.json', 'icon-points.json', 'sizes.json', customManifestPath || 'resource.json']
+            .map(name => resolve(projectRootDirectory, name));
+        const snapshots = metadata.map(path => {
+            try { return { path, data: readFileSync(path) }; }
+            catch (error: any) { if (error.code === 'ENOENT') return { path, data: null }; throw error; }
+        });
+        const staging = await fs.mkdtemp(join(dirname(output), `.${basename(output)}.kit-stage-`));
+        resourceOutDirectory = staging;
+        try {
+            await runBuildPass();
+            await publishBuild(staging, output);
+            logVerbose(`[Kit CLI] Resources built successfully.`);
+        } catch (error) {
+            for (const snapshot of snapshots) {
+                if (snapshot.data) writeAtomic(snapshot.path, snapshot.data);
+                else await fs.rm(snapshot.path, { force: true });
+            }
+            throw error;
+        } finally {
+            resourceOutDirectory = output;
+            await fs.rm(staging, { recursive: true, force: true });
+        }
+    });
 }
 
 /**
  * Watches the input directory for changes and triggers incremental rebuilds.
  */
 async function runWatch(): Promise<void> {
-    await runBuild();
-
     const pathsToWatch: string[] = [];
     if (existsSync(resourceInDirectory)) {
         pathsToWatch.push(resourceInDirectory);
@@ -511,7 +548,6 @@ async function runWatch(): Promise<void> {
     const displayPaths = pathsToWatch
         .map(p => theme.highlight(relative(projectRootDirectory, p) || p))
         .join(', ');
-    console.log(`\n  ${theme.brandBold('Watching for changes in:')} ${displayPaths}`);
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let isRebuilding = false;
@@ -528,6 +564,8 @@ async function runWatch(): Promise<void> {
             try {
                 console.log(`\n  ${theme.accent('›')} ${theme.title('File changed:')} ${theme.highlight(pFilename)} ${theme.secondary('(rebuilding...)')}`);
                 await runBuild();
+            } catch (error) {
+                logError(`[Error] Build failed; previous output was kept: ${error}`);
             } finally {
                 isRebuilding = false;
                 if (queuedChange) {
@@ -548,6 +586,8 @@ async function runWatch(): Promise<void> {
         if (normalizedOutDir && (normalized === normalizedOutDir || normalized.startsWith(`${normalizedOutDir}/`))) {
             return true;
         }
+
+        if (/(^|[/\\])\.[^/\\]+\.kit-stage-|\.kit-backup-|\.kit-build\.lock/.test(normalized)) return true;
 
         // Ignore VCS and dependency folders
         if (/(^|[/\\])(\.git|node_modules|\.DS_Store|Thumbs\.db)($|[/\\])/.test(normalized)) {
@@ -650,12 +690,28 @@ async function runWatch(): Promise<void> {
         await watcher.close();
         process.exit(0);
     });
+
+    // Register the watcher before the initial build so edits made during that
+    // build are queued instead of disappearing in a startup gap.
+    await new Promise<void>(resolve => watcher.once('ready', resolve));
+    isRebuilding = true;
+    try { await runBuild(); }
+    catch (error) { logError(`[Error] Build failed; watching for a correction: ${error}`); }
+    finally {
+        isRebuilding = false;
+        if (queuedChange) {
+            const next = queuedChange;
+            queuedChange = null;
+            triggerRebuild(next);
+        }
+    }
+    console.log(`\n  ${theme.brandBold('Watching for changes in:')} ${displayPaths}`);
 }
 
 /**
  * Main entry point for building resources.
  */
-export async function processResources({ inDirectory, outDirectory, manifestPath, watch, verbose, ignoreSound, app, minify, obfuscate, sourcemap, prod }: ProcessOptions): Promise<void> {
+async function processResources({ inDirectory, outDirectory, manifestPath, watch, verbose, ignoreSound, app, minify, obfuscate, sourcemap, prod }: ProcessOptions): Promise<void> {
     projectRootDirectory = process.cwd();
 
     // Smart defaults: ./src/resources -> ./dist
@@ -664,6 +720,7 @@ export async function processResources({ inDirectory, outDirectory, manifestPath
 
     resourceInDirectory = resolvedIn ? resolve(resolvedIn) : '';
     resourceOutDirectory = resolvedOut ? resolve(resolvedOut) : '';
+    publishedOutDirectory = resourceOutDirectory;
     customManifestPath = manifestPath;
     isVerbose = verbose;
     ignoringSound = ignoreSound;
@@ -684,8 +741,7 @@ export async function processResources({ inDirectory, outDirectory, manifestPath
 
     // Validate inputs
     if (!resourceInDirectory || !resourceOutDirectory) {
-        logError('[Error] Input and output directories must be specified');
-        return;
+        throw new Error('Input and output directories must be specified');
     }
 
     if (watch) {
@@ -707,3 +763,10 @@ function logAlert(pMessage: string): void {
     log(alert(pMessage));
 }
 
+
+return processResources;
+}
+
+export async function processResources(options: ProcessOptions): Promise<void> {
+    return createResourceBuilder()(options);
+}

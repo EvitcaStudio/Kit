@@ -153,7 +153,7 @@ const buildCommand = program
   .option('--minify', 'Minify bundled JavaScript syntax, whitespace, and identifiers', false)
   .option('--obfuscate', 'Mangle and obfuscate variable and property identifiers', false)
   .option('--sourcemap <mode>', 'Sourcemap generation mode (none, linked, inline, external)')
-  .action((pHelp, pCmdOptions) => {
+  .action(async (pHelp, pCmdOptions) => {
       if (pHelp === 'help') {
           console.log(buildCommand.helpInformation());
           return;
@@ -175,7 +175,7 @@ const buildCommand = program
           verbose: verbose || false,
       };
 
-      KitCLI.processResources(processOptions);
+      await KitCLI.processResources(processOptions);
   });
 
 // Apply custom help to build
@@ -267,5 +267,8 @@ if (!process.argv.slice(2).length) {
     program.help();
 }
 
-program.parse(process.argv);
+program.parseAsync(process.argv).catch(error => {
+    console.error(theme.error(`[Kit CLI] ${error instanceof Error ? error.message : error}`));
+    process.exitCode = 1;
+});
 

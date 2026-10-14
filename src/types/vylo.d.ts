@@ -127,6 +127,244 @@ declare global {
 	type AppearMask = boolean | number | AppearMaskConfig | null;
 
 	/**
+	 * Edge lock anchor positions for locking elements or map views to a screen edge.
+	 */
+	type EdgeLock = 'top' | 'top-left' | 'top-right' | 'right' | 'left' | 'bottom' | 'bottom-right' | 'bottom-left';
+
+	/**
+	 * Configuration options for styling text displays on a Diob.
+	 *
+	 * @example
+	 * ```ts
+	 * diob.textStyle = {
+	 *     fontFamily: 'Arial',
+	 *     fontSize: 16,
+	 *     fill: '#ffffff',
+	 *     stroke: '#000000',
+	 *     strokeThickness: 2,
+	 *     dropShadow: true
+	 * };
+	 * ```
+	 */
+	interface DiobTextStyle {
+		/**
+		 * Default font to be used for text displays.
+		 */
+		fontFamily?: string;
+		/**
+		 * Default size of font in pixels.
+		 */
+		fontSize?: number;
+		/**
+		 * Style of font; `'normal'`, `'italic'`, or `'oblique'`.
+		 */
+		fontStyle?: 'normal' | 'italic' | 'oblique';
+		/**
+		 * Variant of font; `'normal'` or `'small-caps'`.
+		 */
+		fontVariant?: 'normal' | 'small-caps';
+		/**
+		 * Weight of font; `'normal'`, `'bold'`, `'bolder'`, `'lighter'`, `'100'`, `'200'`, `'300'`, `'400'`, `'500'`, `'600'`, `'700'`, `'800'`, or `'900'`.
+		 */
+		fontWeight?: 'normal' | 'bold' | 'bolder' | 'lighter' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+		/**
+		 * Where vertically to start drawing the characters on the line; `'top'`, `'alphabetic'`, `'hanging'`, `'middle'`, `'ideographic'`, or `'bottom'`.
+		 */
+		textBaseline?: 'top' | 'alphabetic' | 'hanging' | 'middle' | 'ideographic' | 'bottom';
+		/**
+		 * Default color of text for this element; can be a color string, number, or an array of colors for gradients.
+		 */
+		fill?: string | string[] | number | number[];
+		/**
+		 * Fill gradient type: `0` for vertical gradient, `1` for horizontal. `fill` must be an array for gradients.
+		 */
+		fillGradientType?: number;
+		/**
+		 * If `fillGradientType` is set, an array of numbers from 0 to 1 defining gradient stop spacing.
+		 */
+		fillGradientStops?: number[];
+		/**
+		 * Style of text outline for this element; currently supports colors.
+		 */
+		stroke?: string | number;
+		/**
+		 * Width of text outline in pixels.
+		 */
+		strokeThickness?: number;
+		/**
+		 * Padding between the edge of the element and the text in pixels.
+		 */
+		padding?: number;
+		/**
+		 * Default spacing between each line of text.
+		 */
+		leading?: number;
+		/**
+		 * Default `0`. Space between each letter in pixels.
+		 */
+		letterSpacing?: number;
+		/**
+		 * Height of line in pixels.
+		 */
+		lineHeight?: number;
+		/**
+		 * Default `'miter'`. Type of corner used; `'miter'`, `'round'`, or `'bevel'`.
+		 */
+		lineJoin?: 'miter' | 'round' | 'bevel';
+		/**
+		 * Default `10`. Miter limit to use when `lineJoin` is `'miter'`.
+		 */
+		miterLimit?: number;
+		/**
+		 * Default `'left'`. Text alignment; `'left'`, `'right'`, `'center'`, `'start'`, or `'end'`.
+		 */
+		align?: 'left' | 'right' | 'center' | 'start' | 'end';
+		/**
+		 * Determines if lines can wrap between letters of a word.
+		 */
+		breakWords?: boolean;
+		/**
+		 * Enables a drop shadow effect on the text.
+		 */
+		dropShadow?: boolean;
+		/**
+		 * Alpha transparency of the drop shadow, from `0` to `1`.
+		 */
+		dropShadowAlpha?: number;
+		/**
+		 * Angle of the drop shadow in radians.
+		 */
+		dropShadowAngle?: number;
+		/**
+		 * Number representing drop shadow blur radius in pixels.
+		 */
+		dropShadowBlur?: number;
+		/**
+		 * Fill style/color to be used for the drop shadow.
+		 */
+		dropShadowColor?: string | number;
+		/**
+		 * Default `5`. Number representing distance of drop shadow in pixels.
+		 */
+		dropShadowDistance?: number;
+		/**
+		 * Boolean `true` or `false` to trim transparent borders.
+		 */
+		trim?: boolean;
+		/**
+		 * Default `false`. Boolean `true` or `false` to determine if lines should be broken after a certain width.
+		 */
+		wordWrap?: boolean;
+		/**
+		 * Default `100`. Number of pixels before word wrap triggers.
+		 */
+		wordWrapWidth?: number;
+		/**
+		 * Default `{'x': 0, 'y': 0}`. Object containing x and y anchor (e.g. `{'x': 0.5, 'y': 0.5}`).
+		 */
+		anchor?: Point2D | { x?: number; y?: number };
+		/**
+		 * Default `{'x': 1, 'y': 1}`. Object containing x and y scale (e.g. `{'x': 2, 'y': 2}`).
+		 */
+		scale?: Point2D | { x?: number; y?: number };
+		/**
+		 * Default `0`. Number of pixels to offset the text by on the x-axis.
+		 */
+		xPos?: number;
+		/**
+		 * Default `0`. Number of pixels to offset the text by on the y-axis.
+		 */
+		yPos?: number;
+		[key: string]: any;
+	}
+
+	/**
+	 * Configuration options for styling text displays on an Interface element.
+	 *
+	 * @example
+	 * ```ts
+	 * interfaceElement.textStyle = {
+	 *     fontFamily: 'Arial',
+	 *     fontSize: 14,
+	 *     fill: '#000000',
+	 *     padding: 4,
+	 *     align: 'center'
+	 * };
+	 * ```
+	 */
+	interface InterfaceTextStyle {
+		/**
+		 * Default font to be used for text displays.
+		 */
+		fontFamily?: string;
+		/**
+		 * Default size of font in pixels.
+		 */
+		fontSize?: number;
+		/**
+		 * Where vertically to start drawing the characters on the line; `'top'`, `'alphabetic'`, `'hanging'`, `'middle'`, `'ideographic'`, or `'bottom'`.
+		 */
+		textBaseline?: 'top' | 'alphabetic' | 'hanging' | 'middle' | 'ideographic' | 'bottom';
+		/**
+		 * Default color of text for this element.
+		 */
+		fill?: string | number;
+		/**
+		 * Style of text outline for this element; currently supports colors.
+		 */
+		stroke?: string | number;
+		/**
+		 * Width of text outline in pixels.
+		 */
+		strokeThickness?: number;
+		/**
+		 * Padding between the edge of the element and the text in pixels.
+		 */
+		padding?: number;
+		/**
+		 * Padding on left and right sides; overrides `padding`.
+		 */
+		hPadding?: number;
+		/**
+		 * Padding on top and bottom; overrides `padding`.
+		 */
+		vPadding?: number;
+		/**
+		 * Default spacing between each line of text.
+		 */
+		leading?: number;
+		/**
+		 * Name of the icon atlas to use as a bitmap font.
+		 */
+		bitmap?: string;
+		/**
+		 * `true` to turn bitmap text into appearMask icons, the text will apply its parent's appearance properties.
+		 */
+		bitMask?: boolean;
+		/**
+		 * Bitmaps only; default spacing between each character in pixels.
+		 */
+		charSpace?: number;
+		/**
+		 * Default `'left'`. Text alignment; possible values: `'left'`, `'right'`, `'center'`, `'start'`, `'end'`. Bitmaps only support `'left'` or `'right'`.
+		 */
+		align?: 'left' | 'right' | 'center' | 'start' | 'end';
+		/**
+		 * Default `0`. Number of pixels to offset the text by on the x-axis.
+		 */
+		xPos?: number;
+		/**
+		 * Default `0`. Number of pixels to offset the text by on the y-axis.
+		 */
+		yPos?: number;
+		/**
+		 * Maximum amount of characters allowed; currently only applies to input interface types.
+		 */
+		maxLength?: number;
+		[key: string]: any;
+	}
+
+	/**
 	 * Represents coordinate and dimensional dimensions for size calculations.
 	 */
 	interface Size2D {
@@ -144,14 +382,31 @@ declare global {
 
 	/**
 	 * Represents zoom configuration on the MapView.
+	 *
+	 * Controls the horizontal (`x`) and vertical (`y`) zoom scale factors.
+	 *
+	 * @example
+	 * ```ts
+	 * // Set uniform zoom
+	 * client.mapView.zoom.set(1.5, 1.5);
+	 *
+	 * // Inspect current zoom
+	 * console.log(`Zoom: ${client.mapView.zoom.x}, ${client.mapView.zoom.y}`);
+	 * ```
 	 */
 	interface MapViewZoomConfig {
-		/** Horizontal zoom factor. */
+		/** Horizontal zoom scale factor. */
 		x: number;
-		/** Vertical zoom factor. */
+		/** Vertical zoom scale factor. */
 		y: number;
-		/** Set both horizontal and vertical zoom factors. */
+		/**
+		 * Sets both horizontal and vertical zoom factors.
+		 *
+		 * @param {number} pX - Horizontal zoom factor.
+		 * @param {number} [pY] - Vertical zoom factor (defaults to pX).
+		 */
 		set?: (pX: number, pY?: number) => void;
+		/** Read-only flag identifying this as a MapViewZoom instance. */
 		readonly isMapViewZoom?: boolean;
 	}
 
@@ -211,7 +466,13 @@ declare global {
 		 */
 		yPos?: number;
 		/**
-		 * Map zoom configuration or numeric factor.
+		 * Map zoom configuration object (`{ x: number, y: number }`) or numeric zoom scale factor.
+		 *
+		 * @example
+		 * ```ts
+		 * client.setMapView({ zoom: 1.5 });
+		 * client.setMapView({ zoom: { x: 2, y: 2 } });
+		 * ```
 		 */
 		zoom?: number | Partial<MapViewZoomConfig>;
 		/**
@@ -243,9 +504,9 @@ declare global {
 		 */
 		autoZoomMulti?: number;
 		/**
-		 * When true, prevents the map view from automatically scaling with the window. Can also be set to `'fit'` to fit the viewport.
+		 * When true, prevents the map view from automatically scaling with the window.
 		 */
-		preventAutoScale?: boolean | 'fit';
+		preventAutoScale?: boolean;
 		/**
 		 * When true, prevents automatic resize recalculations on window resize.
 		 */
@@ -253,7 +514,7 @@ declare global {
 		/**
 		 * Edge lock constraints (e.g. `'bottom'`, `'right'`, etc.).
 		 */
-		edgeLock?: string | string[];
+		edgeLock?: EdgeLock | EdgeLock[];
 		/**
 		 * Callback invoked when auto-zoom level changes.
 		 */
@@ -290,7 +551,20 @@ declare global {
 		xEdgeLimit: number | null;
 		/** Number of blank tiles visible on the vertical map edges. */
 		yEdgeLimit: number | null;
-		/** Current zoom controller object. */
+		/**
+		 * Current zoom controller object for the MapView viewport.
+		 *
+		 * Allows getting or setting `x` and `y` zoom scale factors.
+		 *
+		 * @example
+		 * ```ts
+		 * // Set zoom
+		 * mapView.zoom.set(2, 2);
+		 *
+		 * // Inspect zoom values
+		 * console.log(`Horizontal zoom: ${mapView.zoom.x}, Vertical zoom: ${mapView.zoom.y}`);
+		 * ```
+		 */
 		zoom: MapViewZoomConfig;
 		/** Maximum zoom controller object. */
 		maxZoom: MapViewZoomLimit;
@@ -410,6 +684,78 @@ declare global {
 		 * Callback invoked when auto-scaling values change.
 		 */
 		onAutoScale?: (pOldScaleX: number, pOldScaleY: number) => void;
+		[key: string]: any;
+	}
+
+	/**
+	 * Renderer options and configuration for the client game canvas and graphics pipeline.
+	 *
+	 * @example
+	 * ```ts
+	 * VYLO.Client.renderOptions = {
+	 *     antialias: false,
+	 *     roundPixels: true,
+	 *     resolution: window.devicePixelRatio || 1
+	 * };
+	 * ```
+	 */
+	interface RenderOptions {
+		/**
+		 * When true, enables antialiasing on the canvas/WebGL renderer context.
+		 */
+		antialias?: boolean;
+		/**
+		 * When true, resizes the renderer view in CSS pixels to properly account for high-DPI displays and device pixel ratio.
+		 */
+		autoDensity?: boolean;
+		/**
+		 * The background color of the canvas renderer (hex number e.g. `0x000000` or hex/CSS string e.g. `'#000000'`).
+		 */
+		backgroundColor?: number | string;
+		/**
+		 * Transparency / alpha value of the renderer background canvas, ranging from `0` (fully transparent) to `1` (fully opaque).
+		 */
+		backgroundAlpha?: number;
+		/**
+		 * When true, clears the canvas renderer context before rendering each frame.
+		 */
+		clearBeforeRender?: boolean;
+		/**
+		 * When true, preserves the WebGL drawing buffer context (enables taking screenshots or extracting raw pixel data from the canvas).
+		 */
+		preserveDrawingBuffer?: boolean;
+		/**
+		 * Hint passed to WebGL context creation to specify performance or power preference (`'default'`, `'high-performance'`, or `'low-power'`).
+		 */
+		powerPreference?: 'default' | 'high-performance' | 'low-power';
+		/**
+		 * Resolution and device pixel ratio of the renderer. Defaults to `1` or `window.devicePixelRatio`.
+		 */
+		resolution?: number;
+		/**
+		 * When true, rounds display object coordinates to whole pixel integers to eliminate subpixel blurriness on pixel art.
+		 */
+		roundPixels?: boolean;
+		/**
+		 * Width of the renderer canvas view in pixels.
+		 */
+		width?: number;
+		/**
+		 * Height of the renderer canvas view in pixels.
+		 */
+		height?: number;
+		/**
+		 * The HTML canvas element used as the rendering target.
+		 */
+		view?: HTMLCanvasElement;
+		/**
+		 * Whether the WebGL context uses premultiplied alpha colors.
+		 */
+		premultipliedAlpha?: boolean;
+		/**
+		 * When true, outputs renderer banner and engine information to the browser console upon initialization.
+		 */
+		hello?: boolean;
 		[key: string]: any;
 	}
 
@@ -1606,11 +1952,23 @@ declare global {
 		preventInterpolation: boolean
 
         /**
-         * Default is `0`. Number of pixels to offset the text by on the y-axis.
+         * A JSON object containing typography, formatting, and rendering styles for this Diob's text display.
          *
          * @env Client | Server
+         *
+         * @example
+         * ```ts
+         * diob.textStyle = {
+         *     fontFamily: 'Arial',
+         *     fontSize: 16,
+         *     fill: '#ffffff',
+         *     stroke: '#000000',
+         *     strokeThickness: 2,
+         *     dropShadow: true
+         * };
+         * ```
          */
-		textStyle: object
+		textStyle: DiobTextStyle
 
         /**
          * Name of the type of the object.
@@ -3325,11 +3683,21 @@ declare global {
 		getInterfaceName(): string
 
         /**
-         * Default is `0`. Number of pixels to offset the text by on the y-axis.
+         * A JSON object containing typography, formatting, bitmap fonts, and layout styles for this interface element's text.
          *
          * @env Client | Server
+         *
+         * @example
+         * ```ts
+         * elem.textStyle = {
+         *     padding: 0,
+         *     fill: '#000000',
+         *     leading: 0,
+         *     align: 'center'
+         * };
+         * ```
          */
-		textStyle: object
+		textStyle: InterfaceTextStyle
 
         /**
          * Executes any default commands or custom executed event of object.
@@ -3370,11 +3738,11 @@ declare global {
 		yPos: number
 
         /**
-         * Locks the interface element to an edge of the screen. Only works if preventAutoScale is enabled. Possible values: top, top-left, top-right, right, left, bottom, bottom-right, bottom-left.
+         * Locks the interface element to an edge of the screen. Only works if preventAutoScale is enabled. Possible values: `'top'`, `'top-left'`, `'top-right'`, `'right'`, `'left'`, `'bottom'`, `'bottom-right'`, `'bottom-left'`.
          *
          * @env Client | Server
          */
-		edgeLock: 'top' | 'top-left' | 'top-right' | 'right' | 'left' | 'bottom' | 'bottom-right' | 'bottom-left'
+		edgeLock: EdgeLock
 
         /**
          * Type of interface. TextBox/CommandInput/TextInput/PassInput/WebBox/TextArea/Default.
@@ -5278,8 +5646,37 @@ declare global {
          * Active MapView viewport controller instance for this client, or a configuration object when configuring the type.
          *
          * @env Client | Server
+         *
+         * @example
+         * ```ts
+         * const mapView = VYLO.Client.mapView;
+         * mapView.zoom.set(1.5, 1.5);
+         * ```
          */
 		mapView: MapViewInstance | MapViewConfig
+
+        /**
+         * Alias for `mapView`. Active MapView viewport controller instance for this client.
+         *
+         * @env Client | Server
+         */
+		mapview?: MapViewInstance | MapViewConfig
+
+		/**
+		 * CLIENT-ONLY. Renderer configuration options for the client game canvas and graphics pipeline.
+		 *
+		 * @env Client
+		 *
+		 * @example
+		 * ```ts
+		 * VYLO.Client.renderOptions = {
+		 *     antialias: false,
+		 *     roundPixels: true,
+		 *     resolution: window.devicePixelRatio || 1
+		 * };
+		 * ```
+		 */
+		renderOptions?: RenderOptions
 
         /**
          * Called when a mouse button is pressed by this client anywhere on screen or over a diob.
@@ -7613,4 +8010,4 @@ declare global {
 }
 
 
-export { VyloType, World, Diob, MapObject, Movable, Particle, Tile, Region, Mob, Overlay, Sound, Interface, InterfacePane, WebBox, TextInput, Client, Resource, Util, Icon, IconAtlas, Macro, Type, ObjectType, MouseButton, MouseOpacity, Direction, Directions, MoveSettingsConfig, AppearMask, AppearMaskConfig };
+export { VyloType, World, Diob, MapObject, Movable, Particle, Tile, Region, Mob, Overlay, Sound, Interface, InterfacePane, WebBox, TextInput, Client, Resource, Util, Icon, IconAtlas, Macro, Type, ObjectType, MouseButton, MouseOpacity, Direction, Directions, MoveSettingsConfig, AppearMask, AppearMaskConfig, EdgeLock, DiobTextStyle, InterfaceTextStyle, MapViewZoomConfig, MapViewDimensionLimit, MapViewZoomLimit, MapViewPaddingConfig, MapViewConfig, MapViewInstance, ScreenView, RenderOptions };
